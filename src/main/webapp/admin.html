@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美食天地 - 后台管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        /* 后台管理专用样式 */
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        /* 侧边栏样式 */
+        .admin-sidebar {
+            width: 250px;
+            background-color: #664b2e;
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .menu-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .menu-item.active {
+            background-color: #f7941e;
+        }
+        
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* 主内容区域 */
+        .admin-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .content-header {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .content-title {
+            margin: 0;
+            color: #664b2e;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #d9b38c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        /* 统计卡片样式 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .stat-icon.users {
+            background-color: #f7941e;
+        }
+        
+        .stat-icon.recipes {
+            background-color: #8cc63f;
+        }
+        
+        .stat-icon.orders {
+            background-color: #00a0dc;
+        }
+        
+        .stat-icon.ingredients {
+            background-color: #9e1f63;
+        }
+        
+        .stat-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 28px;
+            color: #333;
+        }
+        
+        .stat-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 内容区域 */
+        .section {
+            background-color: white;
+            padding: 25px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .section h3 {
+            margin: 0 0 20px 0;
+            color: #664b2e;
+            border-bottom: 2px solid #f7941e;
+            padding-bottom: 10px;
+        }
+        
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .data-table th {
+            background-color: #f5f5f5;
+            color: #664b2e;
+            font-weight: bold;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background-color: #f7941e;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-secondary {
+            background-color: #8cc63f;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #74a837;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #f7941e;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* 登录页面样式 */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        .login-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-container h2 {
+            text-align: center;
+            color: #664b2e;
+            margin-bottom: 30px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo {
+            font-size: 48px;
+            color: #f7941e;
+            margin-bottom: 10px;
+        }
+        
+        .login-error {
+            background-color: #ffe6e6;
+            color: #e74c3c;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 60px;
+            }
+            
+            .sidebar-header span,
+            .menu-item span {
+                display: none;
+            }
+            
+            .admin-content {
+                margin-left: 60px;
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-table {
+                font-size: 12px;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        /* 隐藏内容区域的默认样式 */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面（默认显示） -->
+    <div id="loginSection" class="login-page">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <h2>后台管理登录</h2>
+            </div>
+            
+            <div id="loginError" class="login-error">用户名或密码错误</div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">登录</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 后台管理主页面（默认隐藏） -->
+    <div id="adminMain" style="display: none;">
+        <div class="admin-container">
+            <!-- 侧边栏 -->
+            <aside class="admin-sidebar">
+                <div class="sidebar-header">
+                    <h2>
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>后台管理</span>
+                    </h2>
+                </div>
+                
+                <ul class="sidebar-menu">
+                    <li class="menu-item active" data-target="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>仪表盘</span>
+                    </li>
+                    <li class="menu-item" data-target="users">
+                        <i class="fas fa-users"></i>
+                        <span>用户管理</span>
+                    </li>
+                    <li class="menu-item" data-target="recipes">
+                        <i class="fas fa-utensils"></i>
+                        <span>食谱管理</span>
+                    </li>
+                    <li class="menu-item" data-target="ingredients">
+                        <i class="fas fa-shopping-basket"></i>
+                        <span>食材管理</span>
+                    </li>
+                    <li class="menu-item" data-target="orders">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>订单管理</span>
+                    </li>
+                    <li class="menu-item" data-target="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>系统设置</span>
+                    </li>
+                </ul>
+            </aside>
+            
+            <!-- 主内容区域 -->
+            <main class="admin-content">
+                <header class="content-header">
+                    <h1 class="content-title">仪表盘</h1>
+                    <div class="user-info">
+                        <span>管理员</span>
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-secondary">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>退出</span>
+                        </button>
+                    </div>
+                </header>
+                
+                <!-- 仪表盘内容 -->
+                <div id="dashboard" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>1,284</h3>
+                                <p>用户总数</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon recipes">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>356</h3>
+                                <p>食谱数量</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orders">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>5,782</h3>
+                                <p>订单总数</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon ingredients">
+                                <i class="fas fa-shopping-basket"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>128</h3>
+                                <p>食材种类</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>最新订单</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>订单号</th>
+                                    <th>用户</th>
+                                    <th>金额</th>
+                                    <th>时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>OD-20240115-0001</td>
+                                    <td>张三</td>
+                                    <td>¥128.50</td>
+                                    <td>2024-01-15 10:30</td>
+                                    <td><span style="color: #27ae60;">已完成</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary">查看</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>OD-20240115-0002</td>
+                                    <td>李四</td>
+                                    <td>¥89.00</td>
+                                    <td>2024-01-15 09:15</td>
+                                    <td><span style="color: #f39c12;">处理中</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary">查看</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>OD-20240114-0005</td>
+                                    <td>王五</td>
+                                    <td>¥156.80</td>
+                                    <td>2024-01-14 18:45</td>
+                                    <td><span style="color: #3498db;">已发货</span></td>
+                                    <td>
+                                        <button class="btn btn-secondary">查看</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>最近添加的食谱</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>分类</th>
+                                    <th>作者</th>
+                                    <th>发布时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>RCP-001</td>
+                                    <td>番茄炒蛋</td>
+                                    <td>家常菜</td>
+                                    <td>系统</td>
+                                    <td>2024-01-15</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>RCP-002</td>
+                                    <td>香煎鸡胸肉</td>
+                                    <td>家常菜</td>
+                                    <td>系统</td>
+                                    <td>2024-01-15</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>RCP-003</td>
+                                    <td>香蕉松饼</td>
+                                    <td>甜点</td>
+                                    <td>系统</td>
+                                    <td>2024-01-14</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 用户管理内容 -->
+                <div id="users" class="tab-content">
+                    <div class="section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>用户列表</h3>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                <span>添加用户</span>
+                            </button>
+                        </div>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>邮箱</th>
+                                    <th>注册时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>U-001</td>
+                                    <td>张三</td>
+                                    <td>zhangsan@example.com</td>
+                                    <td>2024-01-01</td>
+                                    <td><span style="color: #27ae60;">正常</span></td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">禁用</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>U-002</td>
+                                    <td>李四</td>
+                                    <td>lisi@example.com</td>
+                                    <td>2024-01-02</td>
+                                    <td><span style="color: #27ae60;">正常</span></td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">禁用</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>U-003</td>
+                                    <td>王五</td>
+                                    <td>wangwu@example.com</td>
+                                    <td>2024-01-03</td>
+                                    <td><span style="color: #27ae60;">正常</span></td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">禁用</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 食谱管理内容 -->
+                <div id="recipes" class="tab-content">
+                    <div class="section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>食谱管理</h3>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                <span>添加食谱</span>
+                            </button>
+                        </div>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>分类</th>
+                                    <th>作者</th>
+                                    <th>发布时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>RCP-001</td>
+                                    <td>番茄炒蛋</td>
+                                    <td>家常菜</td>
+                                    <td>系统</td>
+                                    <td>2024-01-15</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>RCP-002</td>
+                                    <td>香煎鸡胸肉</td>
+                                    <td>家常菜</td>
+                                    <td>系统</td>
+                                    <td>2024-01-15</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>RCP-003</td>
+                                    <td>香蕉松饼</td>
+                                    <td>甜点</td>
+                                    <td>系统</td>
+                                    <td>2024-01-14</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 食材管理内容 -->
+                <div id="ingredients" class="tab-content">
+                    <div class="section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>食材管理</h3>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                <span>添加食材</span>
+                            </button>
+                        </div>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>分类</th>
+                                    <th>价格</th>
+                                    <th>库存</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>ING-001</td>
+                                    <td>番茄</td>
+                                    <td>蔬菜</td>
+                                    <td>¥5.00/斤</td>
+                                    <td>100</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ING-002</td>
+                                    <td>鸡蛋</td>
+                                    <td>蛋类</td>
+                                    <td>¥1.50/个</td>
+                                    <td>200</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>ING-003</td>
+                                    <td>鸡胸肉</td>
+                                    <td>肉类</td>
+                                    <td>¥25.00/斤</td>
+                                    <td>50</td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-danger">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 订单管理内容 -->
+                <div id="orders" class="tab-content">
+                    <div class="section">
+                        <h3>订单管理</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>订单号</th>
+                                    <th>用户</th>
+                                    <th>金额</th>
+                                    <th>时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>OD-20240115-0001</td>
+                                    <td>张三</td>
+                                    <td>¥128.50</td>
+                                    <td>2024-01-15 10:30</td>
+                                    <td><span style="color: #27ae60;">已完成</span></td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-secondary">详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>OD-20240115-0002</td>
+                                    <td>李四</td>
+                                    <td>¥89.00</td>
+                                    <td>2024-01-15 09:15</td>
+                                    <td><span style="color: #f39c12;">处理中</span></td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-secondary">详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>OD-20240114-0005</td>
+                                    <td>王五</td>
+                                    <td>¥156.80</td>
+                                    <td>2024-01-14 18:45</td>
+                                    <td><span style="color: #3498db;">已发货</span></td>
+                                    <td>
+                                        <button class="btn btn-primary">编辑</button>
+                                        <button class="btn btn-secondary">详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 系统设置内容 -->
+                <div id="settings" class="tab-content">
+                    <div class="section">
+                        <h3>系统设置</h3>
+                        <form>
+                            <div class="form-group">
+                                <label>网站名称</label>
+                                <input type="text" value="美食天地" placeholder="请输入网站名称">
+                            </div>
+                            <div class="form-group">
+                                <label>首页轮播图</label>
+                                <input type="file" multiple>
+                            </div>
+                            <div class="form-group">
+                                <label>网站描述</label>
+                                <textarea rows="4" placeholder="请输入网站描述">美食天地是一个集食谱分享、食材购买于一体的美食平台，致力于为用户提供丰富的美食资源和便捷的购物体验。</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>客服邮箱</label>
+                                <input type="email" value="support@meishitiandi.com" placeholder="请输入客服邮箱">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="static/js/admin.js"></script>
+</body>
+</html>

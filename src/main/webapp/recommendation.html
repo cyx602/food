@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美食天地 - 菜品推荐</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .page-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: #664b2e;
+            font-family: "楷体", sans-serif;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: #664b2e;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+
+        .featured-recipes {
+            display: grid;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .featured-recipe {
+            background-color: rgba(245, 230, 210, 0.95);
+            border: 1px solid #d9b38c;
+            border-radius: 10px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .recipe-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .recipe-content {
+            padding: 30px;
+        }
+
+        .recipe-title {
+            color: #664b2e;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .recipe-meta {
+            color: #f7941e;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .recipe-desc {
+            color: #664b2e;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .ingredients-section, .steps-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #f7941e;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #d9b38c;
+            padding-bottom: 5px;
+        }
+
+        .ingredients-list, .steps-list {
+            color: #664b2e;
+            line-height: 1.6;
+        }
+
+        .ingredients-list li, .steps-list li {
+            margin-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .favorite-btn, .buy-ingredients-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .favorite-btn {
+            background-color: #f7941e;
+            color: white;
+        }
+
+        .buy-ingredients-btn {
+            background-color: #8cc63f;
+            color: white;
+        }
+
+        .favorite-btn:hover {
+            background-color: #e67e22;
+        }
+
+        .buy-ingredients-btn:hover {
+            background-color: #74a837;
+        }
+
+        @media (max-width: 768px) {
+            .featured-recipe {
+                grid-template-columns: 1fr;
+            }
+
+            .recipe-image {
+                aspect-ratio: 16/9;
+            }
+        }
+
+        .recipe-detail-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-title">
+        <i class="fas fa-utensils"></i>
+        <span>美食天地</span>
+    </div>
+    <div class="nav-center">
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="cuisine.html">菜系分类</a></li>
+            <li><a href="recommendation.html" style="background-color: rgba(255,255,255,0.2);">菜品推荐</a></li>
+            <li><a href="market.html">食材商城</a></li>
+            <li><a href="my_recipes.html">我的食谱</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+            <li><a href="admin.html">后台管理</a></li>
+            <li id="authSection"><a href="register.html">登录/注册</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="page-container">
+    <h1 class="page-title">今日特色推荐</h1>
+    <p class="page-subtitle">精选热门菜品，附带详细做法，小白也能轻松上手</p>
+
+    <div class="featured-recipes" id="featuredRecipes">
+        <!-- 推荐菜品将通过JavaScript动态生成 -->
+    </div>
+</div>
+
+<footer class="footer">
+    <p>美食天地 - 每日新鲜推荐 | 联系我们：<a href="https://www.nchu.edu.cn/" target="_blank">南昌航空大学官网</a></p>
+</footer>
+
+<!-- 引入外部JavaScript文件 -->
+<script src="static/js/recommendation.js"></script>
+</body>
+</html>

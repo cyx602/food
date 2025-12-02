@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美食天地 - 我的食谱</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .page-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: #664b2e;
+            font-family: "楷体", sans-serif;
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .recipes-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .recipes-tab {
+            padding: 12px 25px;
+            background-color: rgba(245, 230, 210, 0.9);
+            border: 1px solid #d9b38c;
+            border-radius: 25px;
+            color: #664b2e;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .recipes-tab.active {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+        }
+
+        .recipes-tab:hover {
+            transform: translateY(-2px);
+        }
+
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .recipe-card {
+            background-color: rgba(245, 230, 210, 0.95);
+            border: 1px solid #d9b38c;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #f7941e;
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .recipe-info {
+            padding: 20px;
+        }
+
+        .recipe-title {
+            color: #664b2e;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .recipe-desc {
+            color: #664b2e;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .recipe-meta {
+            color: #f7941e;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .remove-favorite {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #ff6b6b;
+            transition: all 0.3s;
+        }
+
+        .remove-favorite:hover {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #664b2e;
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            color: #d9b38c;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .empty-desc {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .browse-btn {
+            background-color: #f7941e;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .browse-btn:hover {
+            background-color: #e67e22;
+        }
+
+        /* 复用模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: rgba(245, 230, 210, 0.98);
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            position: relative;
+            border: 2px solid #d9b38c;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            color: #664b2e;
+            cursor: pointer;
+        }
+
+        .recipe-detail-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .detail-title {
+            color: #664b2e;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .ingredients-section, .steps-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #f7941e;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #d9b38c;
+            padding-bottom: 5px;
+        }
+
+        .ingredients-list, .steps-list {
+            color: #664b2e;
+            line-height: 1.6;
+        }
+
+        .ingredients-list li, .steps-list li {
+            margin-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .cook-btn, .buy-ingredients-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cook-btn {
+            background-color: #f7941e;
+            color: white;
+        }
+
+        .buy-ingredients-btn {
+            background-color: #8cc63f;
+            color: white;
+        }
+
+        .cook-btn:hover {
+            background-color: #e67e22;
+        }
+
+        .buy-ingredients-btn:hover {
+            background-color: #74a837;
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .recipe-detail-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-title">
+        <i class="fas fa-utensils"></i>
+        <span>美食天地</span>
+    </div>
+    <div class="nav-center">
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="cuisine.html">菜系分类</a></li>
+            <li><a href="recommendation.html">菜品推荐</a></li>
+            <li><a href="market.html">食材商城</a></li>
+            <li><a href="my_recipes.html" style="background-color: rgba(255,255,255,0.2);">我的食谱</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+            <li><a href="admin.html">后台管理</a></li>
+            <li id="authSection"><a href="register.html">登录/注册</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="page-container">
+    <h1 class="page-title">我的专属食谱</h1>
+
+    <div class="recipes-tabs">
+        <div class="recipes-tab active" data-tab="favorites">收藏食谱</div>
+        <div class="recipes-tab" data-tab="created">我的创作</div>
+    </div>
+
+    <div class="recipes-grid" id="recipesGrid">
+        <!-- 食谱卡片将通过JavaScript动态生成 -->
+    </div>
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">
+            <i class="fas fa-heart"></i>
+        </div>
+        <h2 class="empty-title">还没有收藏的食谱</h2>
+        <p class="empty-desc">快去菜系分类或菜品推荐页面发现您喜欢的美食吧！</p>
+        <a href="cuisine.html" class="browse-btn">浏览菜谱</a>
+    </div>
+</div>
+
+<!-- 食谱详情模态框 -->
+<div class="modal" id="recipeModal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="modalContent">
+            <!-- 模态框内容将通过JavaScript动态生成 -->
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>美食天地 - 珍藏每一道美味 | 联系我们：<a href="https://www.nchu.edu.cn/" target="_blank">南昌航空大学官网</a></p>
+</footer>
+
+<script>
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', function() {
+        setupEventListeners();
+        displayFavorites();
+        checkLoginStatus();
+    });
+
+    // 设置事件监听器
+    function setupEventListeners() {
+        // 标签页点击事件
+        document.querySelectorAll('.recipes-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.recipes-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                switch(this.dataset.tab) {
+                    case 'favorites':
+                        displayFavorites();
+                        break;
+                    case 'created':
+                        displayCreated();
+                        break;
+                }
+            });
+        });
+
+        // 模态框关闭事件
+        document.querySelector('.close-modal').addEventListener('click', closeModal);
+        document.getElementById('recipeModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
+
+    // 显示收藏食谱
+    function displayFavorites() {
+        const favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+        displayRecipes(favorites, 'favorites');
+    }
+
+    // 功能已移除
+
+    // 显示我的创作
+    function displayCreated() {
+        const created = JSON.parse(localStorage.getItem('createdRecipes') || '[]');
+        displayRecipes(created, 'created');
+    }
+
+    // 显示食谱列表
+    function displayRecipes(recipes, type) {
+        const grid = document.getElementById('recipesGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        if (recipes.length === 0) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'block';
+
+            // 更新空状态信息
+            const icon = emptyState.querySelector('.empty-icon');
+            const title = emptyState.querySelector('.empty-title');
+            const desc = emptyState.querySelector('.empty-desc');
+            const button = emptyState.querySelector('.browse-btn');
+
+            switch(type) {
+                case 'favorites':
+                    icon.innerHTML = '<i class="fas fa-heart"></i>';
+                    title.textContent = '还没有收藏的食谱';
+                    desc.textContent = '快去菜系分类或菜品推荐页面发现您喜欢的美食吧！';
+                    button.textContent = '浏览菜谱';
+                    button.href = 'cuisine.html';
+                    break;
+                case 'created':
+                    icon.innerHTML = '<i class="fas fa-edit"></i>';
+                    title.textContent = '还没有创作食谱';
+                    desc.textContent = '创建您自己的特色食谱，与大家分享您的美食心得';
+                    button.textContent = '创建食谱';
+                    button.href = 'javascript:void(0)';
+                    button.onclick = createRecipe;
+                    break;
+            }
+        } else {
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            grid.innerHTML = '';
+
+            recipes.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card';
+                card.innerHTML = `
+                        ${type === 'favorites' ? `<button class="remove-favorite" onclick="removeFromFavorites(${recipe.id})"><i class="fas fa-times"></i></button>` : ''}
+                        <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="handleImageError(this)">
+                        <div class="recipe-info">
+                            <div class="recipe-title">${recipe.title}</div>
+                            <div class="recipe-meta">${getCuisineName(recipe.cuisine)} • ${recipe.time || '30分钟'}</div>
+                            <div class="recipe-desc">${recipe.description}</div>
+                        </div>
+                    `;
+                card.addEventListener('click', () => showRecipeDetail(recipe));
+                grid.appendChild(card);
+            });
+        }
+    }
+
+    // 获取菜系名称
+    function getCuisineName(cuisine) {
+        const names = {
+            'chinese': '中餐',
+            'western': '西餐',
+            'japanese': '日料',
+            'korean': '韩式',
+            'thai': '泰式',
+            'dessert': '甜点'
+        };
+        return names[cuisine] || cuisine;
+    }
+
+    // 添加到收藏
+    function addToFavorites(recipeId) {
+        // 检查登录状态
+        const isLoggedIn = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+        if (!isLoggedIn) {
+            alert('请先登录后再收藏食谱！');
+            return;
+        }
+        
+        // 在当前页面查找食谱（从收藏或我的创作中）
+        let allRecipes = [
+            ...JSON.parse(localStorage.getItem('favoriteRecipes') || '[]'),
+            ...JSON.parse(localStorage.getItem('createdRecipes') || '[]')
+        ];
+        
+        const recipe = allRecipes.find(r => r.id === recipeId);
+        if (!recipe) {
+            alert('未找到该食谱信息');
+            return;
+        }
+
+        let favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+        if (!favorites.find(fav => fav.id === recipeId)) {
+            favorites.push(recipe);
+            localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
+            alert('食谱已添加到收藏！');
+        } else {
+            alert('该食谱已经在您的收藏中了！');
+        }
+    }
+    
+    // 功能已移除
+    
+    // 显示食谱详情
+    function showRecipeDetail(recipe) {
+        const modal = document.getElementById('recipeModal');
+        const content = document.getElementById('modalContent');
+        
+        // 功能已移除
+
+        content.innerHTML = `
+                <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="handleImageError(this)">
+                <h2 class="detail-title">${recipe.title}</h2>
+                <div class="ingredients-section">
+                    <h3 class="section-title">所需食材</h3>
+                    <ul class="ingredients-list">
+                        ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="steps-section">
+                    <h3 class="section-title">制作步骤</h3>
+                    <ol class="steps-list">
+                        ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
+                    </ol>
+                </div>
+                <div class="action-buttons">
+                    <button class="cook-btn" onclick="startCooking(${recipe.id})">
+                        <i class="fas fa-utensils"></i> 开始烹饪
+                    </button>
+                    <button class="buy-ingredients-btn" onclick="buyIngredients(${recipe.id})">
+                        <i class="fas fa-shopping-cart"></i> 购买食材
+                    </button>
+                </div>
+            `;
+
+        modal.style.display = 'block';
+    }
+
+    // 关闭模态框
+    function closeModal() {
+        document.getElementById('recipeModal').style.display = 'none';
+    }
+
+    // 从收藏移除
+    function removeFromFavorites(recipeId) {
+        event.stopPropagation(); // 阻止事件冒泡
+        
+        // 检查登录状态
+        const isLoggedIn = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+        if (!isLoggedIn) {
+            alert('请先登录后再进行操作！');
+            return;
+        }
+
+        let favorites = JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+        favorites = favorites.filter(recipe => recipe.id !== recipeId);
+        localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
+
+        displayFavorites();
+    }
+
+    
+
+    // 开始烹饪
+    function startCooking(recipeId) {
+        alert('开始烹饪模式！祝您烹饪愉快！');
+        closeModal();
+    }
+
+    // 购买食材 - 修复版本
+function buyIngredients(recipeId) {
+    // 检查登录状态
+    const isLoggedIn = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+    if (!isLoggedIn) {
+        alert('请先登录后再购买食材！');
+        return;
+    }
+    
+    // 在当前页面查找食谱（从收藏或我的创作中）
+    let allRecipes = [
+            ...JSON.parse(localStorage.getItem('favoriteRecipes') || '[]'),
+            ...JSON.parse(localStorage.getItem('createdRecipes') || '[]')
+        ];
+    
+    const recipe = allRecipes.find(r => r.id === recipeId);
+    if (!recipe) {
+        alert('未找到该食谱信息');
+        return;
+    }
+
+    // 将食材添加到购物车
+    let cart = JSON.parse(localStorage.getItem('shoppingCart') || '[]');
+    recipe.ingredients.forEach(ingredient => {
+        const item = {
+            name: ingredient.split(' ')[1] || ingredient,
+            quantity: ingredient.split(' ')[0],
+            price: Math.random() * 10 + 5, // 模拟价格
+            recipe: recipe.title
+        };
+        cart.push(item);
+    });
+
+    localStorage.setItem('shoppingCart', JSON.stringify(cart));
+    alert('食材已添加到购物车！');
+
+    // 跳转到食材商城
+    window.location.href = 'market.html';
+}
+
+    // 创建食谱
+    function createRecipe() {
+        alert('食谱创作功能即将上线，敬请期待！');
+    }
+
+    // 检查登录状态
+    function checkLoginStatus() {
+        const isLoggedIn = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+        const authSection = document.getElementById('authSection');
+
+        if (isLoggedIn && authSection) {
+            authSection.style.display = 'none';
+        }
+    }
+
+    // 从其他页面复制的数据
+     const recipes = [
+        {
+            id: 1,
+            title: "宫保鸡丁",
+            cuisine: "chinese",
+            image: "static/image/kungpao_chicken.jpg",
+            description: "经典的川菜代表作，麻辣鲜香，鸡肉嫩滑，花生酥脆",
+            ingredients: [
+                "鸡胸肉 300g",
+                "花生米 50g",
+                "干辣椒 10个",
+                "花椒 1茶匙",
+                "大葱 1根",
+                "姜 3片",
+                "蒜 3瓣",
+                "生抽 2汤匙",
+                "老抽 1茶匙",
+                "醋 1汤匙",
+                "糖 1汤匙",
+                "料酒 1汤匙",
+                "淀粉 适量",
+                "盐 适量"
+            ],
+            steps: [
+                "鸡胸肉切丁，用料酒、淀粉、盐腌制15分钟",
+                "干辣椒剪段，大葱切段，姜蒜切末",
+                "热锅冷油，放入花生米小火炒香，捞出备用",
+                "锅中留底油，放入干辣椒和花椒炒香",
+                "加入鸡丁翻炒至变色",
+                "加入葱段、姜蒜末继续翻炒",
+                "调入生抽、老抽、糖、醋翻炒均匀",
+                "最后加入炒好的花生米，快速翻炒即可出锅"
+            ]
+        },
+        {
+            id: 2,
+            title: "意大利肉酱面",
+            cuisine: "western",
+            image: "static/image/spaghetti_bolognese.jpg",
+            description: "浓郁的番茄肉酱搭配弹牙的意大利面，经典西餐之选",
+            ingredients: [
+                "意大利面 200g",
+                "牛肉末 150g",
+                "猪肉末 100g",
+                "洋葱 1个",
+                "胡萝卜 1根",
+                "西芹 2根",
+                "番茄 3个",
+                "番茄酱 3汤匙",
+                "红酒 50ml",
+                "橄榄油 2汤匙",
+                "盐 适量",
+                "黑胡椒 适量",
+                "罗勒叶 适量",
+                "帕玛森奶酪 适量"
+            ],
+            steps: [
+                "洋葱、胡萝卜、西芹切碎，番茄去皮切块",
+                "锅中倒入橄榄油，炒香洋葱碎",
+                "加入牛肉末和猪肉末翻炒至变色",
+                "加入胡萝卜碎和西芹碎继续翻炒",
+                "倒入红酒，煮至酒精挥发",
+                "加入番茄块和番茄酱，小火炖煮1小时",
+                "同时煮意大利面，水中加盐，按包装说明时间煮",
+                "将煮好的意面与肉酱混合，撒上帕玛森奶酪和罗勒叶"
+            ]
+        },
+        {
+            id: 3,
+            title: "寿司拼盘",
+            cuisine: "japanese",
+            image: "static/image/sushi_platter.jpg",
+            description: "新鲜的生鱼片与醋饭的完美结合，日式料理的精髓",
+            ingredients: [
+                "寿司米 200g",
+                "三文鱼 100g",
+                "金枪鱼 100g",
+                "虾 6只",
+                "黄瓜 1根",
+                "鳄梨 1个",
+                "寿司醋 3汤匙",
+                "糖 1汤匙",
+                "盐 1茶匙",
+                "海苔 3张",
+                "芥末 适量",
+                "酱油 适量",
+                "姜片 适量"
+            ],
+            steps: [
+                "寿司米洗净，按1:1.2的比例加水煮熟",
+                "趁热加入寿司醋、糖、盐拌匀，放凉",
+                "三文鱼、金枪鱼切片，虾煮熟去壳",
+                "黄瓜、鳄梨切条",
+                "海苔铺在竹帘上，铺上寿司饭",
+                "放入喜欢的食材，卷紧成型",
+                "切成适当大小的寿司卷",
+                "摆盘，搭配芥末、酱油和姜片食用"
+            ]
+        },
+        {
+            id: 4,
+            title: "提拉米苏",
+            cuisine: "dessert",
+            image: "static/image/tiramisu.jpg",
+            description: "意大利经典甜品，咖啡与马斯卡彭的浪漫邂逅",
+            ingredients: [
+                "马斯卡彭奶酪 250g",
+                "手指饼干 200g",
+                "鸡蛋 3个",
+                "糖 60g",
+                "浓缩咖啡 200ml",
+                "咖啡酒 50ml",
+                "可可粉 适量",
+                "黑巧克力 适量"
+            ],
+            steps: [
+                "鸡蛋分离蛋黄和蛋白",
+                "蛋黄加糖打发至颜色变浅",
+                "加入马斯卡彭奶酪搅拌均匀",
+                "蛋白打发至硬性发泡，分次拌入奶酪糊",
+                "浓缩咖啡与咖啡酒混合",
+                "手指饼干快速蘸取咖啡液，铺在容器底部",
+                "铺一层奶酪糊，再铺一层蘸咖啡的手指饼干",
+                "最后铺上奶酪糊，冷藏4小时以上",
+                "食用前撒上可可粉和巧克力碎"
+            ]
+        },
+        {
+            id: 5,
+            title: "冬阴功汤",
+            cuisine: "thai",
+            image: "static/image/tom_yum_soup.jpg",
+            description: "泰式酸辣汤，香茅与柠檬叶的独特风味",
+            ingredients: [
+                "大虾 200g",
+                "蘑菇 100g",
+                "香茅 2根",
+                "柠檬叶 5片",
+                "青柠 2个",
+                "小米椒 3个",
+                "南姜 50g",
+                "鱼露 2汤匙",
+                "椰奶 100ml",
+                "香菜 适量",
+                "泰式辣酱 1汤匙"
+            ],
+            steps: [
+                "大虾去壳留尾，虾头备用",
+                "香茅拍松切段，南姜切片，小米椒切圈",
+                "锅中炒香虾头，加水煮10分钟制成虾汤",
+                "滤出虾汤，加入香茅、南姜、柠檬叶煮5分钟",
+                "加入蘑菇、虾仁煮熟",
+                "加入鱼露、泰式辣酱调味",
+                "关火后加入椰奶、青柠汁",
+                "撒上香菜和小米椒即可"
+            ]
+        },
+        {
+            id: 6,
+            title: "韩式炸鸡",
+            cuisine: "korean",
+            image: "static/image/韩式炸鸡.png",
+            description: "外酥里嫩，甜辣酱汁裹满每一块鸡肉",
+            ingredients: [
+                "鸡翅 500g",
+                "牛奶 200ml",
+                "面粉 100g",
+                "淀粉 50g",
+                "韩式辣酱 3汤匙",
+                "番茄酱 2汤匙",
+                "蜂蜜 2汤匙",
+                "蒜末 1汤匙",
+                "酱油 1汤匙",
+                "芝麻 适量",
+                "盐 适量",
+                "黑胡椒 适量"
+            ],
+            steps: [
+                "鸡翅用牛奶、盐、黑胡椒腌制2小时",
+                "面粉和淀粉混合，鸡翅裹上粉类",
+                "油温170度炸至金黄，捞出沥油",
+                "升高油温至180度，复炸1分钟使外皮更酥脆",
+                "锅中留底油，炒香蒜末",
+                "加入韩式辣酱、番茄酱、蜂蜜、酱油煮至浓稠",
+                "放入炸好的鸡翅快速翻炒，裹上酱汁",
+                "撒上芝麻即可食用"
+            ]
+        }
+    ];
+
+    const featuredRecipes = [
+        {
+            id: 101,
+            title: "新手零失败 - 番茄炒蛋",
+            cuisine: "chinese",
+            difficulty: "简单",
+            time: "15分钟",
+            image: "static/image/tomato_egg.jpg",
+            description: "国民家常菜，酸甜可口，营养丰富，最适合厨房新手入门",
+            ingredients: [
+                "鸡蛋 3个",
+                "番茄 2个",
+                "小葱 2根",
+                "糖 1茶匙",
+                "盐 适量",
+                "食用油 2汤匙",
+                "番茄酱 1汤匙（可选）"
+            ],
+            steps: [
+                "番茄洗净，顶部划十字，用开水烫一下去皮，切块备用",
+                "鸡蛋打入碗中，加少许盐打散",
+                "小葱切葱花，葱白和葱绿分开",
+                "热锅凉油，倒入蛋液，用筷子快速划散，炒至八成熟盛出",
+                "锅中再加少许油，爆香葱白",
+                "加入番茄块，中火翻炒至出汁",
+                "加入糖和盐调味，可加一勺番茄酱增加风味",
+                "倒入炒好的鸡蛋，快速翻炒均匀",
+                "撒上葱绿，出锅装盘"
+            ]
+        },
+        {
+            id: 102,
+            title: "健康低脂 - 香煎鸡胸肉",
+            cuisine: "western",
+            difficulty: "简单",
+            time: "20分钟",
+            image: "static/image/grilled_chicken.jpg",
+            description: "健身人士最爱，肉质鲜嫩多汁，告别干柴鸡胸肉",
+            ingredients: [
+                "鸡胸肉 1块（约200g）",
+                "橄榄油 1汤匙",
+                "黑胡椒 适量",
+                "盐 适量",
+                "蒜粉 1茶匙",
+                "迷迭香 少许",
+                "柠檬 半个"
+            ],
+            steps: [
+                "鸡胸肉横切成两片薄片，用刀背轻轻拍松",
+                "两面均匀撒上盐、黑胡椒、蒜粉，按摩入味",
+                "腌制15分钟（时间充裕可冷藏腌制更久）",
+                "平底锅预热，刷一层橄榄油",
+                "放入鸡胸肉，中火煎2-3分钟",
+                "翻面，撒上迷迭香，再煎2-3分钟",
+                "用筷子戳最厚处，能轻松穿透且流出清澈汁水即可",
+                "挤上柠檬汁，静置2分钟再切块"
+            ]
+        },
+        {
+            id: 103,
+            title: "快手早餐 - 香蕉松饼",
+            cuisine: "dessert",
+            difficulty: "简单",
+            time: "25分钟",
+            image: "static/image/banana_pancake.jpg",
+            description: "无需打发，零技巧松饼，香甜松软，孩子超爱吃",
+            ingredients: [
+                "香蕉 2根（熟透的）",
+                "鸡蛋 2个",
+                "牛奶 120ml",
+                "面粉 150g",
+                "泡打粉 1茶匙",
+                "糖 2汤匙",
+                "盐 一小撮",
+                "黄油 适量",
+                "蜂蜜 适量",
+                "水果 适量（装饰用）"
+            ],
+            steps: [
+                "香蕉用叉子压成泥状",
+                "加入鸡蛋、牛奶，搅拌均匀",
+                "筛入面粉、泡打粉，加入糖和盐",
+                "轻轻搅拌至无干粉即可（不要过度搅拌）",
+                "平底锅小火预热，刷薄薄一层黄油",
+                "舀一勺面糊倒入锅中，自然形成圆形",
+                "表面出现小气泡时翻面",
+                "另一面煎至金黄即可出锅",
+                "搭配蜂蜜和喜欢的水果享用"
+            ]
+        }
+    ];
+
+    // 在每个页面的script标签中添加
+function handleImageError(img) {
+    img.onerror = null;
+    img.src = 'static/image/default_food.jpg';
+}
+</script>
+</body>
+</html>

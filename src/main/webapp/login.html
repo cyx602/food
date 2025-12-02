@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美食天地 - 用户登录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <!-- 导航栏（与注册页一致） -->
+    <nav class="navbar">
+        <div class="nav-title">
+            <i class="fas fa-utensils"></i>
+            <span>美食天地</span>
+        </div>
+        <div class="nav-center">
+            <ul class="nav-links">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="cuisine.html">菜系分类</a></li>
+                <li><a href="recommendation.html">菜品推荐</a></li>
+                <li><a href="market.html">食材商城</a></li>
+                <li><a href="my_recipes.html">我的食谱</a></li>
+                <li><a href="profile.html">个人中心</a></li>
+                <li><a href="register.html">登录/注册</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 登录表单 -->
+    <main class="form-container">
+        <h2>美食爱好者登录</h2>
+        <form id="loginForm" >
+            <div class="form-group">
+                <label for="loginUsername">美食昵称：</label>
+                <input type="text" id="loginUsername" name="username" placeholder="请输入你的美食昵称">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">登录密码：</label>
+                <input type="password" id="loginPassword" name="password" placeholder="请输入登录密码">
+            </div>
+            <div class="form-row">
+                <!-- 复选框区域 -->
+                <div class="remember-wrap">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">下次自动登录</label>
+                </div>
+                <!-- 忘记密码链接 -->
+                <a href="#" class="forgot-link">忘记密码？</a>
+            </div>
+
+            <!-- 用户协议 -->
+            <p class="agree-text">登录即代表你同意美食天下《用户协议》和《隐私政策》</p>
+
+            <!-- 按钮区域 -->
+            <div class="form-actions">
+                <button type="submit" id="loginBtn" class="btn">登录</button>
+                <button type="button" id="loginResetBtn" class="btn">重置</button>
+            </div>
+            
+            <!-- 注册链接移到卡片右下角 -->
+            <div class="form-footer">
+                <a href="register.html" class="register-link">没有账号？去注册</a>
+            </div>
+        </form>
+    </main>
+    
+    <!-- 固定底部的联系信息 -->
+    <footer class="footer">
+        <p>联系我们：<a href="https://www.nchu.edu.cn/" target="_blank">南昌航空大学官网</a></p>
+    </footer>
+    
+    <script src="./static/js/login.js"></script>
+</body>
+</html>

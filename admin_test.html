@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-buttons {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .logout-btn {
+            background-color: #f44336;
+        }
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+        .guide {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>管理员功能测试工具</h1>
+    
+    <div class="test-buttons">
+        <button id="setAdminBtn">设置为管理员登录状态</button>
+        <button id="removeAdminBtn" class="logout-btn">取消管理员登录状态</button>
+        <button id="checkStatusBtn">检查当前状态</button>
+    </div>
+    
+    <div class="status" id="statusDisplay">
+        <p>当前状态：<span id="statusText">未检查</span></p>
+    </div>
+    
+    <div class="guide">
+        <h2>使用指南</h2>
+        <ol>
+            <li>点击「设置为管理员登录状态」按钮，模拟管理员登录</li>
+            <li>打开菜系分类页面（<a href="cuisine.html">cuisine.html</a>），应该可以看到删除按钮</li>
+            <li>打开菜品推荐页面（<a href="recommendation.html">recommendation.html</a>），应该可以看到删除按钮</li>
+            <li>测试删除功能，点击删除按钮并确认</li>
+            <li>完成测试后，可以点击「取消管理员登录状态」按钮</li>
+        </ol>
+    </div>
+    
+    <script>
+        // 设置管理员状态
+        document.getElementById('setAdminBtn').addEventListener('click', function() {
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            alert('已设置为管理员登录状态！');
+            updateStatus();
+        });
+        
+        // 取消管理员状态
+        document.getElementById('removeAdminBtn').addEventListener('click', function() {
+            sessionStorage.removeItem('adminLoggedIn');
+            alert('已取消管理员登录状态！');
+            updateStatus();
+        });
+        
+        // 检查当前状态
+        document.getElementById('checkStatusBtn').addEventListener('click', function() {
+            updateStatus();
+        });
+        
+        // 更新状态显示
+        function updateStatus() {
+            const isAdmin = sessionStorage.getItem('adminLoggedIn') === 'true';
+            const statusText = document.getElementById('statusText');
+            
+            if (isAdmin) {
+                statusText.textContent = '✅ 当前为管理员登录状态';
+                statusText.style.color = '#4CAF50';
+            } else {
+                statusText.textContent = '❌ 当前不是管理员登录状态';
+                statusText.style.color = '#f44336';
+            }
+            
+            console.log('管理员状态:', isAdmin);
+        }
+        
+        // 页面加载时检查状态
+        window.onload = updateStatus;
+    </script>
+</body>
+</html>

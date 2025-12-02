@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美食天地 - 首页</title>
+    <!-- 复用现有样式和图标库，确保风格统一 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        /* 首页专属样式：仅补充首页内容区样式，不修改原有色调 */
+        .home-banner {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: rgba(245, 230, 210, 0.9);
+            border-radius: 10px;
+            border: 1px solid #d9b38c;
+        }
+        .home-banner h1 {
+            color: #664b2e;
+            font-family: "楷体", sans-serif;
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        .home-banner p {
+            color: #664b2e;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        /* 功能卡片区：网格布局，展示核心功能 */
+        .home-cards {
+            max-width: 1200px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .home-card {
+            background-color: rgba(245, 230, 210, 0.95);
+            border: 1px solid #d9b38c;
+            border-radius: 8px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .home-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #f7941e;
+        }
+        .home-card i {
+            font-size: 40px;
+            color: #f7941e;
+            margin-bottom: 15px;
+        }
+        .home-card h3 {
+            color: #664b2e;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .home-card p {
+            color: #664b2e;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 修改导航栏部分 -->
+<nav class="navbar">
+    <div class="nav-title">
+        <i class="fas fa-utensils"></i>
+        <span>美食天地</span>
+    </div>
+    <div class="nav-center">
+        <ul class="nav-links">
+            <li><a href="index.html" style="background-color: rgba(255,255,255,0.2);">首页</a></li>
+            <li><a href="cuisine.html">菜系分类</a></li>
+            <li><a href="recommendation.html">菜品推荐</a></li>
+            <li><a href="market.html">食材商城</a></li>
+            <li><a href="my_recipes.html">我的食谱</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+            <li><a href="admin.html">后台管理</a></li>
+            <!-- 这里将根据登录状态决定是否显示 -->
+            <li id="authSection"><a href="register.html">登录/注册</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- 修改 Banner 区域 -->
+<div class="home-banner" id="homeBanner">
+    <h1>探索美食，享受生活</h1>
+    <p>汇聚全球美食食谱，严选新鲜食材，满足你的味蕾需求</p>
+    <a href="register.html" id="registerButton" style="background-color: #f7941e; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+        立即注册，开启美食之旅
+    </a>
+</div>
+
+    <!-- 首页功能卡片区：核心功能入口 -->
+    <!-- 功能卡片区：网格布局，展示核心功能（新增2个卡片，共6个） -->
+<div class="home-cards">
+    <!-- 原有卡片1：菜系分类 -->
+    <a href="cuisine.html" class="home-card">
+        <i class="fas fa-utensils"></i>
+        <h3>菜系分类</h3>
+        <p>涵盖中餐、西餐、日料等多种菜系，精准找到你爱吃的口味</p>
+    </a>
+    <!-- 原有卡片2：菜品推荐 -->
+    <a href="recommendation.html" class="home-card">
+        <i class="fas fa-clipboard-list"></i>
+        <h3>菜品推荐</h3>
+        <p>每日更新热门菜品，附带详细做法，小白也能轻松上手</p>
+    </a>
+    <!-- 原有卡片3：食材商城 -->
+    <a href="market.html" class="home-card">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>食材商城</h3>
+        <p>一键购买菜品所需食材，新鲜直达，无需出门</p>
+    </a>
+    <!-- 原有卡片4：我的食谱 -->
+    <a href="my_recipes.html" class="home-card">
+        <i class="fas fa-book-open"></i>
+        <h3>我的食谱</h3>
+        <p>收藏喜欢的菜品，记录自己的烹饪心得，打造专属食谱库</p>
+    </a>
+    <!-- 新增卡片5：后台管理 -->
+    <a href="profile.html" class="home-card">
+        <i class="fas fa-book-open"></i><!-- 仪表盘图标，贴合管理功能 -->
+        <h3>个人中心</h3>
+        <p>完善信息与饮食偏好，获取购物清单</p>
+    </a>
+    <!-- 新增卡片6：后台管理 -->
+    <a href="admin.html" class="home-card">
+        <i class="fas fa-tachometer-alt"></i> <!-- 仪表盘图标，贴合管理功能 -->
+        <h3>后台管理</h3>
+        <p>管理平台内容，查看数据统计，配置系统参数</p>
+    </a>
+</div>
+
+    <!-- 底部信息：与注册/登录页一致 -->
+    <footer class="footer">
+        <p>联系我们：<a href="https://www.nchu.edu.cn/" target="_blank">南昌航空大学官网</a></p>
+    </footer>
+</body>
+
+<script src="static/js/index.js"></script>
+</html>
