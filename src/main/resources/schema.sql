@@ -87,6 +87,17 @@ CREATE TABLE IF NOT EXISTS favorites (
     UNIQUE KEY unique_favorite (user_id, recipe_id)
 );
 
+-- 关注表：存储谁关注了谁
+CREATE TABLE IF NOT EXISTS follows (
+                                       id INT AUTO_INCREMENT PRIMARY KEY,
+                                       follower_id INT NOT NULL, -- 粉丝（我）
+                                       followed_id INT NOT NULL, -- 被关注者（大神）
+                                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                       UNIQUE KEY unique_follow (follower_id, followed_id), -- 防止重复关注
+    FOREIGN KEY (follower_id) REFERENCES users(id),
+    FOREIGN KEY (followed_id) REFERENCES users(id)
+    );
+
 -- 插入默认菜系数据
 INSERT INTO cuisines (name, code, description) VALUES
 ('中餐', 'chinese', '中国传统美食'),
@@ -233,3 +244,26 @@ INSERT INTO ingredients (id, name, category_id, price, unit, stock, image) VALUE
     { id: 46, name: "鱿鱼", category: "seafood", price: 38.9, image: "static/image/鱿鱼.png", unit: "500g", stock: 20 },
     { id: 47, name: "带鱼", category: "seafood", price: 32.5, image: "static/image/带鱼.png", unit: "500g", stock: 18 },
     { id: 48, name: "蛤蜊", category: "seafood", price: 18.9, image: "static/image/蛤蜊.png", unit: "500g", stock: 15 }
+
+
+CREATE TABLE IF NOT EXISTS cooking_records (
+                                               id INT AUTO_INCREMENT PRIMARY KEY,
+                                               user_id INT NOT NULL,
+                                               recipe_id INT NOT NULL,
+                                               note TEXT, -- 心得
+                                               image VARCHAR(200), -- 成品图
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id)
+    );
+
+-- 购物清单表
+CREATE TABLE IF NOT EXISTS shopping_list (
+                                             id INT AUTO_INCREMENT PRIMARY KEY,
+                                             user_id INT NOT NULL,
+                                             name VARCHAR(100) NOT NULL, -- 食材名称
+    quantity VARCHAR(50),       -- 用量（如 "500g", "2个"）
+    is_bought BOOLEAN DEFAULT FALSE, -- 状态：0=待买，1=已买
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    );

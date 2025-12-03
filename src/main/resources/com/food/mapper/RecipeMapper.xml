@@ -35,5 +35,17 @@
         WHERE r.id = #{id}
     </select>
 
+    <update id="updateRecipe" parameterType="com.food.entity.Recipe">
+        UPDATE recipes
+        SET title = #{title},
+            cuisine_id = #{cuisineId},
+            image = #{image},
+            description = #{description},
+            ingredients = #{ingredients},
+            steps = #{steps},
+            updated_at = NOW()
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
+
 
 </mapper>

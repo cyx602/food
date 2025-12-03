@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.FollowMapper">
+
+    <insert id="insertFollow">
+        INSERT IGNORE INTO follows (follower_id, followed_id, created_at)
+        VALUES (#{followerId}, #{followedId}, NOW())
+    </insert>
+
+    <delete id="deleteFollow">
+        DELETE FROM follows
+        WHERE follower_id = #{followerId} AND followed_id = #{followedId}
+    </delete>
+
+    <select id="checkFollow" resultType="int">
+        SELECT COUNT(*) FROM follows
+        WHERE follower_id = #{followerId} AND followed_id = #{followedId}
+    </select>
+
+    <select id="selectFollowedRecipes" resultType="com.food.entity.Recipe">
+        SELECT r.*, u.username as authorName, u.avatar_file_name as authorAvatar
+        FROM recipes r
+                 JOIN users u ON r.user_id = u.id
+                 JOIN follows f ON r.user_id = f.followed_id
+        WHERE f.follower_id = #{userId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="selectFollowing" resultType="com.food.entity.User">
+        SELECT u.id, u.username, u.avatar_file_name AS avatarFileName
+        FROM users u
+                 JOIN follows f ON u.id = f.followed_id
+        WHERE f.follower_id = #{userId}
+    </select>
+
+</mapper>

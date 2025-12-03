@@ -86,18 +86,34 @@ document.addEventListener('DOMContentLoaded', function() {
     checkLoginStatus();
 });
 
+
 // 显示分类
 function displayCategories() {
     const container = document.getElementById('categories');
+    container.innerHTML = ''; // 清空容器，防止重复添加
 
-    // 首先添加购物车按钮
+    // 1. 添加【购物清单】按钮 (新增入口)
+    const listBtn = document.createElement('button');
+    listBtn.className = 'cart-btn'; // 复用购物车按钮的基础样式
+    // 单独设置颜色为蓝色，以便区分
+    listBtn.style.backgroundColor = '#3498db';
+    listBtn.style.borderColor = '#2980b9';
+    listBtn.style.marginRight = '10px'; // 与购物车按钮保持间距
+    listBtn.innerHTML = '<i class="fas fa-clipboard-list"></i> 待买清单';
+    listBtn.onclick = function() {
+        // 跳转到我们刚刚创建的 shopping_list.html
+        window.location.href = 'shopping_list.html';
+    };
+    container.appendChild(listBtn);
+
+    // 2. 添加【购物车】按钮 (原有)
     const cartBtn = document.createElement('button');
     cartBtn.className = 'cart-btn';
     cartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> 购物车';
     cartBtn.addEventListener('click', showCart);
     container.appendChild(cartBtn);
 
-    // 然后添加其他分类
+    // 3. 添加商品分类标签 (原有)
     categories.forEach(category => {
         const categoryElement = document.createElement('div');
         categoryElement.className = `category ${category.id === 'all' ? 'active' : ''}`;
@@ -448,3 +464,5 @@ function checkLoginStatus() {
         authSection.style.display = 'none';
     }
 }
+
+

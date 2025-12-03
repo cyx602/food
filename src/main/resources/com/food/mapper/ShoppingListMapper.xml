@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.ShoppingListMapper">
+
+    <select id="selectByUserId" resultType="com.food.entity.ShoppingItem">
+        SELECT * FROM shopping_list WHERE user_id = #{userId} ORDER BY is_bought ASC, created_at DESC
+    </select>
+
+    <insert id="insertItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shopping_list (user_id, name, quantity) VALUES (#{userId}, #{name}, #{quantity})
+    </insert>
+
+    <insert id="batchInsertItems">
+        INSERT INTO shopping_list (user_id, name, quantity) VALUES
+        <foreach collection="items" item="item" separator=",">
+            (#{item.userId}, #{item.name}, #{item.quantity})
+        </foreach>
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE shopping_list SET is_bought = #{isBought} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteItem">
+        DELETE FROM shopping_list WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteBoughtItems">
+        DELETE FROM shopping_list WHERE user_id = #{userId} AND is_bought = TRUE
+    </delete>
+
+</mapper>

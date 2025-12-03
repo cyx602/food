@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.CookingRecordMapper">
+    <insert id="insertRecord" parameterType="com.food.entity.CookingRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cooking_records (user_id, recipe_id, note, image, created_at)
+        VALUES (#{userId}, #{recipeId}, #{note}, #{image}, NOW())
+    </insert>
+
+    <select id="selectByRecipeId" resultType="com.food.entity.CookingRecord">
+        SELECT cr.*, u.username, u.avatar_file_name AS userAvatar
+        FROM cooking_records cr
+                 LEFT JOIN users u ON cr.user_id = u.id
+        WHERE cr.recipe_id = #{recipeId}
+        ORDER BY cr.created_at DESC
+    </select>
+</mapper>

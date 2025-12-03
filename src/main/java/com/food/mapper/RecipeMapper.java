@@ -17,6 +17,9 @@ public interface RecipeMapper {
     // 获取用户收藏列表（需要关联查询食谱表，这里简化返回ID列表）
     List<Integer> selectFavoriteRecipeIds(@Param("userId") int userId);
 
+    // 添加更新方法
+    void updateRecipe(Recipe recipe);
+
     void insertRecipe(Recipe recipe);
     List<Recipe> selectRecipesByUserId(@Param("userId") int userId);
     Recipe selectRecipeById(@Param("id") int id);

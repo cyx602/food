@@ -295,6 +295,7 @@
             <li><a href="recommendation.html">菜品推荐</a></li>
             <li><a href="market.html">食材商城</a></li>
             <li><a href="my_recipes.html" style="background-color: rgba(255,255,255,0.2);">我的食谱</a></li>
+            <li><a href="feed.html">动态圈</a></li>
             <li><a href="profile.html">个人中心</a></li>
             <li><a href="admin.html">后台管理</a></li>
             <li id="authSection"><a href="register.html">登录/注册</a></li>
@@ -470,16 +471,29 @@
             recipes.forEach(recipe => {
                 const card = document.createElement('div');
                 card.className = 'recipe-card';
+
+                // 如果是“我的创作” (type === 'created')，显示编辑按钮
+                let actionBtnHtml = '';
+                if (type === 'created') {
+                    // 阻止冒泡：点击编辑不进入详情
+                    actionBtnHtml = `
+            <button class="edit-btn-float" onclick="event.stopPropagation(); window.location.href='edit_recipe.html?id=${recipe.id}'">
+                <i class="fas fa-edit"></i> 编辑
+            </button>`;
+                } else if (type === 'favorites') {
+                    actionBtnHtml = `<button class="remove-favorite" onclick="removeFromFavorites(${recipe.id})"><i class="fas fa-times"></i></button>`;
+                }
+
                 card.innerHTML = `
-                        ${type === 'favorites' ? `<button class="remove-favorite" onclick="removeFromFavorites(${recipe.id})"><i class="fas fa-times"></i></button>` : ''}
-                        <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="handleImageError(this)">
-                        <div class="recipe-info">
-                            <div class="recipe-title">${recipe.title}</div>
-                            <div class="recipe-meta">${getCuisineName(recipe.cuisine)} • ${recipe.time || '30分钟'}</div>
-                            <div class="recipe-desc">${recipe.description}</div>
-                        </div>
-                    `;
-                card.addEventListener('click', () => showRecipeDetail(recipe));
+            ${actionBtnHtml}
+            <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="handleImageError(this)">
+            <div class="recipe-info">
+                <div class="recipe-title">${recipe.title}</div>
+                <div class="recipe-meta">${getCuisineName(recipe.cuisineId)}</div>
+                <div class="recipe-desc">${recipe.description}</div>
+            </div>
+        `;
+                card.addEventListener('click', () => showRecipeDetail(recipe)); // 这里的 showRecipeDetail 需要确保用的是 cuisine.js 里的新版
                 grid.appendChild(card);
             });
         }

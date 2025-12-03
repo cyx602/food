@@ -643,3 +643,23 @@ body {
     min-height: 60px;
     margin-bottom: 10px;
 }
+
+/* 添加到 style.css */
+.edit-btn-float {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #f7941e;
+    color: #f7941e;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 5;
+    transition: all 0.3s;
+}
+.edit-btn-float:hover {
+    background-color: #f7941e;
+    color: white;
+}

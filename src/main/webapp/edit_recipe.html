@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑食谱 - 美食天地</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        /* 复用 create_recipe.html 的样式 */
+        .publish-container { max-width: 800px; margin: 30px auto; background: rgba(245,230,210,0.95); padding: 40px; border-radius: 10px; border: 1px solid #d9b38c; }
+        .form-section { margin-bottom: 30px; }
+        .form-label { display: block; margin-bottom: 10px; color: #664b2e; font-weight: bold; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #d9b38c; border-radius: 5px; font-size: 16px; }
+        .image-upload-box { border: 2px dashed #d9b38c; padding: 40px; text-align: center; cursor: pointer; background: #fff; transition: 0.3s; position: relative; }
+        .image-upload-box:hover { border-color: #f7941e; background: #fff9f0; }
+        .preview-img { max-width: 100%; max-height: 300px; margin-top: 20px; border-radius: 5px; display: none; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-title"><i class="fas fa-utensils"></i><span>美食天地</span></div>
+    <div class="nav-center">
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="my_recipes.html">我的食谱</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="publish-container">
+    <h2 style="text-align: center; color: #664b2e; margin-bottom: 30px;">编辑食谱</h2>
+
+    <form id="editForm">
+        <input type="hidden" id="recipeId">
+        <div class="form-section">
+            <label class="form-label">食谱封面图</label>
+            <div class="image-upload-box" onclick="document.getElementById('recipeImage').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #d9b38c;"></i>
+                <p>点击更换图片</p>
+                <input type="file" id="recipeImage" accept="image/*" style="display: none" onchange="previewImage(this)">
+            </div>
+            <img id="imgPreview" class="preview-img">
+            <input type="hidden" id="imagePath">
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">食谱标题</label>
+            <input type="text" id="title" class="form-input" required>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">所属菜系</label>
+            <select id="cuisineId" class="form-input">
+                <option value="1">中餐</option>
+                <option value="2">西餐</option>
+                <option value="3">日料</option>
+                <option value="4">韩式</option>
+                <option value="5">泰式</option>
+                <option value="6">甜点</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">食谱简介</label>
+            <textarea id="description" class="form-input" rows="3"></textarea>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">所需食材</label>
+            <textarea id="ingredients" class="form-input" rows="4"></textarea>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">烹饪步骤</label>
+            <textarea id="steps" class="form-input" rows="6"></textarea>
+        </div>
+
+        <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="padding: 15px 50px; font-size: 18px;">保存修改</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 1. 获取URL参数中的ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const recipeId = urlParams.get('id');
+
+    // 2. 加载食谱详情并回显
+    window.addEventListener('DOMContentLoaded', async () => {
+        if(!recipeId) {
+            alert('参数错误');
+            window.location.href = 'my_recipes.html';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/recipe/${recipeId}`);
+            if(!res.ok) throw new Error('加载失败');
+            const recipe = await res.json();
+
+            // 填充表单
+            document.getElementById('recipeId').value = recipe.id;
+            document.getElementById('title').value = recipe.title;
+            document.getElementById('cuisineId').value = recipe.cuisineId;
+            document.getElementById('description').value = recipe.description;
+            document.getElementById('ingredients').value = recipe.ingredients;
+            document.getElementById('steps').value = recipe.steps;
+
+            if(recipe.image) {
+                document.getElementById('imagePath').value = recipe.image;
+                const img = document.getElementById('imgPreview');
+                img.src = recipe.image;
+                img.style.display = 'block';
+            }
+        } catch(e) {
+            console.error(e);
+            alert('加载食谱数据失败');
+        }
+    });
+
+    // 3. 图片预览与上传逻辑 (复用)
+    async function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('imgPreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append('avatar', file);
+            try {
+                const res = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('imagePath').value = 'static/upload/' + data.fileName;
+                }
+            } catch(e) { console.error(e); }
+        }
+    }
+
+    // 4. 提交修改
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const data = {
+            id: document.getElementById('recipeId').value,
+            title: document.getElementById('title').value,
+            cuisineId: parseInt(document.getElementById('cuisineId').value),
+            image: document.getElementById('imagePath').value,
+            description: document.getElementById('description').value,
+            ingredients: document.getElementById('ingredients').value,
+            steps: document.getElementById('steps').value
+        };
+
+        try {
+            const res = await fetch('/api/recipe/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+
+            if(result.success) {
+                alert('修改成功！');
+                window.location.href = 'my_recipes.html';
+            } else {
+                alert(result.message);
+            }
+        } catch(e) {
+            alert('网络错误');
+        }
+    });
+</script>
+</body>
+</html>

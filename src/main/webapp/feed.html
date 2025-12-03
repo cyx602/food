@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>好友动态 - 美食天地</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .feed-container { max-width: 800px; margin: 30px auto; }
+        .feed-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+        }
+        .feed-header { display: flex; align-items: center; margin-bottom: 15px; }
+        .feed-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;}
+        .feed-user { font-weight: bold; color: #664b2e; }
+        .feed-time { color: #999; font-size: 12px; margin-left: auto; }
+        .feed-content { display: flex; gap: 20px; }
+        .feed-img { width: 200px; height: 150px; object-fit: cover; border-radius: 5px; cursor: pointer; }
+        .feed-info h3 { margin: 0 0 10px 0; color: #333; cursor: pointer; }
+        .feed-info p { color: #666; font-size: 14px; line-height: 1.5; }
+        .empty-feed { text-align: center; padding: 50px; color: #999; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-title"><i class="fas fa-utensils"></i><span>美食天地</span></div>
+    <div class="nav-center">
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="feed.html" style="background-color: rgba(255,255,255,0.2);">动态圈</a></li>
+            <li><a href="my_recipes.html">我的食谱</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="page-container feed-container">
+    <h1 class="page-title">关注动态</h1>
+
+    <div id="feedList">
+        <p style="text-align: center;">加载中...</p>
+    </div>
+</div>
+
+<div class="modal" id="recipeModal">
+    <div class="modal-content">
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<script src="static/js/cuisine.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const container = document.getElementById('feedList');
+
+        try {
+            const res = await fetch('/api/follow/feed');
+            if(res.status === 401) {
+                container.innerHTML = '<div class="empty-feed"><h3>请先登录查看好友动态</h3><a href="login.html" class="btn btn-primary">去登录</a></div>';
+                return;
+            }
+
+            const recipes = await res.json();
+
+            if(recipes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-feed">
+                        <i class="fas fa-user-friends" style="font-size: 50px; margin-bottom: 20px;"></i>
+                        <p>你的动态圈空空如也</p>
+                        <p>快去 <a href="cuisine.html" style="color:#f7941e">发现页</a> 关注一些美食达人吧！</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = recipes.map(r => `
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <img src="${r.authorAvatar ? 'static/upload/'+r.authorAvatar : 'static/image/default_avatar.jpg'}" class="feed-avatar">
+                        <div>
+                            <div class="feed-user">${r.authorName}</div>
+                            <div style="font-size:12px; color:#888;">发布了一道新菜</div>
+                        </div>
+                        <div class="feed-time">${new Date(r.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div class="feed-content">
+                        <img src="${r.image}" class="feed-img" onclick="showRecipeDetails(${r.id})">
+                        <div class="feed-info">
+                            <h3 onclick="showRecipeDetails(${r.id})">${r.title}</h3>
+                            <p>${r.description}</p>
+                            <div style="margin-top:10px;">
+                                <button class="btn btn-sm btn-secondary" onclick="showRecipeDetails(${r.id})">
+                                    <i class="far fa-comment"></i> 评论
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = '<p style="color:red; text-align:center;">加载失败</p>';
+        }
+    });
+</script>
+</body>
+</html>

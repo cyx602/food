@@ -936,69 +936,165 @@ function generatePagination() {
 
 // 显示食谱详情
 // 显示食谱详情（含评论功能）
-function showRecipeDetails(recipeId) {
-    // 1. 获取基础食谱信息 (这里假设从 recipes 数组获取，实际项目可能需要从后端获取详情)
-    const recipe = recipes.find(r => r.id === recipeId);
+async function showRecipeDetails(recipeId) {
+    // 1. 获取食谱详情（改为从后端获取，以确保拿到最新的作者ID）
+    // 注意：需要在 RecipeController 中确保返回了 userId 和 authorName
+    let recipe;
+    try {
+        const res = await fetch(`/api/recipe/${recipeId}`);
+        if (!res.ok) throw new Error('食谱不存在');
+        recipe = await res.json();
+    } catch (e) {
+        // 如果后端还没准备好，回退到静态数据（仅用于演示，实际应完全依赖后端）
+        console.warn("使用本地数据回退");
+        recipe = recipes.find(r => r.id === recipeId);
+    }
+
     if (!recipe) return;
 
     const modalContent = document.getElementById('modalContent');
     const recipeModal = document.getElementById('recipeModal');
+    const cuisineName = getCuisineName(recipe.cuisineId ? String(recipe.cuisineId) : recipe.cuisine); // 兼容新旧数据格式
 
-    // 获取菜系名称
-    const cuisineName = getCuisineName(recipe.cuisine);
-
-    // 2. 构建详情页 HTML (增加了评论区容器)
+    // 2. 构建 HTML
     modalContent.innerHTML = `
         <div class="close-modal" onclick="closeRecipeModal()">&times;</div>
         
-        <img src="${recipe.image}" alt="${recipe.title}" class="recipe-detail-image" onerror="handleImageError(this)">
+        <div class="recipe-header" style="display:flex; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+            <img src="${recipe.authorAvatar ? 'static/upload/'+recipe.authorAvatar : 'static/image/default_avatar.jpg'}" 
+                 style="width:50px; height:50px; border-radius:50%; margin-right:10px; object-fit:cover;">
+            <div style="flex:1;">
+                <div style="font-weight:bold; color:#664b2e; font-size:16px;">${recipe.authorName || '美食达人'}</div>
+                <div style="font-size:12px; color:#999;">发布于 ${new Date(recipe.createdAt || Date.now()).toLocaleDateString()}</div>
+            </div>
+            <button id="followBtn-${recipe.userId}" class="btn btn-secondary btn-sm" onclick="toggleFollow(${recipe.userId})" style="padding:5px 15px; font-size:12px;">
+                <i class="fas fa-plus"></i> 关注
+            </button>
+        </div>
+
+        <img src="${recipe.image}" class="recipe-detail-image" onerror="handleImageError(this)">
         <h2 class="detail-title">${recipe.title}</h2>
+        
         <div class="cuisine-info">
             <span class="cuisine-tag">${cuisineName}</span>
-            ${recipe.difficulty ? `<span class="cuisine-tag">${recipe.difficulty}</span>` : ''}
-            ${recipe.time ? `<span class="cuisine-tag">${recipe.time}</span>` : ''}
         </div>
         <p class="recipe-desc">${recipe.description}</p>
         
         <div class="ingredients-section">
             <h3 class="section-title">所需食材</h3>
-            <ul class="ingredients-list">
-                ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
-            </ul>
+            <p style="white-space: pre-wrap; color:#666;">${recipe.ingredients}</p>
         </div>
         
         <div class="steps-section">
             <h3 class="section-title">制作步骤</h3>
-            <ol class="steps-list">
-                ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
-            </ol>
+            <p style="white-space: pre-wrap; color:#666;">${recipe.steps}</p>
         </div>
 
-        <div class="comments-section">
-            <h3 class="section-title">食客评价</h3>
+        <div class="comments-section" id="commentsSection"></div>
+        
+        <div class="records-section" style="margin: 30px 0; border-top: 2px dashed #d9b38c; padding-top: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 class="section-title" style="margin:0; border:none;">大家的作业</h3>
+                <button class="btn btn-primary btn-sm" onclick="showUploadRecordModal(${recipe.id})">
+                    <i class="fas fa-camera"></i> 交作业
+                </button>
+            </div>
             
-            <div id="commentListContainer">
-                <p style="text-align:center; color:#888;">正在加载评论...</p>
+            <div id="recordListContainer" style="display:flex; gap:15px; overflow-x:auto; padding-bottom:10px;">
+                <p style="color:#999; font-size:14px;">暂无作业，快来抢沙发！</p>
             </div>
-
-            <div class="comment-form-container">
-                <select id="newRating" class="rating-select">
-                    <option value="5">⭐⭐⭐⭐⭐ (5分 - 完美)</option>
-                    <option value="4">⭐⭐⭐⭐ (4分 - 满意)</option>
-                    <option value="3">⭐⭐⭐ (3分 - 一般)</option>
-                    <option value="2">⭐⭐ (2分 - 失望)</option>
-                    <option value="1">⭐ (1分 - 极差)</option>
-                </select>
-                <textarea id="newCommentContent" class="comment-textarea" placeholder="分享你的烹饪心得，或者给作者点个赞..."></textarea>
-                <button class="btn-primary" onclick="submitComment(${recipe.id})" style="width:100%">发表评论</button>
-            </div>
+        </div>
+        
+        // 在 action-buttons 区域添加按钮
+        <div class="action-buttons">
+            <button class="cook-btn" onclick="startCooking(${recipe.id || 'null'})">
+                <i class="fas fa-utensils"></i> 开始烹饪
+            </button>
+            <button class="buy-ingredients-btn" style="background-color: #3498db;" onclick="addRecipeToShoppingList('${recipe.title}', '${recipe.ingredients}')">
+                <i class="fas fa-clipboard-list"></i> 加入清单
+            </button>
         </div>
     `;
 
-    recipeModal.style.display = 'flex';
+    // 3. 检查关注状态 (如果是作者本人，隐藏关注按钮)
+    checkFollowStatus(recipe.userId);
 
-    // 3. 异步加载评论数据
-    loadComments(recipeId);
+    // 4. 加载评论 (复用之前的逻辑)
+    if(typeof loadComments === 'function') {
+        // 重新构建评论区结构
+        document.getElementById('commentsSection').innerHTML = `
+            <h3 class="section-title">食客评价</h3>
+            <div id="commentListContainer"></div>
+            <div class="comment-form-container">
+                <select id="newRating" class="rating-select"><option value="5">5分</option></select>
+                <textarea id="newCommentContent" class="comment-textarea"></textarea>
+                <button class="btn-primary" onclick="submitComment(${recipe.id})" style="width:100%">发表评论</button>
+            </div>
+        `;
+        loadComments(recipe.id);
+    }
+
+    recipeModal.style.display = 'flex';
+    // 加载作业记录
+    loadCookingRecords(recipe.id);
+}
+
+// 检查关注状态
+async function checkFollowStatus(targetUserId) {
+    const btn = document.getElementById(`followBtn-${targetUserId}`);
+    if(!btn) return;
+
+    // 获取当前用户ID (这一步可以通过 API /api/current-user 获取，或者直接发请求由后端判断)
+    try {
+        const res = await fetch(`/api/follow/status?targetUserId=${targetUserId}`);
+        const data = await res.json();
+
+        if (data.isFollowing) {
+            updateFollowBtnStyle(btn, true);
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// 切换关注
+async function toggleFollow(targetUserId) {
+    const btn = document.getElementById(`followBtn-${targetUserId}`);
+
+    try {
+        const res = await fetch('/api/follow/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetUserId: targetUserId })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const isFollowing = data.status === 'followed';
+            updateFollowBtnStyle(btn, isFollowing);
+            alert(data.message);
+        } else {
+            if (res.status === 401) window.location.href = 'login.html';
+            else alert(data.message);
+        }
+    } catch (e) {
+        alert('网络错误');
+    }
+}
+
+// 更新按钮样式
+function updateFollowBtnStyle(btn, isFollowing) {
+    if (isFollowing) {
+        btn.innerHTML = '<i class="fas fa-check"></i> 已关注';
+        btn.style.backgroundColor = '#ccc';
+        btn.style.borderColor = '#ccc';
+        btn.style.color = '#666';
+    } else {
+        btn.innerHTML = '<i class="fas fa-plus"></i> 关注';
+        btn.style.backgroundColor = ''; // 恢复默认
+        btn.style.borderColor = '';
+        btn.style.color = '';
+    }
 }
 
 // 加载评论函数
@@ -1184,6 +1280,111 @@ function deleteRecipe(recipeId) {
     alert(`删除食谱ID：${recipeId}（演示功能）`);
 }
 
+// 加载烹饪记录
+async function loadCookingRecords(recipeId) {
+    const container = document.getElementById('recordListContainer');
+    try {
+        const res = await fetch(`/api/record/list?recipeId=${recipeId}`);
+        const list = await res.json();
+
+        if(list.length > 0) {
+            container.innerHTML = list.map(item => `
+                <div style="min-width:120px; text-align:center;">
+                    <img src="${item.image}" style="width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid #eee; cursor:pointer;" onclick="viewImage('${item.image}')">
+                    <div style="font-size:12px; margin-top:5px; color:#666;">${item.username}</div>
+                    <div style="font-size:12px; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:120px;">${item.note}</div>
+                </div>
+            `).join('');
+        }
+    } catch(e) { console.error(e); }
+}
+
+// 显示上传作业模态框
+function showUploadRecordModal(recipeId) {
+    // 检查登录
+    if(!sessionStorage.getItem('currentUser')) {
+        alert('请先登录');
+        return;
+    }
+
+    // 创建临时模态框 HTML
+    const div = document.createElement('div');
+    div.id = 'uploadRecordModal';
+    div.className = 'modal';
+    div.style.display = 'flex';
+    div.innerHTML = `
+        <div class="modal-content" style="max-width:400px;">
+            <span class="close-modal" onclick="document.getElementById('uploadRecordModal').remove()">&times;</span>
+            <h3 style="text-align:center; color:#664b2e;">交作业</h3>
+            <div style="margin:20px 0;">
+                <div class="image-upload-box" onclick="document.getElementById('recordImgInput').click()" style="padding:20px;">
+                    <i class="fas fa-camera" style="font-size:30px; color:#d9b38c;"></i>
+                    <p style="font-size:12px;">上传成品图</p>
+                    <input type="file" id="recordImgInput" accept="image/*" style="display:none" onchange="previewRecordImg(this)">
+                </div>
+                <img id="recordImgPreview" style="width:100%; height:200px; object-fit:cover; display:none; margin-top:10px; border-radius:5px;">
+                <input type="hidden" id="recordImgPath">
+                
+                <textarea id="recordNote" style="width:100%; margin-top:15px; padding:10px; border:1px solid #ddd; border-radius:5px;" rows="3" placeholder="说说你的心得..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="submitRecord(${recipeId})" style="width:100%">提交</button>
+        </div>
+    `;
+    document.body.appendChild(div);
+}
+
+// 预览作业图片
+async function previewRecordImg(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = document.getElementById('recordImgPreview');
+            img.src = e.target.result;
+            img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        // 上传
+        const formData = new FormData();
+        formData.append('avatar', file); // 复用接口
+        try {
+            const res = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+            const data = await res.json();
+            if(data.success) document.getElementById('recordImgPath').value = 'static/upload/' + data.fileName;
+        } catch(e) {}
+    }
+}
+
+// 提交作业
+async function submitRecord(recipeId) {
+    const image = document.getElementById('recordImgPath').value;
+    const note = document.getElementById('recordNote').value;
+
+    if(!image) { alert('请上传成品图'); return; }
+
+    try {
+        const res = await fetch('/api/record/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipeId, image, note })
+        });
+        const data = await res.json();
+        if(data.success) {
+            alert('提交成功！');
+            document.getElementById('uploadRecordModal').remove();
+            loadCookingRecords(recipeId); // 刷新列表
+        } else {
+            alert(data.message);
+        }
+    } catch(e) { alert('网络错误'); }
+}
+
+// 查看大图
+function viewImage(src) {
+    window.open(src, '_blank');
+}
+
 // 根据菜系显示食谱
 function showCuisineRecipes(cuisine) {
     currentCuisine = cuisine;
@@ -1196,4 +1397,67 @@ function showCuisineRecipes(cuisine) {
 function handleImageError(img) {
     img.onerror = null; // 防止无限循环
     img.src = 'static/image/default.jpg';
+}
+
+// 一键添加食谱食材到购物清单
+async function addRecipeToShoppingList(title, ingredientsStr) {
+    if(!sessionStorage.getItem('currentUser')) {
+        alert('请先登录');
+        return;
+    }
+
+    if (!ingredientsStr) {
+        alert("该食谱暂无详细食材信息");
+        return;
+    }
+
+    // 解析食材字符串
+    // 假设格式为 "鸡蛋 3个, 番茄 2个" 或 "鸡蛋 3个\n番茄 2个"
+    // 或者是 JSON 字符串
+    let items = [];
+
+    // 简单解析逻辑：按逗号或换行符分割
+    const rawItems = ingredientsStr.split(/[,，\n]/);
+
+    items = rawItems.map(item => {
+        item = item.trim();
+        if(!item) return null;
+
+        // 尝试分离名称和数量 (例如 "鸡蛋 3个")
+        // 这里做一个简单的切分，实际可能需要更复杂的正则
+        const parts = item.split(' ');
+        let name = item;
+        let qty = '';
+
+        if(parts.length > 1) {
+            qty = parts[parts.length-1]; // 最后一部分作为数量
+            name = item.replace(qty, '').trim();
+        }
+
+        return { name: name, quantity: qty };
+    }).filter(i => i !== null);
+
+    if (items.length === 0) return;
+
+    if(!confirm(`确定将《${title}》的 ${items.length} 种食材加入购物清单吗？`)) return;
+
+    try {
+        const res = await fetch('/api/shopping-list/batch-add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(items)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            if(confirm('添加成功！是否前往查看清单？')) {
+                window.location.href = 'shopping_list.html';
+            }
+        } else {
+            alert('添加失败');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('网络错误');
+    }
 }

@@ -107,5 +107,40 @@ public class RecipeController {
         return ResponseEntity.notFound().build();
     }
 
+    // 更新食谱接口
+    @PostMapping("/update")
+    public ResponseEntity<Map<String, Object>> updateRecipe(@RequestBody Recipe recipe,
+                                                            HttpServletRequest request) {
+        Map<String, Object> res = new HashMap<>();
+        User user = (User) request.getSession().getAttribute("currentUser");
+
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "请先登录");
+            return ResponseEntity.status(401).body(res);
+        }
+
+        try {
+            // 强制设置当前用户ID，确保只能改自己的
+            recipe.setUserId(user.getId());
+
+            // 简单校验
+            if(recipe.getId() == null) {
+                throw new IllegalArgumentException("食谱ID不能为空");
+            }
+
+            recipeMapper.updateRecipe(recipe);
+
+            res.put("success", true);
+            res.put("message", "食谱修改成功！");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "修改失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
+    }
+
 
 }
