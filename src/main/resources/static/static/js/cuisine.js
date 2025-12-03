@@ -1019,18 +1019,33 @@ async function showRecipeDetails(recipeId) {
     // 3. 检查关注状态 (如果是作者本人，隐藏关注按钮)
     checkFollowStatus(recipe.userId);
 
-    // 4. 加载评论 (复用之前的逻辑)
+    // 4. 加载评论
     if(typeof loadComments === 'function') {
-        // 重新构建评论区结构
-        document.getElementById('commentsSection').innerHTML = `
-            <h3 class="section-title">食客评价</h3>
-            <div id="commentListContainer"></div>
-            <div class="comment-form-container">
-                <select id="newRating" class="rating-select"><option value="5">5分</option></select>
-                <textarea id="newCommentContent" class="comment-textarea"></textarea>
-                <button class="btn-primary" onclick="submitComment(${recipe.id})" style="width:100%">发表评论</button>
-            </div>
-        `;
+        const commentsHtml = `
+                <h3 class="section-title">食客评价</h3>
+                <div id="commentListContainer"></div>
+                
+                <div class="comment-form-container clearfix">
+                    <div class="comment-form-title">
+                        <i class="fas fa-pen"></i> 写下你的评价
+                    </div>
+                    
+                    <div class="rating-group">
+                        <input type="radio" id="star5" name="rating" value="5" class="rating-input" checked /><label for="star5" class="rating-label"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star4" name="rating" value="4" class="rating-input" /><label for="star4" class="rating-label"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star3" name="rating" value="3" class="rating-input" /><label for="star3" class="rating-label"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star2" name="rating" value="2" class="rating-input" /><label for="star2" class="rating-label"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star1" name="rating" value="1" class="rating-input" /><label for="star1" class="rating-label"><i class="fas fa-star"></i></label>
+                    </div>
+
+                    <textarea id="newCommentContent" class="comment-textarea" placeholder="味道如何？分享你的烹饪心得..."></textarea>
+                    
+                    <button class="comment-submit-btn" onclick="submitComment(${recipe.id})">
+                        发送评论 <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            `;
+        document.getElementById('commentsSection').innerHTML = commentsHtml;
         loadComments(recipe.id);
     }
 
@@ -1146,7 +1161,9 @@ async function loadComments(recipeId) {
 // 提交评论函数
 async function submitComment(recipeId) {
     const content = document.getElementById('newCommentContent').value.trim();
-    const rating = document.getElementById('newRating').value;
+    // 修改获取评分的方式：查找被选中的 radio
+    const ratingInput = document.querySelector('input[name="rating"]:checked');
+    const rating = ratingInput ? ratingInput.value : 5;
 
     if (!content) {
         alert("请输入评论内容！");
@@ -1168,13 +1185,12 @@ async function submitComment(recipeId) {
 
         if (result.success) {
             alert("评论成功！");
-            // 清空输入框
             document.getElementById('newCommentContent').value = '';
-            // 重新加载评论列表
+            // 重置评分为5星
+            document.getElementById('star5').checked = true;
             loadComments(recipeId);
         } else {
             alert(result.message || "评论失败");
-            // 如果是未登录，跳转登录页
             if (res.status === 401) {
                 window.location.href = 'login.html';
             }
