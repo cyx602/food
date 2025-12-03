@@ -1,0 +1,30 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /  # 项目根路径
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/food_db?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456  # 请确认你的数据库密码
+
+  # 静态资源配置
+  web:
+    resources:
+      static-locations: classpath:/static/
+
+  # 文件上传限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+mybatis:
+  mapper-locations: classpath:com/food/mapper/*.xml
+  type-aliases-package: com.food.entity
+  configuration:
+    map-underscore-to-camel-case: true # 开启驼峰命名转换
+  # 注册你的自定义 TypeHandler
+  type-handlers-package: com.food.handler

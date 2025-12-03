@@ -313,21 +313,4 @@ public class UserController {
         return ResponseEntity.ok(res);
     }
 
-    // ================== 页面转发 ==================
-
-    @GetMapping("/")
-    public String home() {
-        // 直接转发到 webapp 根目录下的 index.html
-        return "forward:/index.html";
-    }
-
-    @GetMapping("/register")
-    public String registerPage() {
-        return "forward:/register.html";
-    }
-
-    @GetMapping("/login")
-    public String loginPage() {
-        return "forward:/login.html";
-    }
 }

@@ -3,30 +3,67 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "微软雅黑", sans-serif;
+    font-family: "微软雅黑", "Microsoft YaHei", sans-serif;
 }
 
-/* 页面背景（美食图片） */
+/* 全局背景统一设置 - 核心修改 */
 body {
+    /* 使用首页的高清背景图 */
     background-image: url('../image/pexels-goumbik-616401.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
-    background-color: #f5e6d2;
-    /* 给页面加底部内边距，避免内容被固定footer遮挡（双重保障） */
-    padding-bottom: 70px;
+    background-color: #f5e6d2; /* 图片加载前的背景色 */
+    min-height: 100vh;
+    padding-bottom: 70px; /* 底部 footer 留白 */
 }
 
-/* 导航栏样式 */
+/* 统一导航栏样式 */
 .navbar {
-    background-color: rgba(169, 122, 74, 0.9);
+    background-color: rgba(169, 122, 74, 0.95) !important; /* 加深一点，增加对比度 */
     padding: 15px 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
+    position: sticky; /* 导航栏吸顶 */
+    top: 0;
+    z-index: 1000;
 }
 
+/* 统一页面容器样式（给所有页面加一个半透明背景，防止文字看不清） */
+.page-container, .form-container, .login-container, .admin-container {
+    background-color: rgba(255, 255, 255, 0.9); /* 统一白色半透明背景 */
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px); /* 毛玻璃效果 */
+    margin-top: 30px !important;
+    padding: 30px;
+}
+
+/* 针对特定页面的微调 */
+.form-container {
+    max-width: 500px;
+    margin: 50px auto !important;
+}
+
+/* 统一按钮风格 */
+.btn, button {
+    border-radius: 25px !important; /* 圆角按钮 */
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-primary, #submitBtn, #loginBtn, .add-to-cart {
+    background: linear-gradient(135deg, #f7941e 0%, #e67e22 100%);
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(247, 148, 30, 0.4);
+}
 .nav-title {
     display: flex;
     align-items: center;

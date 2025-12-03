@@ -307,13 +307,26 @@ function createProductPageButton(text, enabled) {
     return button;
 }
 
+
 // 添加到购物车
 async function addToCart(productId) {
     // 1. 检查登录状态
-    const response = await fetch('/api/current-user');
-    const user = await response.json();
-    if (!user.success) {
-        alert('请先登录后再购买！');
+    try {
+        const response = await fetch('/api/current-user');
+        // 如果是 401 或者 parse 出错，说明没登录
+        if (!response.ok) {
+            alert('请先登录后再购买！');
+            window.location.href = 'login.html';
+            return;
+        }
+        const user = await response.json();
+        if (!user.success) {
+            alert('请先登录后再购买！');
+            window.location.href = 'login.html';
+            return;
+        }
+    } catch (e) {
+        console.error("登录检查失败", e);
         window.location.href = 'login.html';
         return;
     }
@@ -327,18 +340,21 @@ async function addToCart(productId) {
         const res = await fetch('/api/cart/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            // 确保这里传递的是 key-value 对象
             body: JSON.stringify({ ingredientId: productId, quantity: quantity })
         });
+
         const data = await res.json();
 
-        if (data.success) {
-            alert('已添加到购物车！');
+        if (res.ok && data.success) {
+            alert('✅ 已成功添加到购物车！');
+            // 可选：添加小红点或刷新购物车数量
         } else {
-            alert('添加失败: ' + data.message);
+            alert('❌ 添加失败: ' + (data.message || '未知错误'));
         }
     } catch (e) {
         console.error(e);
-        alert('网络错误');
+        alert('网络错误，请稍后重试');
     }
 }
 
