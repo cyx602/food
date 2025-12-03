@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.food.mapper.OrderMapper">
+    <insert id="insertOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO orders (user_id, order_no, total_amount, status, created_at)
+        VALUES (#{userId}, #{orderNo}, #{totalAmount}, 'COMPLETED', NOW())
+    </insert>
+
+    <insert id="insertOrderItem">
+        INSERT INTO order_items (order_id, ingredient_id, name, price, quantity)
+        VALUES (#{orderId}, #{ingredientId}, #{name}, #{price}, #{quantity})
+    </insert>
+
+    <select id="selectOrdersByUserId" resultMap="OrderMap">
+        SELECT o.*, oi.id as item_id, oi.name, oi.price, oi.quantity
+        FROM orders o
+                 LEFT JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.user_id = #{userId}
+        ORDER BY o.created_at DESC
+    </select>
+
+    <resultMap id="OrderMap" type="com.food.entity.Order">
+        <id property="id" column="id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <collection property="items" ofType="com.food.entity.OrderItem">
+            <id property="id" column="item_id"/>
+            <result property="name" column="name"/>
+            <result property="price" column="price"/>
+            <result property="quantity" column="quantity"/>
+        </collection>
+    </resultMap>
+</mapper>

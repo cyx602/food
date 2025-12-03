@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>发布新食谱 - 美食天地</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .publish-container { max-width: 800px; margin: 30px auto; background: rgba(245,230,210,0.95); padding: 40px; border-radius: 10px; border: 1px solid #d9b38c; }
+        .form-section { margin-bottom: 30px; }
+        .form-label { display: block; margin-bottom: 10px; color: #664b2e; font-weight: bold; }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #d9b38c; border-radius: 5px; font-size: 16px; }
+        .image-upload-box { border: 2px dashed #d9b38c; padding: 40px; text-align: center; cursor: pointer; background: #fff; transition: 0.3s; }
+        .image-upload-box:hover { border-color: #f7941e; background: #fff9f0; }
+        .preview-img { max-width: 100%; max-height: 300px; display: none; margin-top: 20px; border-radius: 5px; }
+        .step-item { display: flex; gap: 10px; margin-bottom: 10px; }
+        .add-btn { background: #8cc63f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-title"><i class="fas fa-utensils"></i><span>美食天地</span></div>
+    <div class="nav-center">
+        <ul class="nav-links">
+            <li><a href="index.html">首页</a></li>
+            <li><a href="my_recipes.html">我的食谱</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="publish-container">
+    <h2 style="text-align: center; color: #664b2e; margin-bottom: 30px;">发布我的拿手菜</h2>
+
+    <form id="publishForm">
+        <div class="form-section">
+            <label class="form-label">食谱封面图</label>
+            <div class="image-upload-box" onclick="document.getElementById('recipeImage').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #d9b38c;"></i>
+                <p>点击上传精美成品图</p>
+                <input type="file" id="recipeImage" accept="image/*" style="display: none" onchange="previewImage(this)">
+            </div>
+            <img id="imgPreview" class="preview-img">
+            <input type="hidden" id="imagePath">
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">食谱标题</label>
+            <input type="text" id="title" class="form-input" placeholder="例如：外婆红烧肉" required>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">所属菜系</label>
+            <select id="cuisineId" class="form-input">
+                <option value="1">中餐</option>
+                <option value="2">西餐</option>
+                <option value="3">日料</option>
+                <option value="6">甜点</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">食谱简介</label>
+            <textarea id="description" class="form-input" rows="3" placeholder="介绍一下这道菜的故事或口感..."></textarea>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">所需食材</label>
+            <textarea id="ingredients" class="form-input" rows="4" placeholder="例如：五花肉 500g，生姜 3片..."></textarea>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">烹饪步骤</label>
+            <textarea id="steps" class="form-input" rows="6" placeholder="1. 准备食材...&#10;2. 起锅烧油..."></textarea>
+        </div>
+
+        <div style="text-align: center;">
+            <button type="submit" class="btn btn-primary" style="padding: 15px 50px; font-size: 18px;">立即发布</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 图片预览与上传
+    async function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // 预览
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('imgPreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // 上传
+            const formData = new FormData();
+            formData.append('avatar', file); // 复用之前的上传接口
+
+            try {
+                const res = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('imagePath').value = 'static/upload/' + data.fileName;
+                } else {
+                    alert('图片上传失败');
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    }
+
+    // 提交食谱
+    document.getElementById('publishForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const data = {
+            title: document.getElementById('title').value,
+            cuisineId: parseInt(document.getElementById('cuisineId').value),
+            image: document.getElementById('imagePath').value || 'static/image/default_food.jpg',
+            description: document.getElementById('description').value,
+            ingredients: document.getElementById('ingredients').value,
+            steps: document.getElementById('steps').value
+        };
+
+        try {
+            const res = await fetch('/api/recipe/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+
+            if(result.success) {
+                alert('发布成功！');
+                window.location.href = 'my_recipes.html';
+            } else {
+                alert(result.message);
+                if(res.status === 401) window.location.href = 'login.html';
+            }
+        } catch(e) {
+            alert('网络错误');
+        }
+    });
+</script>
+</body>
+</html>

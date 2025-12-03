@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface UserMapper {
 
+
     /**
      * 新增用户（注册功能）
      * @param user 包含注册信息的 User 对象
@@ -22,6 +23,7 @@ public interface UserMapper {
      */
     User selectByUsername(@Param("username") String username);
 
+    void updateUser(User user);
     /**
      * 统计指定用户名的数量（用于检查用户名是否已存在）
      * @param username 用户名

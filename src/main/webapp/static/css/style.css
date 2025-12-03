@@ -568,3 +568,78 @@ body {
     border-bottom: 2px solid #d9b38c;
     padding-bottom: 5px;
 }
+
+/* 评论区样式 */
+.comments-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px dashed #d9b38c;
+}
+
+.comment-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #d9b38c;
+}
+
+.comment-body {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #888;
+}
+
+.comment-user {
+    font-weight: bold;
+    color: #664b2e;
+}
+
+.comment-rating {
+    color: #ffb400; /* 星星颜色 */
+}
+
+.comment-content {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* 评论表单 */
+.comment-form-container {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.rating-select {
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid #d9b38c;
+    border-radius: 4px;
+}
+
+.comment-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 60px;
+    margin-bottom: 10px;
+}

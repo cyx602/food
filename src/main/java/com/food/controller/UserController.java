@@ -254,6 +254,43 @@ public class UserController {
         }
     }
 
+    @PostMapping(value = "/update-profile", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody Map<String, Object> body,
+                                                             HttpServletRequest request) {
+        Map<String, Object> res = new HashMap<>();
+        User currentUser = (User) request.getSession().getAttribute("currentUser");
+
+        if (currentUser == null) {
+            res.put("success", false);
+            res.put("message", "登录已过期，请重新登录");
+            return ResponseEntity.status(401).body(res);
+        }
+
+        try {
+            // 更新 Session 中的对象属性
+            currentUser.setUsername((String) body.get("username"));
+            currentUser.setPhone((String) body.get("phone"));
+            currentUser.setEmail((String) body.get("email"));
+            currentUser.setGender((String) body.get("gender"));
+            // 注意：实际项目中应重新从DB查一次ID防止Session过期数据问题
+
+            userService.updateUserInfo(currentUser);
+
+            // 更新 Session
+            request.getSession().setAttribute("currentUser", currentUser);
+
+            res.put("success", true);
+            res.put("message", "个人信息修改成功");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "更新失败: " + e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
+    }
+
     /**
      * 获取当前登录用户信息
      */

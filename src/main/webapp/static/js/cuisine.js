@@ -797,21 +797,23 @@ function displayRecipes(page) {
             }
             const recipeId = parseInt(this.querySelector('button').getAttribute('data-id'));
             showRecipeDetails(recipeId);
+
+
         });
     });
-    
+
     // 为收藏按钮添加事件监听
     document.querySelectorAll('.favorite-btn').forEach(button => {
-        button.addEventListener('click', function(event) {
+        button.addEventListener('click', function (event) {
             event.stopPropagation(); // 阻止事件冒泡
             const recipeId = parseInt(this.getAttribute('data-id'));
             addToFavorites(recipeId);
         });
     });
-    
+
     // 为购买食材按钮添加事件监听
     document.querySelectorAll('.buy-ingredients-btn').forEach(button => {
-        button.addEventListener('click', function(event) {
+        button.addEventListener('click', function (event) {
             event.stopPropagation(); // 阻止事件冒泡
             const recipeId = parseInt(this.getAttribute('data-id'));
             buyIngredients(recipeId);
@@ -819,7 +821,7 @@ function displayRecipes(page) {
     });
 
 // 购买食材函数
-function buyIngredients(recipeId) {
+    function buyIngredients(recipeId) {
     // 找到对应的食谱
     const recipe = recipes.find(r => r.id === recipeId);
     if (!recipe) return;
@@ -933,19 +935,22 @@ function generatePagination() {
 }
 
 // 显示食谱详情
-    function showRecipeDetails(recipeId) {
-        const recipe = recipes.find(r => r.id === recipeId);
-        if (!recipe) return;
-        
-        const modalContent = document.getElementById('modalContent');
-        const recipeModal = document.getElementById('recipeModal');
-    
+// 显示食谱详情（含评论功能）
+function showRecipeDetails(recipeId) {
+    // 1. 获取基础食谱信息 (这里假设从 recipes 数组获取，实际项目可能需要从后端获取详情)
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    const modalContent = document.getElementById('modalContent');
+    const recipeModal = document.getElementById('recipeModal');
+
     // 获取菜系名称
     const cuisineName = getCuisineName(recipe.cuisine);
-    
-    // 生成模态框内容，与my_recipes.html中的样式保持一致
+
+    // 2. 构建详情页 HTML (增加了评论区容器)
     modalContent.innerHTML = `
         <div class="close-modal" onclick="closeRecipeModal()">&times;</div>
+        
         <img src="${recipe.image}" alt="${recipe.title}" class="recipe-detail-image" onerror="handleImageError(this)">
         <h2 class="detail-title">${recipe.title}</h2>
         <div class="cuisine-info">
@@ -954,21 +959,134 @@ function generatePagination() {
             ${recipe.time ? `<span class="cuisine-tag">${recipe.time}</span>` : ''}
         </div>
         <p class="recipe-desc">${recipe.description}</p>
+        
         <div class="ingredients-section">
             <h3 class="section-title">所需食材</h3>
             <ul class="ingredients-list">
                 ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
             </ul>
         </div>
+        
         <div class="steps-section">
             <h3 class="section-title">制作步骤</h3>
             <ol class="steps-list">
-                ${recipe.steps.map((step, index) => `<li>${step}</li>`).join('')}
+                ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
             </ol>
         </div>
+
+        <div class="comments-section">
+            <h3 class="section-title">食客评价</h3>
+            
+            <div id="commentListContainer">
+                <p style="text-align:center; color:#888;">正在加载评论...</p>
+            </div>
+
+            <div class="comment-form-container">
+                <select id="newRating" class="rating-select">
+                    <option value="5">⭐⭐⭐⭐⭐ (5分 - 完美)</option>
+                    <option value="4">⭐⭐⭐⭐ (4分 - 满意)</option>
+                    <option value="3">⭐⭐⭐ (3分 - 一般)</option>
+                    <option value="2">⭐⭐ (2分 - 失望)</option>
+                    <option value="1">⭐ (1分 - 极差)</option>
+                </select>
+                <textarea id="newCommentContent" class="comment-textarea" placeholder="分享你的烹饪心得，或者给作者点个赞..."></textarea>
+                <button class="btn-primary" onclick="submitComment(${recipe.id})" style="width:100%">发表评论</button>
+            </div>
+        </div>
     `;
-    
+
     recipeModal.style.display = 'flex';
+
+    // 3. 异步加载评论数据
+    loadComments(recipeId);
+}
+
+// 加载评论函数
+async function loadComments(recipeId) {
+    const container = document.getElementById('commentListContainer');
+    try {
+        const res = await fetch(`/api/comment/list?recipeId=${recipeId}`);
+        const comments = await res.json();
+
+        if (comments.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#999; margin:20px 0;">暂无评论，快来抢沙发吧！</p>';
+            return;
+        }
+
+        // 渲染评论列表
+        container.innerHTML = comments.map(c => {
+            // 处理头像路径
+            const avatarUrl = c.userAvatar
+                ? (c.userAvatar.startsWith('http') ? c.userAvatar : `static/upload/${c.userAvatar}`)
+                : 'static/image/default_avatar.jpg';
+
+            // 生成星星字符串
+            const stars = '⭐'.repeat(c.rating || 5);
+
+            // 格式化时间
+            const dateStr = new Date(c.createdAt).toLocaleDateString();
+
+            return `
+                <div class="comment-item">
+                    <img src="${avatarUrl}" alt="用户头像" class="comment-avatar" onerror="this.src='static/image/default_avatar.jpg'">
+                    <div class="comment-body">
+                        <div class="comment-header">
+                            <span class="comment-user">${c.username || '匿名用户'}</span>
+                            <span>${dateStr}</span>
+                        </div>
+                        <div class="comment-rating">${stars}</div>
+                        <div class="comment-content">${c.content}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error("加载评论失败", e);
+        container.innerHTML = '<p style="color:red; text-align:center;">评论加载失败</p>';
+    }
+}
+
+// 提交评论函数
+async function submitComment(recipeId) {
+    const content = document.getElementById('newCommentContent').value.trim();
+    const rating = document.getElementById('newRating').value;
+
+    if (!content) {
+        alert("请输入评论内容！");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/comment/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                recipeId: recipeId,
+                content: content,
+                rating: parseInt(rating)
+            })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            alert("评论成功！");
+            // 清空输入框
+            document.getElementById('newCommentContent').value = '';
+            // 重新加载评论列表
+            loadComments(recipeId);
+        } else {
+            alert(result.message || "评论失败");
+            // 如果是未登录，跳转登录页
+            if (res.status === 401) {
+                window.location.href = 'login.html';
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        alert("网络请求错误");
+    }
 }
 
 // 功能已移除

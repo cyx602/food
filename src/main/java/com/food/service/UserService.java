@@ -69,6 +69,12 @@ public class UserService {
         return rows > 0;
     }
 
+    @Transactional
+    public boolean updateUserInfo(User user) {
+        // 这里可以添加逻辑判断，比如检查新用户名是否和其他人重复（除了自己）
+        userMapper.updateUser(user);
+        return true;
+    }
     public int countByUsername(String username) {
         return userMapper.countByUsername(username);
     }

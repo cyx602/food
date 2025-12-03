@@ -1174,78 +1174,45 @@
     }
     
     // 保存个人信息修改
-    function saveProfileChanges(event) {
+    async function saveProfileChanges(event) {
         event.preventDefault();
-        
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || '{}');
+
         const newUsername = document.getElementById('editUsername').value.trim();
-        const selectedGender = document.querySelector('input[name="gender"]:checked')?.value || '';
         const newPhone = document.getElementById('editPhone').value.trim();
         const newEmail = document.getElementById('editEmail').value.trim();
-        
-        // 表单验证
-        if (!newUsername) {
-            alert('请输入用户名');
-            return;
+        const selectedGender = document.querySelector('input[name="gender"]:checked')?.value;
+
+        const updateData = {
+            username: newUsername,
+            phone: newPhone,
+            email: newEmail,
+            gender: selectedGender
+        };
+
+        try {
+            const response = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('个人信息更新成功！');
+                // 更新本地缓存以保持同步
+                let currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+                currentUser = { ...currentUser, ...updateData };
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                location.reload(); // 刷新页面显示最新数据
+            } else {
+                alert('更新失败: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('网络错误');
         }
-        
-        // 验证手机号格式
-        if (newPhone && !/^1[3-9]\d{9}$/.test(newPhone)) {
-            alert('请输入正确的手机号码');
-            return;
-        }
-        
-        // 验证邮箱格式
-        if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-            alert('请输入正确的邮箱地址');
-            return;
-        }
-        
-        // 更新用户信息
-        currentUser.username = newUsername;
-        currentUser.gender = selectedGender;
-        
-        if (newPhone) {
-            currentUser.phone = newPhone;
-        }
-        
-        if (newEmail) {
-            currentUser.email = newEmail;
-        }
-        
-        // 更新存储
-        const storageType = localStorage.getItem('rememberMe') === 'true' ? localStorage : sessionStorage;
-        storageType.setItem('currentUser', JSON.stringify(currentUser));
-        
-        // 更新页面显示
-        document.querySelector('.profile-name').textContent = newUsername;
-        document.querySelector('.info-item:nth-child(1) .info-value').textContent = newUsername;
-        
-        // 更新性别显示
-        const genderText = selectedGender === 'male' ? '男' : selectedGender === 'female' ? '女' : '未设置';
-        document.querySelector('.info-item:nth-child(2) .info-value').textContent = genderText;
-        
-        // 更新手机号显示（部分隐藏）
-        if (newPhone) {
-            const maskedPhone = newPhone.substring(0, 3) + '****' + newPhone.substring(7);
-            document.querySelector('.info-item:nth-child(3) .info-value').textContent = maskedPhone;
-        } else if (currentUser.phone) {
-            // 如果清空了输入但原来有手机号，保持原来的显示
-            const maskedPhone = currentUser.phone.substring(0, 3) + '****' + currentUser.phone.substring(7);
-            document.querySelector('.info-item:nth-child(3) .info-value').textContent = maskedPhone;
-        }
-        
-        // 更新邮箱显示
-        if (newEmail) {
-            document.querySelector('.info-item:nth-child(4) .info-value').textContent = newEmail;
-        } else if (currentUser.email) {
-            // 如果清空了输入但原来有邮箱，保持原来的显示
-            document.querySelector('.info-item:nth-child(4) .info-value').textContent = currentUser.email;
-        }
-        
-        // 关闭模态框并提示成功
-        closeProfileEditModal();
-        alert('个人信息更新成功！');
     }
 </script>
 </body>

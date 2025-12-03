@@ -381,9 +381,52 @@
     // 功能已移除
 
     // 显示我的创作
-    function displayCreated() {
-        const created = JSON.parse(localStorage.getItem('createdRecipes') || '[]');
-        displayRecipes(created, 'created');
+    // 在 script 标签内修改 displayCreated 函数
+
+    async function displayCreated() {
+        const grid = document.getElementById('recipesGrid');
+        // 显示加载状态
+        grid.innerHTML = '<p style="text-align:center;width:100%">加载中...</p>';
+
+        try {
+            const response = await fetch('/api/recipe/my-list');
+            if (response.status === 401) {
+                grid.innerHTML = '<p>请先登录查看您的创作。</p>';
+                return;
+            }
+
+            const myRecipes = await response.json();
+
+            // 使用后端数据渲染
+            displayRecipes(myRecipes, 'created');
+
+            // 如果是空的，显示空状态并提供发布按钮
+            if (myRecipes.length === 0) {
+                const emptyState = document.getElementById('emptyState');
+                emptyState.style.display = 'block';
+                // 修改空状态按钮为去发布
+                const btn = emptyState.querySelector('.browse-btn');
+                btn.textContent = '去发布食谱';
+                btn.href = 'create_recipe.html';
+                btn.onclick = null;
+            }
+
+            // 在页面顶部添加一个明显的“发布新食谱”按钮
+            if (!document.getElementById('createRecipeBtn')) {
+                const tabs = document.querySelector('.recipes-tabs');
+                const btn = document.createElement('a');
+                btn.id = 'createRecipeBtn';
+                btn.href = 'create_recipe.html';
+                btn.className = 'btn btn-primary';
+                btn.style.marginLeft = '20px';
+                btn.innerHTML = '<i class="fas fa-plus"></i> 发布新食谱';
+                tabs.appendChild(btn);
+            }
+
+        } catch (e) {
+            console.error(e);
+            grid.innerHTML = '<p style="color:red">加载失败，请稍后重试。</p>';
+        }
     }
 
     // 显示食谱列表
