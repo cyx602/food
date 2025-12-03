@@ -104,7 +104,7 @@ function displayFeaturedRecipes() {
 
     featuredRecipes.forEach(recipe => {
         const recipeElement = document.createElement('div');
-        recipeElement.className = 'featured-recipe';
+        recipeElement.className = 'featured-recipe common-card-style';
         
         // 构建操作按钮HTML
         let actionButtonsHtml = `

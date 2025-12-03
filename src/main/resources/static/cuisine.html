@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="static/css/style.css">
     <style>
-        .page-container {
+        .page-content {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
@@ -51,24 +51,28 @@
 
         .recipes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(3, minmax(320px, 1fr));
             gap: 25px;
             margin-bottom: 60px;
         }
-
-        .recipe-card {
-            background-color: rgba(245, 230, 210, 0.95);
-            border: 1px solid #d9b38c;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s;
-            cursor: pointer;
+        
+        /* 响应式调整 */
+        @media (max-width: 960px) {
+            .recipes-grid {
+                grid-template-columns: repeat(2, minmax(280px, 1fr));
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .recipes-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
         }
 
-        .recipe-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: #f7941e;
+        .recipe-card {
+            overflow: hidden;
+            cursor: pointer;
         }
 
         .recipe-image {
@@ -96,6 +100,7 @@
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 10px;
+            text-align: center;
         }
 
         .recipe-desc {
@@ -607,27 +612,27 @@
     </div>
 </nav>
 
-<div class="page-container">
+<div class="page-content">
     <h1 class="page-title">探索世界美食菜系</h1>
 
     <div class="cuisine-tabs">
-        <div class="cuisine-tab active" data-cuisine="all">全部</div>
-        <div class="cuisine-tab" data-cuisine="chinese">中餐</div>
-        <div class="cuisine-tab" data-cuisine="western">西餐</div>
-        <div class="cuisine-tab" data-cuisine="japanese">日料</div>
-        <div class="cuisine-tab" data-cuisine="korean">韩式</div>
-        <div class="cuisine-tab" data-cuisine="thai">泰式</div>
-        <div class="cuisine-tab" data-cuisine="dessert">甜点</div>
-    </div>
+    <div class="cuisine-tab active" data-cuisine="all">全部</div>
+    <div class="cuisine-tab" data-cuisine="chinese">中餐</div>
+    <div class="cuisine-tab" data-cuisine="western">西餐</div>
+    <div class="cuisine-tab" data-cuisine="japanese">日料</div>
+    <div class="cuisine-tab" data-cuisine="korean">韩式</div>
+    <div class="cuisine-tab" data-cuisine="thai">泰式</div>
+    <div class="cuisine-tab" data-cuisine="dessert">甜点</div>
+</div>
 
-    <div class="recipes-grid" id="recipesGrid">
-        <!-- 食谱卡片将通过JavaScript动态生成 -->
-    </div>
-    
-    <!-- 分页容器 -->
-    <div id="paginationContainer" class="pagination">
-        <!-- 分页按钮将通过JavaScript动态生成 -->
-    </div>
+<div class="recipes-grid" id="recipesGrid">
+    <!-- 食谱卡片将通过JavaScript动态生成 -->
+</div>
+
+<!-- 分页容器 -->
+<div id="paginationContainer" class="pagination">
+    <!-- 分页按钮将通过JavaScript动态生成 -->
+</div>
 </div>
 
 <!-- 食谱详情模态框 -->

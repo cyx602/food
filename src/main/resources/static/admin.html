@@ -117,18 +117,10 @@
         }
         
         .stat-card {
-            background-color: white;
             padding: 25px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
             gap: 20px;
-            transition: transform 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
         }
         
         .stat-icon {
@@ -172,11 +164,8 @@
         
         /* 内容区域 */
         .section {
-            background-color: white;
             padding: 25px;
-            border-radius: 6px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .section h3 {
@@ -296,10 +285,7 @@
         }
         
         .login-container {
-            background-color: white;
             padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             width: 100%;
             max-width: 400px;
         }
@@ -396,7 +382,7 @@
 <body>
     <!-- 登录页面（默认显示） -->
     <div id="loginSection" class="login-page">
-        <div class="login-container">
+        <div class="login-container common-card-style">
             <div class="login-header">
                 <div class="login-logo">
                     <i class="fas fa-tachometer-alt"></i>
@@ -481,7 +467,7 @@
                 <!-- 仪表盘内容 -->
                 <div id="dashboard" class="tab-content active">
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card common-card-style">
                             <div class="stat-icon users">
                                 <i class="fas fa-users"></i>
                             </div>
@@ -519,7 +505,7 @@
                         </div>
                     </div>
                     
-                    <div class="section">
+                    <div class="section common-card-style">
                         <h3>最新订单</h3>
                         <table class="data-table">
                             <thead>

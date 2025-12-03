@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="static/css/style.css">
     <script src="static/js/market.js"></script>
     <style>
-        .page-container {
+        .page-content {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
@@ -79,7 +79,8 @@
         }
         
         .cart-modal-content {
-            background-color: white;
+            background-color: rgba(245, 230, 210, 0.95);
+            border: 1px solid #d9b38c;
             border-radius: 10px;
             padding: 30px;
             width: 90%;
@@ -87,6 +88,7 @@
             max-height: 80vh;
             overflow-y: auto;
             position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
         }
         
         .cart-modal-header {
@@ -353,20 +355,20 @@
     </div>
 </nav>
 
-<div class="page-container">
-        <h1 class="page-title">新鲜食材商城</h1>
+<div class="page-content">
+    <h1 class="page-title">新鲜食材商城</h1>
 
-        <div class="categories" id="categories">
-            <!-- 分类将通过JavaScript动态生成 -->
-        </div>
-
-        <div class="products-grid" id="productsGrid">
-            <!-- 商品将通过JavaScript动态生成 -->
-        </div>
-
-        <!-- 分页区域 -->
-        <div id="productPagination" class="pagination"></div>
+    <div class="categories" id="categories">
+        <!-- 分类将通过JavaScript动态生成 -->
     </div>
+
+    <div class="products-grid" id="productsGrid">
+        <!-- 商品将通过JavaScript动态生成 -->
+    </div>
+
+    <!-- 分页区域 -->
+    <div id="productPagination" class="pagination"></div>
+</div>
     
     <!-- 购物车模态框 -->
     <div class="cart-modal" id="cartModal">

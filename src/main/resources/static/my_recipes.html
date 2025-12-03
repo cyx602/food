@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="static/css/style.css">
     <style>
-        .page-container {
+        .page-content {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
@@ -57,19 +57,9 @@
         }
 
         .recipe-card {
-            background-color: rgba(245, 230, 210, 0.95);
-            border: 1px solid #d9b38c;
-            border-radius: 8px;
             overflow: hidden;
-            transition: all 0.3s;
             cursor: pointer;
             position: relative;
-        }
-
-        .recipe-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: #f7941e;
         }
 
         .recipe-image {
@@ -303,7 +293,7 @@
     </div>
 </nav>
 
-<div class="page-container">
+<div class="page-content">
     <h1 class="page-title">我的专属食谱</h1>
 
     <div class="recipes-tabs">
@@ -470,7 +460,7 @@
 
             recipes.forEach(recipe => {
                 const card = document.createElement('div');
-                card.className = 'recipe-card';
+                card.className = 'recipe-card common-card-style';
 
                 // 如果是“我的创作” (type === 'created')，显示编辑按钮
                 let actionBtnHtml = '';

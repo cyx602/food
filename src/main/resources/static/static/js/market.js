@@ -163,7 +163,7 @@ function displayProducts(category) {
             else if (product.stock < 10) stockClass = 'low-stock';
 
             const productElement = document.createElement('div');
-            productElement.className = 'product-card';
+            productElement.className = 'product-card common-card-style';
             productElement.innerHTML = `
                 <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='static/image/default_food.jpg'">
                 <div class="product-info">

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="static/css/style.css">
     <style>
-        .page-container {
+        .page-content {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
@@ -29,9 +29,6 @@
         }
 
         .profile-sidebar {
-            background-color: rgba(245, 230, 210, 0.95);
-            border: 1px solid #d9b38c;
-            border-radius: 8px;
             padding: 25px;
             height: fit-content;
         }
@@ -97,9 +94,6 @@
         }
 
         .profile-content {
-            background-color: rgba(245, 230, 210, 0.95);
-            border: 1px solid #d9b38c;
-            border-radius: 8px;
             padding: 25px;
         }
 
@@ -171,9 +165,6 @@
         }
 
         .order-item {
-            background-color: rgba(255, 255, 255, 0.5);
-            border: 1px solid #d9b38c;
-            border-radius: 6px;
             padding: 15px;
             margin-bottom: 15px;
         }
@@ -234,20 +225,12 @@
         }
 
         .address-item {
-            background-color: rgba(255, 255, 255, 0.5);
-            border: 1px solid #d9b38c;
-            border-radius: 6px;
-            padding: 20px;
             position: relative;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             border-left: 4px solid transparent;
         }
 
         .address-default {
-            border-color: #f7941e;
-            border-width: 1px;
             border-left-color: #f7941e;
-            border-left-width: 4px;
         }
 
         .address-name {
@@ -561,7 +544,7 @@
     </div>
 </nav>
 
-<div class="page-container">
+<div class="page-content">
     <h1 class="page-title">个人中心</h1>
 
     <div id="profileContent">
@@ -644,7 +627,7 @@
         }, 10);
         container.innerHTML = `
                 <div class="profile-layout">
-                    <div class="profile-sidebar">
+                    <div class="profile-sidebar common-card-style">
                         <div class="profile-avatar">
                             <img src="static/image/default_avatar.jpg" alt="头像" class="avatar-image" id="userAvatar">
                             <div class="profile-name" id="userName">${currentUser.username || '美食爱好者'}</div>
@@ -672,7 +655,7 @@
                         </div>
                     </div>
 
-                    <div class="profile-content">
+                    <div class="profile-content common-card-style">
                         <div class="content-section active" id="profileSection">
                             <h2 class="section-title">个人信息</h2>
                             <div class="info-grid">
@@ -925,7 +908,7 @@
 
         orders.forEach(order => {
             const orderElement = document.createElement('div');
-            orderElement.className = 'order-item';
+            orderElement.className = 'order-item common-card-style';
             orderElement.innerHTML = `
                     <div class="order-header">
                         <div class="order-id">订单号: ${order.id}</div>
@@ -983,7 +966,7 @@
 
         addresses.forEach(address => {
             const addressElement = document.createElement('div');
-            addressElement.className = `address-item ${address.isDefault ? 'address-default' : ''}`;
+            addressElement.className = `address-item ${address.isDefault ? 'address-default' : ''} common-card-style`;
             addressElement.innerHTML = `
                     <div class="address-name">
                         ${address.name} ${address.isDefault ? '<span style="color: #f7941e; font-size: 12px;">(默认)</span>' : ''}

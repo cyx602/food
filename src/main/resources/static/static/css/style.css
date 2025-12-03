@@ -21,19 +21,22 @@ body {
 
 /* 统一导航栏样式 */
 .navbar {
-    background-color: rgba(169, 122, 74, 0.95) !important; /* 加深一点，增加对比度 */
-    padding: 15px 20px;
+    background-color: #c36b1e !important; /* 加深一点，增加对比度 */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     position: sticky; /* 导航栏吸顶 */
     top: 0;
     z-index: 1000;
+    white-space: nowrap;
+    padding: 10px 30px; /* 增加上下内边距，调整左右内边距 */
+    height: auto; /* 自动高度，由内容决定 */
+    min-height: 55px; /* 设置最小高度，确保足够的宽度 */
 }
 
 /* 统一页面容器样式（给所有页面加一个半透明背景，防止文字看不清） */
-.page-container, .form-container, .login-container, .admin-container {
-    background-color: rgba(255, 255, 255, 0.9); /* 统一白色半透明背景 */
+.page-container, .admin-container {
+    background-color: rgba(245, 230, 210, 0.95); /* 统一与卡片相同的背景色 */
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(5px); /* 毛玻璃效果 */
@@ -45,6 +48,8 @@ body {
 .form-container {
     max-width: 500px;
     margin: 50px auto !important;
+    padding-bottom: 100px;
+    position: relative;
 }
 
 /* 统一按钮风格 */
@@ -96,15 +101,21 @@ body {
     list-style: none;
     max-width: 900px;
     margin: 0 auto;
+    white-space: nowrap;
+    padding-left: 15px;
+    padding-right: 15px;
+
 }
 
 .nav-links a {
     color: white;
     text-decoration: none;
-    padding: 5px 10px;
+    padding: 12px 15px; /* 增加上下内边距，让文字离导航栏上下有合适距离 */
     font-size: 16px;
     transition: all 0.3s;
     border-radius: 4px;
+    display: inline-block;
+    line-height: 1.2; /* 确保文字垂直居中 */
 }
 
 .nav-links a:hover {
@@ -118,10 +129,6 @@ body {
     padding: 30px;
     /* 核心修改：底部内边距设为100px（大于footer高度，预留足够间距） */
     padding-bottom: 100px;
-    border: 1px solid #d9b38c;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
-    background-color: rgba(245, 230, 210, 0.95);
     position: relative;
 }
 
@@ -799,4 +806,19 @@ body {
     content: "";
     clear: both;
     display: table;
+}
+
+/* --- 统一卡片样式 --- */
+.common-card-style {
+    background-color: rgba(245, 230, 210, 0.95);
+    border: 1px solid #d9b38c;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+.common-card-style:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #f7941e;
 }

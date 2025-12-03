@@ -745,7 +745,7 @@ function displayRecipes(page) {
     // 生成食谱卡片
     currentRecipes.forEach(recipe => {
         const recipeCard = document.createElement('div');
-        recipeCard.className = 'recipe-card';
+        recipeCard.className = 'recipe-card common-card-style';
         
         // 菜系标签样式映射
         const cuisineClassMap = {

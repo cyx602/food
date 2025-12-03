@@ -6,14 +6,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="static/css/style.css">
     <style>
-        .feed-container { max-width: 800px; margin: 30px auto; }
+        .feed-container { max-width: 800px; }
         .feed-card {
-            background: rgba(255,255,255,0.9);
-            border-radius: 8px;
             margin-bottom: 20px;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid #e0e0e0;
         }
         .feed-header { display: flex; align-items: center; margin-bottom: 15px; }
         .feed-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;}
@@ -39,7 +35,7 @@
     </div>
 </nav>
 
-<div class="page-container feed-container">
+<div class="page-content feed-container">
     <h1 class="page-title">关注动态</h1>
 
     <div id="feedList">
@@ -78,7 +74,7 @@
             }
 
             container.innerHTML = recipes.map(r => `
-                <div class="feed-card">
+                <div class="feed-card common-card-style">
                     <div class="feed-header">
                         <img src="${r.authorAvatar ? 'static/upload/'+r.authorAvatar : 'static/image/default_avatar.jpg'}" class="feed-avatar">
                         <div>
