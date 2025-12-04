@@ -5,22 +5,19 @@ import org.apache.ibatis.annotations.Param;
 import java.util.*;
 
 public interface RecipeMapper {
-    // 添加收藏
+    // ... (保留原有的方法: insertFavorite, deleteFavorite, checkFavorite, selectFavoriteRecipeIds) ...
+
     void insertFavorite(@Param("userId") int userId, @Param("recipeId") int recipeId);
-
-    // 取消收藏
     void deleteFavorite(@Param("userId") int userId, @Param("recipeId") int recipeId);
-
-    // 检查是否收藏
     int checkFavorite(@Param("userId") int userId, @Param("recipeId") int recipeId);
-
-    // 获取用户收藏列表（需要关联查询食谱表，这里简化返回ID列表）
     List<Integer> selectFavoriteRecipeIds(@Param("userId") int userId);
 
-    // 添加更新方法
+    // ... (保留原有的方法: updateRecipe, insertRecipe, selectRecipesByUserId, selectRecipeById) ...
     void updateRecipe(Recipe recipe);
-
     void insertRecipe(Recipe recipe);
     List<Recipe> selectRecipesByUserId(@Param("userId") int userId);
     Recipe selectRecipeById(@Param("id") int id);
+
+    // 【新增】删除食谱方法
+    void deleteRecipe(@Param("id") int id, @Param("userId") int userId);
 }

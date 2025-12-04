@@ -2,33 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- 命名空间必须与 Mapper 接口全路径一致 -->
 <mapper namespace="com.food.mapper.UserMapper">
 
-    <!-- 插入用户：对应 insertUser 方法 -->
     <insert id="insertUser" parameterType="com.food.entity.User">
         INSERT INTO users (
-        username, password, gender, styles,
-        phone, email, address, avatar_file_name, created_at
+            username, password, gender, styles,
+            phone, email, address, avatar_file_name, created_at
         ) VALUES (
-        #{username}, #{password}, #{gender},
-        <!-- 使用自定义类型处理器将 List<String> 转为逗号字符串 -->
-        #{styles,typeHandler=com.food.handler.ListToStringTypeHandler},
-        #{phone}, #{email}, #{address}, #{avatarFileName},
-        NOW() -- 数据库当前时间
-        )
+                     #{username}, #{password}, #{gender},
+                     #{styles,typeHandler=com.food.handler.ListToStringTypeHandler},
+                     #{phone}, #{email}, #{address}, #{avatarFileName},
+                     NOW()
+                 )
     </insert>
 
-    <!-- 根据用户名查询：对应 selectByUsername 方法 -->
     <select id="selectByUsername" parameterType="String" resultType="com.food.entity.User">
         SELECT
             id, username, password, gender, styles,
-            phone, address, avatar_file_name AS avatarFileName, created_at AS createdAt
+            phone, email, address, avatar_file_name AS avatarFileName, created_at AS createdAt
         FROM users
         WHERE username = #{username}
     </select>
 
-    <!-- 统计用户名数量：对应 countByUsername 方法 -->
     <select id="countByUsername" parameterType="String" resultType="int">
         SELECT COUNT(*) FROM users WHERE username = #{username}
     </select>

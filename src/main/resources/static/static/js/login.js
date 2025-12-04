@@ -60,14 +60,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (res.ok && data && data.success) {
                 // 保存用户登录状态
-            sessionStorage.setItem('currentUser', JSON.stringify({
-                username: data.username,
-                avatarFileName: data.avatarFileName
-            }));
-    
-    alert(`欢迎回来，${username}！`);
-    window.location.href = baseUrl + '/index.html';
-        } else {
+                sessionStorage.setItem('currentUser', JSON.stringify({
+                    username: data.username,
+                    avatarFileName: data.avatarFileName
+                }));
+
+                // 【新增】如果是管理员，设置额外标记
+                if (data.username === 'admin') {
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                } else {
+                    sessionStorage.removeItem('adminLoggedIn');
+                }
+
+                alert(`欢迎回来，${username}！`);
+
+                // 如果是管理员，直接跳后台，否则跳首页
+                if (data.username === 'admin') {
+                    window.location.href = baseUrl + '/admin.html';
+                } else {
+                    window.location.href = baseUrl + '/index.html';
+                }
+            } else {
                 const message =
                     (data && (data.message || data.error)) ||
                     (res.status === 401 ? '用户名或密码错误' : '登录失败，请稍后重试');

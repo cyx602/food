@@ -294,22 +294,33 @@ public class UserController {
     /**
      * 获取当前登录用户信息
      */
+    /**
+     * 获取当前登录用户信息 - 修改版
+     */
     @GetMapping(value = "/current-user",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
         User currentUser = (User) request.getSession().getAttribute("currentUser");
-        
+
         if (currentUser == null) {
             res.put("success", false);
             res.put("message", "用户未登录");
             return ResponseEntity.status(401).body(res);
         }
-        
+
         res.put("success", true);
         res.put("username", currentUser.getUsername());
         res.put("avatarFileName", currentUser.getAvatarFileName());
+        // 新增返回的字段
+        res.put("gender", currentUser.getGender());
+        res.put("phone", currentUser.getPhone());
+        res.put("email", currentUser.getEmail());
+        res.put("address", currentUser.getAddress());
+        res.put("styles", currentUser.getStyles()); // 返回 List<String>
+        res.put("createdAt", currentUser.getCreatedAt());
+
         return ResponseEntity.ok(res);
     }
 

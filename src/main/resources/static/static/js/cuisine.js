@@ -1197,11 +1197,29 @@ function addToFavorites(recipeId) {
 
 // 检查登录状态
 function checkLoginStatus() {
-    const user = JSON.parse(sessionStorage.getItem('currentUser'));
+    const userJson = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
     const authSection = document.getElementById('authSection');
 
-    if (user) {
-        authSection.innerHTML = `<span>欢迎，${user.username}!</span>`;
+    if (userJson && authSection) {
+        const user = JSON.parse(userJson);
+        const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
+
+        // 替换为头像
+        authSection.innerHTML = `
+            <a href="profile.html" style="display:flex; align-items:center; padding: 5px;">
+                <img src="${avatarPath}" alt="${user.username}" 
+                     style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
+                     onerror="this.src='static/image/default_avatar.jpg'">
+            </a>
+        `;
+        // 清除可能存在的背景色
+        authSection.style.backgroundColor = 'transparent';
+
+        // 如果首页有注册按钮，也隐藏它
+        const registerButton = document.getElementById('registerButton');
+        if (registerButton) {
+            registerButton.style.display = 'none';
+        }
     }
 }
 
@@ -1283,7 +1301,7 @@ async function addRecipeToShoppingList(title, ingredientsStr) {
 
         if (data.success) {
             if(confirm('添加成功！是否前往查看清单？')) {
-                window.location.href = 'shopping_list.html';
+                window.location.href = 'market.html';
             }
         } else {
             alert('添加失败');

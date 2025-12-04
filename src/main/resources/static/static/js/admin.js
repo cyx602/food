@@ -60,55 +60,61 @@ document.querySelectorAll('.menu-item').forEach(item => {
 function animateNumber(element, target, duration = 1000) {
     let start = 0;
     const increment = Math.ceil(target / (duration / 16));
-    
     const timer = setInterval(() => {
         start += increment;
-        if (start >= target) {
-            element.textContent = target.toLocaleString();
-            clearInterval(timer);
-        } else {
-            element.textContent = start.toLocaleString();
-        }
+        if (start >= target) { element.textContent = target.toLocaleString(); clearInterval(timer); }
+        else { element.textContent = start.toLocaleString(); }
     }, 16);
 }
-
 // 页面加载完成后执行动画
+// src/main/resources/static/static/js/admin.js
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 检查登录状态
-    const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
-    
-    if (isLoggedIn === 'true') {
-        // 已登录，显示后台页面
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('adminMain').style.display = 'block';
-        
-        // 执行数字增长动画
-        setTimeout(() => {
-            animateNumber(document.querySelector('.stats-grid .stat-info h3:nth-child(1)'), 1284);
-            animateNumber(document.querySelector('.stats-grid .stat-info h3:nth-child(2)'), 356);
-            animateNumber(document.querySelector('.stats-grid .stat-info h3:nth-child(3)'), 5782);
-            animateNumber(document.querySelector('.stats-grid .stat-info h3:nth-child(4)'), 128);
-        }, 300);
-    } else {
-        // 未登录，显示登录页面
-        document.getElementById('adminMain').style.display = 'none';
-        document.getElementById('loginSection').style.display = 'flex';
+    // 权限检查
+    const userJson = sessionStorage.getItem('currentUser');
+
+    if (!userJson) {
+        alert('请先登录');
+        window.location.href = 'login.html';
+        return;
     }
-    
-    // 为按钮添加悬停效果
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('mousedown', function() {
-            this.style.transform = 'scale(0.95)';
-        });
-        btn.addEventListener('mouseup', function() {
-            this.style.transform = 'scale(1)';
-        });
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'scale(1)';
-        });
+
+    const user = JSON.parse(userJson);
+
+    // 简单权限验证：只有用户名为 admin 才允许访问
+    if (user.username !== 'admin') {
+        alert('权限不足：您不是管理员');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // 如果是管理员，显示内容
+    document.getElementById('adminMain').style.display = 'block';
+
+    // 动画效果
+    animateNumber(document.querySelector('.stats-grid .stat-info h3:nth-child(1)'), 1284);
+});
+
+// 退出登录
+document.getElementById('logoutBtn').addEventListener('click', function() {
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('adminLoggedIn');
+    window.location.href = 'login.html';
+});
+
+// 侧边栏菜单切换 (保持不变)
+document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.menu-item').forEach(menu => menu.classList.remove('active'));
+        this.classList.add('active');
+        const title = this.querySelector('span').textContent;
+        document.querySelector('.content-title').textContent = title;
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        const target = this.getAttribute('data-target');
+        document.getElementById(target).classList.add('active');
     });
 });
+
 
 // 退出登录
 document.getElementById('logoutBtn').addEventListener('click', function() {

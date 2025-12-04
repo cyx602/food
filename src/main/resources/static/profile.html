@@ -531,13 +531,12 @@
     </div>
     <div class="nav-center">
         <ul class="nav-links">
-            <li><a href="index.html">首页</a></li>
-            <li><a href="cuisine.html">菜系分类</a></li>
+            <li><a href="index.html" >首页</a></li>
+            <li><a href="cuisine.html" >菜系分类</a></li>
             <li><a href="recommendation.html">菜品推荐</a></li>
-            <li><a href="market.html">食材商城</a></li>
+            <li><a href="market.html" >食材商城</a></li>
             <li><a href="my_recipes.html">我的食谱</a></li>
-            <li><a href="feed.html">动态圈</a></li>
-            <li><a href="profile.html">个人中心</a></li>
+            <li><a href="profile.html"  style="background-color: rgba(255,255,255,0.2);">个人中心</a></li>
             <li><a href="admin.html">后台管理</a></li>
             <li id="authSection"><a href="register.html">登录/注册</a></li>
         </ul>
@@ -613,24 +612,33 @@
     }
     
     // 显示个人中心
-    function displayProfile() {
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || '{}');
-
+    // 修改：显示个人中心（从后端获取数据）
+    async function displayProfile() {
         const container = document.getElementById('profileContent');
-        
-        // 显示个人中心内容后，绑定修改按钮事件
-        setTimeout(function() {
-            const editProfileBtn = document.getElementById('editProfileBtn');
-            if (editProfileBtn) {
-                editProfileBtn.addEventListener('click', openProfileEditModal);
+
+        try {
+            // 1. 从后端获取完整的用户信息
+            const res = await fetch('/api/current-user');
+            if (res.status === 401) {
+                displayLoginPrompt();
+                return;
             }
-        }, 10);
-        container.innerHTML = `
+
+            const data = await res.json();
+            if (!data.success) {
+                alert('获取用户信息失败');
+                return;
+            }
+
+            const currentUser = data; // 使用后端返回的完整数据
+
+            // 2. 渲染页面结构
+            container.innerHTML = `
                 <div class="profile-layout">
                     <div class="profile-sidebar common-card-style">
                         <div class="profile-avatar">
-                            <img src="static/image/default_avatar.jpg" alt="头像" class="avatar-image" id="userAvatar">
-                            <div class="profile-name" id="userName">${currentUser.username || '美食爱好者'}</div>
+                            <img src="${currentUser.avatarFileName ? 'static/upload/' + currentUser.avatarFileName : 'static/image/default_avatar.jpg'}" alt="头像" class="avatar-image" id="userAvatar" onerror="this.src='static/image/default_avatar.jpg'">
+                            <div class="profile-name" id="userName">${currentUser.username}</div>
                             <div class="profile-level">黄金会员</div>
                         </div>
 
@@ -659,61 +667,50 @@
                         <div class="content-section active" id="profileSection">
                             <h2 class="section-title">个人信息</h2>
                             <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">用户名</div>
-                        <div class="info-value">${currentUser.username || '未设置'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">性别</div>
-                        <div class="info-value">${currentUser.gender === 'male' ? '男' : currentUser.gender === 'female' ? '女' : '未设置'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">手机号码</div>
-                        <div class="info-value">${currentUser.phone ? (currentUser.phone.substring(0, 3) + '****' + currentUser.phone.substring(7)) : '未设置'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">邮箱地址</div>
-                        <div class="info-value">${currentUser.email || '未设置'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">注册时间</div>
-                        <div class="info-value">${currentUser.createdAt ? formatDate(currentUser.createdAt) : '2024-01-15'}</div>
-                    </div>
-                </div>
+                                <div class="info-item">
+                                    <div class="info-label">用户名</div>
+                                    <div class="info-value">${currentUser.username}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">性别</div>
+                                    <div class="info-value">${currentUser.gender === 'male' ? '男' : currentUser.gender === 'female' ? '女' : '未设置'}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">手机号码</div>
+                                    <div class="info-value">${currentUser.phone || '未设置'}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">邮箱地址</div>
+                                    <div class="info-value">${currentUser.email || '未设置'}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">收货地址</div>
+                                    <div class="info-value address-display">${currentUser.address || '未设置'}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">注册时间</div>
+                                    <div class="info-value">${currentUser.createdAt ? formatDate(currentUser.createdAt) : '未知'}</div>
+                                </div>
+                            </div>
+
                             <div>
                                 <button class="edit-btn" id="editProfileBtn">修改个人信息</button>
                             </div>
 
-                            <!-- 收货地址部分 -->
                             <div class="section-divider"></div>
-                            <h2 class="section-title">收货地址</h2>
-                            <div class="address-list" id="addressList">
-                                <!-- 地址列表将通过JavaScript动态生成 -->
-                            </div>
-                            <button class="add-address-btn" onclick="addNewAddress()">
-                                <i class="fas fa-plus"></i> 添加新地址
-                            </button>
-
-                            <!-- 美食偏好部分 -->
-                            <div class="section-divider"></div>
-                            <h2 class="section-title">美食偏好</h2>
+                            <h2 class="section-title">我的美食偏好</h2>
                             <div class="preferences-grid" id="preferencesGrid">
-                                <!-- 美食偏好卡片将通过JavaScript动态生成 -->
+                                </div>
+
                             </div>
-                        </div>
 
                         <div class="content-section" id="ordersSection">
                             <h2 class="section-title">我的订单</h2>
-                            <div class="orders-list" id="ordersList">
-                                <!-- 订单列表将通过JavaScript动态生成 -->
-                            </div>
+                            <div class="orders-list" id="ordersList"></div>
                         </div>
-
-
                     </div>
                 </div>
-                
-                <!-- 个人信息编辑模态框 -->
+
                 <div id="profileEditModal" class="modal">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -724,32 +721,22 @@
                             <form id="profileEditForm" onsubmit="saveProfileChanges(event)">
                                 <div class="form-group">
                                     <label for="editUsername">用户名</label>
-                                    <input type="text" id="editUsername" placeholder="请输入用户名" required>
+                                    <input type="text" id="editUsername" required>
                                 </div>
                                 <div class="form-group">
                                     <label>性别</label>
                                     <div style="display: flex; gap: 20px; margin-top: 5px;">
-                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                            <input type="radio" name="gender" value="male">
-                                            <span>男</span>
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                            <input type="radio" name="gender" value="female">
-                                            <span>女</span>
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                            <input type="radio" name="gender" value="">
-                                            <span>未设置</span>
-                                        </label>
+                                        <label><input type="radio" name="gender" value="male"> 男</label>
+                                        <label><input type="radio" name="gender" value="female"> 女</label>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="editPhone">手机号码</label>
-                                    <input type="tel" id="editPhone" placeholder="请输入手机号码" pattern="1[3-9]\d{9}">
+                                    <input type="tel" id="editPhone">
                                 </div>
                                 <div class="form-group">
                                     <label for="editEmail">邮箱地址</label>
-                                    <input type="email" id="editEmail" placeholder="请输入邮箱地址">
+                                    <input type="email" id="editEmail">
                                 </div>
                                 <div class="form-actions">
                                     <button type="button" class="btn-secondary" onclick="closeProfileEditModal()">取消</button>
@@ -759,49 +746,27 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- 地址编辑模态框 -->
-                <div id="addressModal" class="modal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 id="modalTitle">添加新地址</h3>
-                            <span class="close-modal" onclick="closeAddressModal()">&times;</span>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addressForm" onsubmit="saveAddress(event)">
-                                <input type="hidden" id="addressId" value="">
-                                <div class="form-group">
-                                    <label for="addressName">地址名称</label>
-                                    <input type="text" id="addressName" placeholder="如：公司地址、家庭地址" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="recipient">收货人</label>
-                                    <input type="text" id="recipient" placeholder="请输入收货人姓名" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="phone">手机号码</label>
-                                    <input type="tel" id="phone" placeholder="请输入手机号码" pattern="1[3-9]\d{9}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="address">详细地址</label>
-                                    <textarea id="address" rows="3" placeholder="请输入详细地址" required></textarea>
-                                </div>
-                                <div class="form-group checkbox-group">
-                                    <input type="checkbox" id="isDefault" value="true">
-                                    <label for="isDefault">设为默认地址</label>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn-secondary" onclick="closeAddressModal()">取消</button>
-                                    <button type="submit" class="btn-primary">保存</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             `;
 
-        setupProfileEvents();
-        loadProfileData();
+            // 3. 初始化事件和子组件
+            setTimeout(function() {
+                const editProfileBtn = document.getElementById('editProfileBtn');
+                if (editProfileBtn) {
+                    editProfileBtn.addEventListener('click', openProfileEditModal);
+                }
+            }, 10);
+
+            setupProfileEvents();
+
+            // 4. 加载偏好和其他数据
+            initPreferencesCards(currentUser.styles);
+            loadOrders();
+            // loadAddresses(); // 如果地址主要依赖 User 表的 address 字段，可以不调用这个，或者如果有多地址管理需求则保留
+
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<p style="text-align:center; padding:30px;">加载失败，请刷新重试</p>';
+        }
     }
 
     // 美食偏好数据
@@ -840,21 +805,24 @@
     }
 
     // 初始化美食偏好卡片
-    function initPreferencesCards() {
+    // 修改：初始化美食偏好卡片（接收 styles 参数）
+    function initPreferencesCards(userStyles) {
         const preferencesGrid = document.getElementById('preferencesGrid');
         if (!preferencesGrid) return;
 
-        // 获取用户保存的偏好
-        const savedPreferences = JSON.parse(localStorage.getItem('userPreferences') || '[]');
+        // 使用传入的 styles，如果没有则为空数组
+        const savedPreferences = userStyles || [];
 
         preferencesGrid.innerHTML = '';
 
         cuisinePreferences.forEach(cuisine => {
+            // 检查该菜系是否在用户的偏好列表中
             const isLiked = savedPreferences.includes(cuisine.id);
             const card = document.createElement('div');
+            // 如果包含，添加 liked 类以高亮显示
             card.className = `preference-card ${isLiked ? 'liked' : ''}`;
             card.dataset.cuisine = cuisine.id;
-            
+
             card.innerHTML = `
                 <div class="preference-icon">
                     <i class="${cuisine.icon}"></i>
@@ -863,12 +831,8 @@
                 <div class="preference-desc">${cuisine.description}</div>
             `;
 
-            // 添加点击事件
-            card.addEventListener('click', function() {
-                this.classList.toggle('liked');
-                updateUserPreferences();
-            });
-
+            // 移除点击切换功能，个人中心仅做展示（如需修改需在编辑资料中处理，或者保留点击事件但需同步后端）
+            // 这里为了展示注册信息，我们暂时只做展示
             preferencesGrid.appendChild(card);
         });
     }

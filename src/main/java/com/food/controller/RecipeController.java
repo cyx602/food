@@ -62,6 +62,7 @@ public class RecipeController {
     public ResponseEntity<Map<String, Object>> createRecipe(@RequestBody Recipe recipe,
                                                             HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
+        // 获取当前登录用户
         User user = (User) request.getSession().getAttribute("currentUser");
 
         if (user == null) {
@@ -71,8 +72,10 @@ public class RecipeController {
         }
 
         try {
+            // 绑定当前用户ID
             recipe.setUserId(user.getId());
-            // 这里可以添加更多校验，如标题不能为空等
+
+            // 插入数据库
             recipeMapper.insertRecipe(recipe);
 
             res.put("success", true);
@@ -141,6 +144,40 @@ public class RecipeController {
             return ResponseEntity.badRequest().body(res);
         }
     }
+
+    @PostMapping("/delete")
+    public ResponseEntity<Map<String, Object>> deleteRecipe(@RequestBody Map<String, Integer> body,
+                                                            HttpServletRequest request) {
+        Map<String, Object> res = new HashMap<>();
+        User user = (User) request.getSession().getAttribute("currentUser");
+
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "请先登录");
+            return ResponseEntity.status(401).body(res);
+        }
+
+        try {
+            Integer recipeId = body.get("id");
+            if (recipeId == null) {
+                res.put("success", false);
+                res.put("message", "参数错误");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            recipeMapper.deleteRecipe(recipeId, user.getId());
+
+            res.put("success", true);
+            res.put("message", "删除成功");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "删除失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
+    }
+
 
 
 }

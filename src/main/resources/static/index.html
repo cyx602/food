@@ -80,12 +80,10 @@
             <li><a href="index.html" style="background-color: rgba(255,255,255,0.2);">首页</a></li>
             <li><a href="cuisine.html">菜系分类</a></li>
             <li><a href="recommendation.html">菜品推荐</a></li>
-            <li><a href="market.html">食材商城</a></li>
+            <li><a href="market.html" >食材商城</a></li>
             <li><a href="my_recipes.html">我的食谱</a></li>
-            <li><a href="feed.html">动态圈</a></li>
             <li><a href="profile.html">个人中心</a></li>
             <li><a href="admin.html">后台管理</a></li>
-            <!-- 这里将根据登录状态决定是否显示 -->
             <li id="authSection"><a href="register.html">登录/注册</a></li>
         </ul>
     </div>
@@ -146,6 +144,34 @@
         <p>联系我们：<a href="https://www.nchu.edu.cn/" target="_blank">南昌航空大学官网</a></p>
     </footer>
 </body>
+
+document.addEventListener('DOMContentLoaded', function() {
+checkLoginStatus();
+});
+
+function checkLoginStatus() {
+const userJson = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+const authSection = document.getElementById('authSection');
+
+if (userJson && authSection) {
+const user = JSON.parse(userJson);
+const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
+
+// 替换为头像
+authSection.innerHTML = `
+<a href="profile.html" style="display:flex; align-items:center; padding: 5px;">
+    <img src="${avatarPath}" alt="${user.username}"
+         style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+         onerror="this.src='static/image/default_avatar.jpg'">
+</a>
+`;
+authSection.style.backgroundColor = 'transparent';
+
+// 隐藏 Banner 上的注册按钮
+const registerButton = document.getElementById('registerButton');
+if (registerButton) registerButton.style.display = 'none';
+}
+}
 
 <script src="static/js/index.js"></script>
 </html>

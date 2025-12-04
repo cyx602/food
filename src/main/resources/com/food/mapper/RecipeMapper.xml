@@ -47,5 +47,8 @@
         WHERE id = #{id} AND user_id = #{userId}
     </update>
 
+    <delete id="deleteRecipe">
+        DELETE FROM recipes WHERE id = #{id} AND user_id = #{userId}
+    </delete>
 
 </mapper>

@@ -82,41 +82,36 @@ let currentCategory = 'all';
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Market page loaded"); // 调试日志
+    console.log("Market page loaded");
     displayCategories();
     displayProducts('all');
     checkLoginStatus();
 });
 
-// 显示分类及功能按钮（修复按钮显示问题）
+// 显示分类及功能按钮
 function displayCategories() {
     const container = document.getElementById('categories');
-    if (!container) {
-        console.error("找不到分类容器 #categories");
-        return;
-    }
+    if (!container) return;
     container.innerHTML = '';
 
-    // 1. 【购物清单】按钮
+    // 1. 【购物清单】按钮 - 修改点击事件
     const listBtn = document.createElement('button');
     listBtn.className = 'cart-btn';
-    listBtn.style.backgroundColor = '#f7941e'; // 项目主色调橙色
-    listBtn.style.borderColor = '#e67e22';
+    listBtn.style.backgroundColor = '#f7941e';
+    listBtn.style.borderColor = '#dc831b';
     listBtn.style.marginRight = '10px';
     listBtn.innerHTML = '<i class="fas fa-clipboard-list"></i> 待买清单';
-    listBtn.onclick = function() {
-        window.location.href = 'shopping_list.html';
-    };
+    listBtn.onclick = showShoppingList; // 改为调用弹窗函数
     container.appendChild(listBtn);
 
     // 2. 【购物车】按钮
     const cartBtn = document.createElement('button');
     cartBtn.className = 'cart-btn';
     cartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> 购物车';
-    cartBtn.onclick = showCart; // 绑定事件
+    cartBtn.onclick = showCart;
     container.appendChild(cartBtn);
 
-    // 3. 分类标签
+    // 3. 分类标签 (保持不变)
     categories.forEach(category => {
         const categoryElement = document.createElement('div');
         categoryElement.className = `category ${category.id === 'all' ? 'active' : ''}`;
@@ -396,6 +391,123 @@ function renderCart(cartItems) {
     if(checkoutBtn) checkoutBtn.disabled = false;
 }
 
+// 显示购物清单模态框
+function showShoppingList() {
+    const modal = document.getElementById('listModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        loadShoppingList();
+    }
+}
+
+// 关闭购物清单模态框
+function closeShoppingList() {
+    const modal = document.getElementById('listModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// 加载清单数据
+async function loadShoppingList() {
+    try {
+        const res = await fetch('/api/shopping-list/list');
+        if(res.status === 401) {
+            alert('请先登录');
+            window.location.href = 'login.html';
+            return;
+        }
+        const list = await res.json();
+        renderShoppingList(list);
+    } catch(e) { console.error(e); }
+}
+
+// 渲染清单列表
+function renderShoppingList(list) {
+    const todoContainer = document.getElementById('todoListItems');
+    const boughtContainer = document.getElementById('boughtListItems');
+    if(!todoContainer || !boughtContainer) return;
+
+    todoContainer.innerHTML = '';
+    boughtContainer.innerHTML = '';
+
+    if(list.length === 0) {
+        todoContainer.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">清单空空如也</div>';
+        return;
+    }
+
+    list.forEach(item => {
+        // 内联样式模拟shopping的 CSS
+        const checkColor = item.isBought ? '#8cc63f' : 'transparent';
+        const borderColor = item.isBought ? '#8cc63f' : '#ddd';
+        const textColor = item.isBought ? '#999' : '#333';
+        const textDecor = item.isBought ? 'line-through' : 'none';
+        const displayCheck = item.isBought ? 'block' : 'none';
+
+        const html = `
+            <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee;">
+                <div onclick="toggleListStatus(${item.id}, ${!item.isBought})" 
+                     style="width: 22px; height: 22px; border: 2px solid ${borderColor}; border-radius: 50%; margin-right: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; background-color: ${checkColor}; transition: 0.2s;">
+                    <i class="fas fa-check" style="font-size: 12px; color: white; display: ${displayCheck}"></i>
+                </div>
+                <span style="flex: 1; font-size: 16px; color: ${textColor}; text-decoration: ${textDecor};">${item.name}</span>
+                ${item.quantity ? `<span style="background: #f0f0f0; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: #666; margin-right: 10px;">${item.quantity}</span>` : ''}
+                <button onclick="deleteListItem(${item.id})" style="color: #ff6b6b; border: none; background: none; cursor: pointer; font-size: 16px;"><i class="fas fa-times"></i></button>
+            </div>
+        `;
+        if(item.isBought) boughtContainer.insertAdjacentHTML('beforeend', html);
+        else todoContainer.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+// 添加清单项
+async function addListItem() {
+    const nameInput = document.getElementById('listNewItem');
+    const qtyInput = document.getElementById('listNewQty');
+    const name = nameInput.value.trim();
+    const quantity = qtyInput.value.trim();
+
+    if(!name) return;
+
+    await fetch('/api/shopping-list/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name, quantity })
+    });
+
+    nameInput.value = '';
+    qtyInput.value = '';
+    loadShoppingList();
+}
+
+// 切换购买状态
+async function toggleListStatus(id, isBought) {
+    await fetch('/api/shopping-list/status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id, isBought })
+    });
+    loadShoppingList();
+}
+
+// 删除清单项
+async function deleteListItem(id) {
+    await fetch('/api/shopping-list/delete', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id })
+    });
+    loadShoppingList();
+}
+
+// 清空已买
+async function clearBoughtList() {
+    if(!confirm('确定清空所有已买物品吗？')) return;
+    await fetch('/api/shopping-list/clear-bought', { method: 'POST' });
+    loadShoppingList();
+}
+
+
 // 其他辅助函数
 function closeCart() {
     document.getElementById('cartModal').style.display = 'none';
@@ -429,12 +541,33 @@ async function checkout() {
 }
 
 function checkLoginStatus() {
+    const userJson = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
     const authSection = document.getElementById('authSection');
-    // 简单通过 sessionStorage 判断 UI 显示，实际权限由后端控制
-    if (sessionStorage.getItem('currentUser') && authSection) {
-        authSection.style.display = 'none';
+
+    if (userJson && authSection) {
+        const user = JSON.parse(userJson);
+        const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
+
+        // 替换为头像
+        authSection.innerHTML = `
+            <a href="profile.html" style="display:flex; align-items:center; padding: 5px;">
+                <img src="${avatarPath}" alt="${user.username}" 
+                     style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
+                     onerror="this.src='static/image/default_avatar.jpg'">
+            </a>
+        `;
+        // 清除可能存在的背景色
+        authSection.style.backgroundColor = 'transparent';
+
+        // 如果首页有注册按钮，也隐藏它
+        const registerButton = document.getElementById('registerButton');
+        if (registerButton) {
+            registerButton.style.display = 'none';
+        }
     }
 }
+
+
 
 
 

@@ -345,9 +345,8 @@
             <li><a href="index.html">首页</a></li>
             <li><a href="cuisine.html">菜系分类</a></li>
             <li><a href="recommendation.html">菜品推荐</a></li>
-            <li><a href="market.html">食材商城</a></li>
+            <li><a href="market.html" style="background-color: rgba(255,255,255,0.2);">食材商城</a></li>
             <li><a href="my_recipes.html">我的食谱</a></li>
-            <li><a href="feed.html">动态圈</a></li>
             <li><a href="profile.html">个人中心</a></li>
             <li><a href="admin.html">后台管理</a></li>
             <li id="authSection"><a href="register.html">登录/注册</a></li>
@@ -366,35 +365,62 @@
         <!-- 商品将通过JavaScript动态生成 -->
     </div>
 
-    <!-- 分页区域 -->
     <div id="productPagination" class="pagination"></div>
 </div>
-    
-    <!-- 购物车模态框 -->
-    <div class="cart-modal" id="cartModal">
-        <div class="cart-modal-content">
-            <div class="cart-modal-header">
-                <h2 class="cart-modal-title">
-                    <i class="fas fa-shopping-cart"></i> 我的购物车
-                </h2>
-                <button class="close-cart" onclick="closeCart()">&times;</button>
-            </div>
-            
-            <div class="cart-items" id="cartItems">
-                <!-- 购物车商品将通过JavaScript动态生成 -->
-            </div>
-            
-            <div class="cart-total" id="cartTotal">
-                <span>合计:</span>
-                <span>¥0.00</span>
-            </div>
-            
-            <div class="cart-actions">
-                <button class="continue-shopping-btn" onclick="closeCart()">继续购物</button>
-                <button class="checkout-btn" onclick="checkout()" disabled>去结算</button>
+
+<div class="cart-modal" id="cartModal">
+            <div class="cart-modal-content">
+                <div class="cart-modal-header">
+                    <h2 class="cart-modal-title">
+                        <i class="fas fa-shopping-cart"></i> 我的购物车
+                    </h2>
+                    <button class="close-cart" onclick="closeCart()">&times;</button>
+                </div>
+                <div class="cart-items" id="cartItems"></div>
+                <div class="cart-total" id="cartTotal">
+                    <span>合计:</span>
+                    <span>¥0.00</span>
+                </div>
+                <div class="cart-actions">
+                    <button class="continue-shopping-btn" onclick="closeCart()">继续购物</button>
+                    <button class="checkout-btn" onclick="checkout()" disabled>去结算</button>
+                </div>
             </div>
         </div>
-    </div>
+
+        <div class="cart-modal" id="listModal">
+            <div class="cart-modal-content">
+                <div class="cart-modal-header">
+                    <h2 class="cart-modal-title">
+                        <i class="fas fa-clipboard-list"></i> 待买清单
+                    </h2>
+                    <button class="close-cart" onclick="closeShoppingList()">&times;</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;">
+                    <input type="text" id="listNewItem" placeholder="添加物品 (如: 鸡蛋)"
+                           style="flex: 1; padding: 10px; border: 1px solid #d9b38c; border-radius: 5px;"
+                           onkeypress="if(event.keyCode==13) document.getElementById('listNewQty').focus()">
+                    <input type="text" id="listNewQty" placeholder="用量"
+                           style="width: 80px; padding: 10px; border: 1px solid #d9b38c; border-radius: 5px;"
+                           onkeypress="if(event.keyCode==13) addListItem()">
+                    <button class="btn-primary" onclick="addListItem()" style="padding: 0 15px; border-radius: 5px; border:none;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div class="cart-items" style="max-height: 400px; overflow-y: auto;">
+                    <h4 style="margin: 10px 0; color: #664b2e;">待买</h4>
+                    <div id="todoListItems"></div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px;">
+                        <h4 style="margin: 0; color: #664b2e;">已买</h4>
+                        <button onclick="clearBoughtList()" style="color: #666; background: #f0f0f0; border:none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">清空已买</button>
+                    </div>
+                    <div id="boughtListItems"></div>
+                </div>
+            </div>
+        </div>
 
 <footer class="footer">
     <p>美食天地 - 新鲜食材直达 | 客服热线：400-123-4567 | 邮箱：service@foodheaven.com</p>
