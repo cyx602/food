@@ -9,9 +9,11 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100),
     address VARCHAR(200),
     avatar_file_name VARCHAR(100),
-    status INT DEFAULT 1, -- 新增：1=正常, 0=禁用
+    role VARCHAR(20) DEFAULT 'user',
+    status INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
 
 -- 管理员表
 CREATE TABLE IF NOT EXISTS admins (

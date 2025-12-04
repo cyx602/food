@@ -85,13 +85,51 @@ function validateForm() {
 
 // 提交表单
 if (submitBtn) {
-    submitBtn.addEventListener('click', function() {
-        if (validateForm()) {
-            // 简单模拟注册成功，实际应调用 fetch('/api/admin/register', ...)
-            // 注意：目前后端还没有专门的管理员注册接口，如果需要入库，需扩展 UserMapper 和 Controller
-            // 这里仅做前端演示
-            alert('管理员注册申请已提交！请等待超级管理员审核。');
-            window.location.href = 'login.html';
+    submitBtn.addEventListener('click', async function() {
+        if (!validateForm()) return; // 校验不通过直接返回
+
+        const userData = {
+            name: nameInput.value.trim(),
+            phone: phoneInput.value.trim(),
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+            regCode: regCodeInput.value.trim(),
+            // 假设头像上传逻辑已将文件名存在某个变量 currentAvatarFileName 中，或者默认为 default
+            avatarFileName: window.currentAvatarFileName || 'default_avatar.jpg'
+        };
+
+        // 上传头像（如果有）
+        if (avatarInput.files[0]) {
+            const formData = new FormData();
+            formData.append('avatar', avatarInput.files[0]);
+            try {
+                const uploadRes = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+                const uploadData = await uploadRes.json();
+                if (uploadData.success) {
+                    userData.avatarFileName = uploadData.fileName;
+                }
+            } catch (e) {
+                console.error("头像上传失败", e);
+            }
+        }
+
+        // 调用注册接口
+        try {
+            const res = await fetch('/api/admin/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('注册成功！请登录。');
+                window.location.href = 'login.html';
+            } else {
+                alert(data.message || '注册失败');
+            }
+        } catch (e) {
+            alert('网络错误，请稍后重试');
         }
     });
 }

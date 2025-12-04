@@ -16,8 +16,8 @@ function checkAdminAuth() {
         return;
     }
     const user = JSON.parse(userJson);
-    // 检查用户名是否为 admin
-    if (user.username !== 'admin') {
+    // 检查用户名是否为 admin 或者角色是否为 admin
+    if (user.username !== 'admin' && user.role !== 'admin') {
         alert('权限不足：您不是管理员');
         window.location.href = 'index.html';
     }
@@ -338,30 +338,18 @@ async function loadOrderStats() {
     const map = {'PENDING':'待发货', 'SHIPPED':'已发货', 'COMPLETED':'已完成'};
     document.getElementById('orderStatsBar').innerHTML = list.map(s => `<span>${map[s.status]||s.status}: <b style="color:#f7941e; margin-left:5px;">${s.count}</b></span>`).join(' <span style="color:#ddd; margin:0 10px;">|</span> ');
 }
-
-// ==================== 7. 系统配置 & 公告 ====================
-async function saveSystemSettings() {
-    const settings = {
-        'site_name': document.getElementById('confSiteName').value,
-        'contact_email': document.getElementById('confEmail').value
-    };
-    await fetch('/api/admin/settings/update', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(settings)
-    });
-    alert('系统配置已保存');
-}
+// ==================== 7. 公告管理 (原系统配置) ====================
+// 删除 saveSystemSettings 函数
 
 async function loadAnnouncements() {
     const res = await fetch('/api/admin/announcements');
     const list = await res.json();
     document.getElementById('announcementList').innerHTML = list.map(a => `
-        <li style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed #eee; display:flex; justify-content:space-between;">
-            <span>${a.title}</span>
+        <li style="margin-bottom:10px; padding:10px; background:#fffaf0; border:1px solid #f0e6d8; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:bold; color:#664b2e;">${a.title}</span>
             <span>
-                <span style="font-size:12px; color:#999; margin-right:10px;">${new Date(a.createdAt).toLocaleDateString()}</span>
-                <button onclick="deleteAnn(${a.id})" style="color:red; border:none; background:none; cursor:pointer;">&times;</button>
+                <span style="font-size:12px; color:#999; margin-right:15px;">${new Date(a.createdAt).toLocaleDateString()}</span>
+                <button onclick="deleteAnn(${a.id})" style="color:#ff6b6b; border:none; background:none; cursor:pointer; font-size:16px;"><i class="fas fa-trash-alt"></i></button>
             </span>
         </li>
     `).join('');

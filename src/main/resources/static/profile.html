@@ -858,7 +858,9 @@
 
     // 加载订单数据
     function loadOrders() {
-        const orders = JSON.parse(localStorage.getItem('userOrders') || '[]');
+        fetch('/api/order/list')
+            .then(res => res.json())
+            .then(orders => {
         const container = document.getElementById('ordersList');
 
         document.getElementById('ordersCount').textContent = orders.length;
@@ -884,6 +886,7 @@
                 `;
             container.appendChild(orderElement);
         });
+            });
     }
 
     // 获取订单状态类名

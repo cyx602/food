@@ -60,10 +60,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (res.ok && data && data.success) {
                 // 保存用户登录状态
-                sessionStorage.setItem('currentUser', JSON.stringify({
+                const userObj = {
                     username: data.username,
-                    avatarFileName: data.avatarFileName
-                }));
+                    avatarFileName: data.avatarFileName,
+                    role: data.role // 存储角色
+                };
+                sessionStorage.setItem('currentUser', JSON.stringify(userObj));
+
 
                 // 【新增】如果是管理员，设置额外标记
                 if (data.username === 'admin') {
@@ -75,9 +78,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert(`欢迎回来，${username}！`);
 
                 // 如果是管理员，直接跳后台，否则跳首页
-                if (data.username === 'admin') {
+                if (data.username === 'admin' || data.role === 'admin') {
+                    sessionStorage.setItem('adminLoggedIn', 'true'); // 兼容旧逻辑
                     window.location.href = baseUrl + '/admin.html';
                 } else {
+                    sessionStorage.removeItem('adminLoggedIn');
                     window.location.href = baseUrl + '/index.html';
                 }
             } else {

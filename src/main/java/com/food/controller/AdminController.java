@@ -21,7 +21,8 @@ public class AdminController {
     // 权限检查辅助方法
     private boolean isAdmin(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute("currentUser");
-        return user != null && "admin".equals(user.getUsername());
+        // 允许用户名为 admin 的账号，或者角色为 admin 的账号
+        return user != null && ("admin".equals(user.getUsername()) || "admin".equals(user.getRole()));
     }
 
     // 1. 获取仪表盘统计数据
@@ -101,12 +102,6 @@ public class AdminController {
     }
 
     // --- 系统配置 & 公告 ---
-    @PostMapping("/settings/update")
-    public ResponseEntity<String> updateSettings(@RequestBody Map<String, String> settings, HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        settings.forEach((k, v) -> adminMapper.updateSetting(k, v));
-        return ResponseEntity.ok("配置已更新");
-    }
     @GetMapping("/announcements")
     public ResponseEntity<List<Announcement>> getAnnouncements(HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -149,6 +144,29 @@ public class AdminController {
     public ResponseEntity<List<Map<String, Object>>> getOrderStats(HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(adminMapper.countOrdersByStatus());
+    }
+
+    @RestController
+    @RequestMapping("/api/common")
+    public class CommonController {
+
+        @Autowired
+        private AdminMapper adminMapper; // 复用 AdminMapper 获取食材列表
+
+        @Autowired
+        private RecipeMapper recipeMapper;
+
+        // 获取所有食材列表 (供 market.html 使用)
+        @GetMapping("/ingredients")
+        public ResponseEntity<List<Ingredient>> getAllIngredients() {
+            return ResponseEntity.ok(adminMapper.selectAllIngredients());
+        }
+
+        // 获取所有食谱列表 (供 cuisine.html 使用)
+        @GetMapping("/recipes")
+        public ResponseEntity<List<Recipe>> getAllRecipes() {
+            return ResponseEntity.ok(recipeMapper.selectAllRecipes());
+        }
     }
 
     // 5. 【新增】管理员删除食谱接口

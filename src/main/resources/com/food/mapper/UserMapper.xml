@@ -4,24 +4,36 @@
 
 <mapper namespace="com.food.mapper.UserMapper">
 
+    <resultMap id="UserMap" type="com.food.entity.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="gender" column="gender"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="address" column="address"/>
+        <result property="avatarFileName" column="avatar_file_name"/>
+        <result property="role" column="role"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+
+        <result property="styles" column="styles" typeHandler="com.food.handler.ListToStringTypeHandler"/>
+    </resultMap>
+
     <insert id="insertUser" parameterType="com.food.entity.User">
         INSERT INTO users (
             username, password, gender, styles,
-            phone, email, address, avatar_file_name, created_at
+            phone, email, address, avatar_file_name, role, created_at
         ) VALUES (
                      #{username}, #{password}, #{gender},
                      #{styles,typeHandler=com.food.handler.ListToStringTypeHandler},
-                     #{phone}, #{email}, #{address}, #{avatarFileName},
+                     #{phone}, #{email}, #{address}, #{avatarFileName}, #{role},
                      NOW()
                  )
     </insert>
 
-    <select id="selectByUsername" parameterType="String" resultType="com.food.entity.User">
-        SELECT
-            id, username, password, gender, styles,
-            phone, email, address, avatar_file_name AS avatarFileName, created_at AS createdAt
-        FROM users
-        WHERE username = #{username}
+    <select id="selectByUsername" parameterType="String" resultMap="UserMap">
+        SELECT * FROM users WHERE username = #{username}
     </select>
 
     <select id="countByUsername" parameterType="String" resultType="int">
@@ -32,8 +44,8 @@
         SELECT COUNT(*) FROM users
     </select>
 
-    <select id="selectAllUsers" resultType="com.food.entity.User">
-        SELECT id, username, email, phone, status, created_at FROM users ORDER BY created_at DESC
+    <select id="selectAllUsers" resultMap="UserMap">
+        SELECT * FROM users ORDER BY created_at DESC
     </select>
 
     <update id="updateUserStatus">

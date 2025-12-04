@@ -1,69 +1,24 @@
-// 食材数据 - 添加更多常见食材
-const products = [
-    // 蔬菜类
-    { id: 1, name: "新鲜番茄", category: "vegetables", price: 8.5, image: "static/image/新鲜番茄.png", unit: "500g", stock: 50 },
-    { id: 2, name: "有机黄瓜", category: "vegetables", price: 6.8, image: "static/image/有机黄瓜.png", unit: "500g", stock: 45 },
-    { id: 3, name: "胡萝卜", category: "vegetables", price: 4.5, image: "static/image/胡萝卜.png", unit: "500g", stock: 60 },
-    { id: 4, name: "土豆", category: "vegetables", price: 3.8, image: "static/image/土豆.png", unit: "500g", stock: 80 },
-    { id: 5, name: "洋葱", category: "vegetables", price: 5.2, image: "static/image/洋葱.png", unit: "500g", stock: 55 },
-    { id: 22, name: "青椒", category: "vegetables", price: 7.5, image: "static/image/青椒.png", unit: "500g", stock: 40 },
-    { id: 23, name: "菠菜", category: "vegetables", price: 6.2, image: "static/image/菠菜.png", unit: "500g", stock: 35 },
-    { id: 24, name: "西兰花", category: "vegetables", price: 9.8, image: "static/image/西兰花.png", unit: "500g", stock: 30 },
-    { id: 25, name: "大白菜", category: "vegetables", price: 3.5, image: "static/image/大白菜.png", unit: "500g", stock: 65 },
-    { id: 26, name: "芹菜", category: "vegetables", price: 5.8, image: "static/image/芹菜.png", unit: "500g", stock: 25 },
+// src/main/resources/static/static/js/market.js
 
-    // 肉类
-    { id: 6, name: "鸡胸肉", category: "meat", price: 25.8, image: "static/image/鸡胸肉.png", unit: "500g", stock: 30 },
-    { id: 7, name: "猪里脊", category: "meat", price: 32.5, image: "static/image/猪里脊.png", unit: "500g", stock: 25 },
-    { id: 8, name: "牛肉片", category: "meat", price: 48.9, image: "static/image/牛肉片.png", unit: "500g", stock: 20 },
-    { id: 9, name: "三文鱼", category: "meat", price: 68.0, image: "static/image/三文鱼.png", unit: "300g", stock: 15 },
-    { id: 27, name: "鸡翅", category: "meat", price: 28.5, image: "static/image/鸡翅.png", unit: "500g", stock: 35 },
-    { id: 28, name: "猪五花肉", category: "meat", price: 35.8, image: "static/image/猪五花肉.png", unit: "500g", stock: 28 },
-    { id: 29, name: "牛排", category: "meat", price: 59.9, image: "static/image/牛排.png", unit: "300g", stock: 18 },
-    { id: 30, name: "羊肉片", category: "meat", price: 52.5, image: "static/image/羊肉片.png", unit: "500g", stock: 22 },
+// 全局变量
+let products = [];
+let currentPage = 1;
+const productsPerPage = 8;
+let currentCategory = 'all';
 
-    // 蛋奶类
-    { id: 10, name: "新鲜鸡蛋", category: "dairy", price: 12.8, image: "static/image/新鲜鸡蛋.png", unit: "30个", stock: 100 },
-    { id: 11, name: "纯牛奶", category: "dairy", price: 8.5, image: "static/image/纯牛奶.png", unit: "1L", stock: 60 },
-    { id: 12, name: "黄油", category: "dairy", price: 15.9, image: "static/image/黄油.png", unit: "200g", stock: 40 },
-    { id: 31, name: "酸奶", category: "dairy", price: 6.8, image: "static/image/酸奶.png", unit: "200g", stock: 55 },
-    { id: 32, name: "奶酪", category: "dairy", price: 22.5, image: "static/image/奶酪.png", unit: "200g", stock: 30 },
-    { id: 33, name: "淡奶油", category: "dairy", price: 18.9, image: "static/image/淡奶油.png", unit: "250ml", stock: 25 },
+// 数据库 category_id 到前端 code 的映射
+// 对应 food_db_ingredient_categories.sql 的数据
+const categoryMap = {
+    1: 'vegetables',
+    2: 'meat',
+    3: 'seafood',
+    4: 'dairy',
+    5: 'seasoning',
+    6: 'fruits',
+    7: 'staple'
+};
 
-    // 调味品
-    { id: 13, name: "生抽", category: "seasoning", price: 12.8, image: "static/image/生抽.png", unit: "500ml", stock: 80 },
-    { id: 14, name: "老抽", category: "seasoning", price: 10.5, image: "static/image/老抽.png", unit: "500ml", stock: 70 },
-    { id: 15, name: "香醋", category: "seasoning", price: 8.9, image: "static/image/香醋.png", unit: "500ml", stock: 65 },
-    { id: 16, name: "料酒", category: "seasoning", price: 9.8, image: "static/image/料酒.png", unit: "500ml", stock: 75 },
-    { id: 17, name: "白糖", category: "seasoning", price: 6.5, image: "static/image/白糖.png", unit: "500g", stock: 90 },
-    { id: 18, name: "食盐", category: "seasoning", price: 3.5, image: "static/image/食盐.png", unit: "500g", stock: 95 },
-    { id: 34, name: "蚝油", category: "seasoning", price: 11.5, image: "static/image/蚝油.png", unit: "500g", stock: 60 },
-    { id: 35, name: "芝麻油", category: "seasoning", price: 15.8, image: "static/image/芝麻油.png", unit: "200ml", stock: 45 },
-    { id: 36, name: "辣椒酱", category: "seasoning", price: 8.9, image: "static/image/辣椒酱.png", unit: "300g", stock: 50 },
-
-    // 水果类
-    { id: 19, name: "香蕉", category: "fruits", price: 6.8, image: "static/image/香蕉.png", unit: "500g", stock: 40 },
-    { id: 20, name: "苹果", category: "fruits", price: 9.9, image: "static/image/苹果.png", unit: "500g", stock: 55 },
-    { id: 21, name: "柠檬", category: "fruits", price: 12.5, image: "static/image/柠檬.png", unit: "500g", stock: 30 },
-    { id: 37, name: "橙子", category: "fruits", price: 11.8, image: "static/image/橙子.png", unit: "500g", stock: 48 },
-    { id: 38, name: "葡萄", category: "fruits", price: 15.9, image: "static/image/葡萄.png", unit: "500g", stock: 35 },
-    { id: 39, name: "草莓", category: "fruits", price: 22.5, image: "static/image/草莓.png", unit: "500g", stock: 20 },
-    { id: 40, name: "西瓜", category: "fruits", price: 8.9, image: "static/image/西瓜.png", unit: "个", stock: 25 },
-
-    // 新增分类：主食类
-    { id: 41, name: "大米", category: "staple", price: 6.5, image: "static/image/大米.png", unit: "1kg", stock: 120 },
-    { id: 42, name: "面粉", category: "staple", price: 5.8, image: "static/image/面粉.png", unit: "1kg", stock: 110 },
-    { id: 43, name: "面条", category: "staple", price: 8.2, image: "static/image/面条.png", unit: "500g", stock: 85 },
-    { id: 44, name: "意大利面", category: "staple", price: 12.5, image: "static/image/意大利面.png", unit: "500g", stock: 60 },
-
-    // 新增分类：海鲜类
-    { id: 45, name: "虾仁", category: "seafood", price: 45.8, image: "static/image/虾仁.png", unit: "500g", stock: 25 },
-    { id: 46, name: "鱿鱼", category: "seafood", price: 38.9, image: "static/image/鱿鱼.png", unit: "500g", stock: 20 },
-    { id: 47, name: "带鱼", category: "seafood", price: 32.5, image: "static/image/带鱼.png", unit: "500g", stock: 18 },
-    { id: 48, name: "蛤蜊", category: "seafood", price: 18.9, image: "static/image/蛤蜊.png", unit: "500g", stock: 15 }
-];
-
-
+// 前端显示的分类标签配置
 const categories = [
     { id: "all", name: "全部食材" },
     { id: "vegetables", name: "新鲜蔬菜" },
@@ -75,18 +30,54 @@ const categories = [
     { id: "staple", name: "主食粮油" }
 ];
 
-// 分页相关变量
-let currentPage = 1;
-const productsPerPage = 8;
-let currentCategory = 'all';
-
 // 初始化页面
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log("Market page loaded");
+
+    // 1. 显示分类标签
     displayCategories();
-    displayProducts('all');
+
+    // 2. 从数据库加载商品数据
+    await loadProductsFromDB();
+
+    // 3. 检查登录状态
     checkLoginStatus();
 });
+
+// 从后端获取所有食材数据
+async function loadProductsFromDB() {
+    const grid = document.getElementById('productsGrid');
+
+    try {
+        // 调用 CommonController 中的接口
+        const res = await fetch('/api/common/ingredients');
+
+        if (res.ok) {
+            const data = await res.json();
+
+            // 映射后端数据到前端格式
+            products = data.map(item => ({
+                id: item.id,
+                name: item.name,
+                // 将数据库的 categoryId 转换为前端的 category code
+                category: categoryMap[item.categoryId] || 'other',
+                price: item.price,
+                image: item.image || 'static/image/default_food.jpg',
+                unit: item.unit,
+                stock: item.stock
+            }));
+
+            // 数据加载完成后显示第一页
+            displayProducts('all');
+        } else {
+            console.error("获取食材失败:", res.status);
+            grid.innerHTML = '<p style="text-align:center; padding:20px; color:red;">数据加载失败，请刷新重试</p>';
+        }
+    } catch (e) {
+        console.error("网络错误:", e);
+        grid.innerHTML = '<p style="text-align:center; padding:20px; color:red;">网络连接异常</p>';
+    }
+}
 
 // 显示分类及功能按钮
 function displayCategories() {
@@ -94,14 +85,14 @@ function displayCategories() {
     if (!container) return;
     container.innerHTML = '';
 
-    // 1. 【购物清单】按钮 - 修改点击事件
+    // 1. 【购物清单】按钮
     const listBtn = document.createElement('button');
     listBtn.className = 'cart-btn';
     listBtn.style.backgroundColor = '#f7941e';
     listBtn.style.borderColor = '#dc831b';
     listBtn.style.marginRight = '10px';
     listBtn.innerHTML = '<i class="fas fa-clipboard-list"></i> 待买清单';
-    listBtn.onclick = showShoppingList; // 改为调用弹窗函数
+    listBtn.onclick = showShoppingList;
     container.appendChild(listBtn);
 
     // 2. 【购物车】按钮
@@ -111,7 +102,7 @@ function displayCategories() {
     cartBtn.onclick = showCart;
     container.appendChild(cartBtn);
 
-    // 3. 分类标签 (保持不变)
+    // 3. 分类标签
     categories.forEach(category => {
         const categoryElement = document.createElement('div');
         categoryElement.className = `category ${category.id === 'all' ? 'active' : ''}`;
@@ -128,18 +119,19 @@ function displayCategories() {
     });
 }
 
-// 显示商品列表 (保持逻辑不变)
+// 显示商品列表
 function displayProducts(category) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
 
+    // 筛选
     const filteredProducts = category === 'all'
         ? products
         : products.filter(product => product.category === category);
 
+    // 分页计算
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-    // 确保当前页不超过总页数（防止切换分类时页码溢出）
     if (currentPage > totalPages && totalPages > 0) {
         currentPage = 1;
     }
@@ -157,7 +149,6 @@ function displayProducts(category) {
                 <p style="font-size: 18px;">暂无相关商品</p>
             </div>
         `;
-        // 如果没有商品，清空分页
         createProductPagination(0);
     } else {
         productsToDisplay.forEach(product => {
@@ -187,10 +178,10 @@ function displayProducts(category) {
             `;
             grid.appendChild(productElement);
         });
-        // 生成完整分页
         createProductPagination(totalPages);
     }
 }
+
 // 更改数量
 function changeQuantity(productId, delta) {
     const input = document.getElementById(`quantity-${productId}`);
@@ -209,7 +200,7 @@ function createProductPagination(totalPages) {
 
     if (totalPages <= 1) return;
 
-    // 1. 首页按钮
+    // 首页
     const firstPageBtn = document.createElement('button');
     firstPageBtn.className = 'pagination-btn';
     firstPageBtn.textContent = '首页';
@@ -220,7 +211,7 @@ function createProductPagination(totalPages) {
     };
     container.appendChild(firstPageBtn);
 
-    // 2. 上一页按钮
+    // 上一页
     const prevPageBtn = document.createElement('button');
     prevPageBtn.className = 'pagination-btn';
     prevPageBtn.textContent = '上一页';
@@ -233,13 +224,10 @@ function createProductPagination(totalPages) {
     };
     container.appendChild(prevPageBtn);
 
-    // 3. 页码按钮（逻辑：显示当前页附近的5个页码）
+    // 页码
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
-
-    if (endPage - startPage < 4) {
-        startPage = Math.max(1, endPage - 4);
-    }
+    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
     for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
@@ -252,7 +240,7 @@ function createProductPagination(totalPages) {
         container.appendChild(btn);
     }
 
-    // 4. 下一页按钮
+    // 下一页
     const nextPageBtn = document.createElement('button');
     nextPageBtn.className = 'pagination-btn';
     nextPageBtn.textContent = '下一页';
@@ -265,7 +253,7 @@ function createProductPagination(totalPages) {
     };
     container.appendChild(nextPageBtn);
 
-    // 5. 末页按钮
+    // 末页
     const lastPageBtn = document.createElement('button');
     lastPageBtn.className = 'pagination-btn';
     lastPageBtn.textContent = '末页';
@@ -276,9 +264,9 @@ function createProductPagination(totalPages) {
     };
     container.appendChild(lastPageBtn);
 }
+
 // 添加到购物车
 async function addToCart(productId) {
-    // 获取当前数量
     const qtyInput = document.getElementById(`quantity-${productId}`);
     const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
 
@@ -289,7 +277,6 @@ async function addToCart(productId) {
             body: JSON.stringify({ ingredientId: productId, quantity: quantity })
         });
 
-        // 先检查状态码
         if (res.status === 401) {
             alert('请先登录');
             window.location.href = 'login.html';
@@ -308,45 +295,29 @@ async function addToCart(productId) {
     }
 }
 
-// 显示购物车（修复加载失败问题）
+// 显示购物车
 async function showCart() {
     const modal = document.getElementById('cartModal');
     const cartItemsDiv = document.getElementById('cartItems');
 
-    if(!modal) {
-        console.error("Cart modal not found");
-        return;
-    }
+    if(!modal) return;
 
     modal.style.display = 'flex';
     cartItemsDiv.innerHTML = '<p style="text-align:center; padding:20px;">正在加载购物车...</p>';
 
     try {
         const res = await fetch('/api/cart/list');
-
-        // 1. 优先处理未登录
         if (res.status === 401) {
             alert('请先登录');
             window.location.href = 'login.html';
             return;
         }
-
-        // 2. 检查响应是否正常
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        // 3. 尝试解析 JSON
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const cartItems = await res.json();
         renderCart(cartItems);
-
     } catch (e) {
         console.error("加载购物车出错:", e);
-        cartItemsDiv.innerHTML = `
-            <div style="text-align:center; color:red; padding:20px;">
-                <p>加载失败</p>
-                <button class="btn btn-sm" onclick="showCart()">重试</button>
-            </div>`;
+        cartItemsDiv.innerHTML = `<div style="text-align:center; color:red;">加载失败</div>`;
     }
 }
 
@@ -370,7 +341,6 @@ function renderCart(cartItems) {
     cartItemsDiv.innerHTML = '';
 
     cartItems.forEach(item => {
-        // 容错处理：防止数据缺失导致计算错误
         const price = item.price || 0;
         const qty = item.quantity || 0;
         const itemTotal = price * qty;
@@ -391,7 +361,7 @@ function renderCart(cartItems) {
     if(checkoutBtn) checkoutBtn.disabled = false;
 }
 
-// 显示购物清单模态框
+// 购物清单相关逻辑
 function showShoppingList() {
     const modal = document.getElementById('listModal');
     if (modal) {
@@ -400,15 +370,11 @@ function showShoppingList() {
     }
 }
 
-// 关闭购物清单模态框
 function closeShoppingList() {
     const modal = document.getElementById('listModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    if (modal) modal.style.display = 'none';
 }
 
-// 加载清单数据
 async function loadShoppingList() {
     try {
         const res = await fetch('/api/shopping-list/list');
@@ -422,7 +388,6 @@ async function loadShoppingList() {
     } catch(e) { console.error(e); }
 }
 
-// 渲染清单列表
 function renderShoppingList(list) {
     const todoContainer = document.getElementById('todoListItems');
     const boughtContainer = document.getElementById('boughtListItems');
@@ -437,7 +402,6 @@ function renderShoppingList(list) {
     }
 
     list.forEach(item => {
-        // 内联样式模拟shopping的 CSS
         const checkColor = item.isBought ? '#8cc63f' : 'transparent';
         const borderColor = item.isBought ? '#8cc63f' : '#ddd';
         const textColor = item.isBought ? '#999' : '#333';
@@ -460,7 +424,6 @@ function renderShoppingList(list) {
     });
 }
 
-// 添加清单项
 async function addListItem() {
     const nameInput = document.getElementById('listNewItem');
     const qtyInput = document.getElementById('listNewQty');
@@ -480,7 +443,6 @@ async function addListItem() {
     loadShoppingList();
 }
 
-// 切换购买状态
 async function toggleListStatus(id, isBought) {
     await fetch('/api/shopping-list/status', {
         method: 'POST',
@@ -490,7 +452,6 @@ async function toggleListStatus(id, isBought) {
     loadShoppingList();
 }
 
-// 删除清单项
 async function deleteListItem(id) {
     await fetch('/api/shopping-list/delete', {
         method: 'POST',
@@ -500,15 +461,12 @@ async function deleteListItem(id) {
     loadShoppingList();
 }
 
-// 清空已买
 async function clearBoughtList() {
     if(!confirm('确定清空所有已买物品吗？')) return;
     await fetch('/api/shopping-list/clear-bought', { method: 'POST' });
     loadShoppingList();
 }
 
-
-// 其他辅助函数
 function closeCart() {
     document.getElementById('cartModal').style.display = 'none';
 }
@@ -521,7 +479,7 @@ async function removeFromCart(cartId) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: cartId })
         });
-        showCart(); // 刷新
+        showCart();
     } catch(e) { alert('删除失败'); }
 }
 
@@ -547,8 +505,6 @@ function checkLoginStatus() {
     if (userJson && authSection) {
         const user = JSON.parse(userJson);
         const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
-
-        // 替换为头像
         authSection.innerHTML = `
             <a href="profile.html" style="display:flex; align-items:center; padding: 5px;">
                 <img src="${avatarPath}" alt="${user.username}" 
@@ -556,18 +512,8 @@ function checkLoginStatus() {
                      onerror="this.src='static/image/default_avatar.jpg'">
             </a>
         `;
-        // 清除可能存在的背景色
         authSection.style.backgroundColor = 'transparent';
-
-        // 如果首页有注册按钮，也隐藏它
         const registerButton = document.getElementById('registerButton');
-        if (registerButton) {
-            registerButton.style.display = 'none';
-        }
+        if (registerButton) registerButton.style.display = 'none';
     }
 }
-
-
-
-
-

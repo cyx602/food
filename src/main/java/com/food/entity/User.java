@@ -19,6 +19,7 @@ public class User {
     private String avatarFileName;   // 头像文件名（存储路径或文件名） - 确保字段名正确
     private Date createdAt;          // 创建时间（数据库自动生成）
     private Integer status;
+    private String role;
 
     // 全参构造器（方便测试）
     public User(String username, String password, String gender, List<String> styles,
@@ -32,6 +33,11 @@ public class User {
         this.address = address;
         this.avatarFileName = avatarFileName;
     }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+
 
     // 无参构造器（MyBatis 反射需要）
     public User() {}
@@ -70,6 +76,8 @@ public class User {
 
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
+
+
 
     // 添加toString方法用于调试
     @Override

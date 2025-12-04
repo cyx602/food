@@ -13,12 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.*;
 
-/**
- * 用户相关控制器：
- *  - /upload-avatar：上传头像，返回文件名（给前端 register.js 使用）
- *  - /register      ：接收 JSON 注册信息并写入数据库
- *  - 页面转发       ：/, /register, /login
- */
+
 @Controller
 @RequestMapping("/api")
 public class UserController {
@@ -28,9 +23,6 @@ public class UserController {
 
     /**
      * 头像上传接口
-     * 前端：register.js -> fetch('/upload-avatar', { method:'POST', body:FormData })
-     * 返回示例：
-     *  { "success": true, "fileName": "upload/xxxx-uuid.jpg" }
      */
     @PostMapping("/upload-avatar")
     @ResponseBody
@@ -62,22 +54,77 @@ public class UserController {
         return result;
     }
 
+    /**
+     * 管理员注册接口 (新增)
+     * 逻辑：校验注册码 -> 成功则赋予 admin 角色并注册
+     */
+    @PostMapping(value = "/admin/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> adminRegister(@RequestBody Map<String, Object> body) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            String regCode = (String) body.get("regCode");
 
+            // 1. 校验注册码 (此处硬编码为 88888888，实际可配置在文件或数据库中)
+            if (!"88888888".equals(regCode)) {
+                res.put("success", false);
+                res.put("message", "注册码错误");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            // 2. 构建管理员用户对象
+            User user = new User();
+            // 注意：前端 admin_register.js 传过来的姓名字段是 name，这里映射给 username
+            user.setUsername((String) body.get("name"));
+            user.setPassword((String) body.get("password"));
+            user.setPhone((String) body.get("phone"));
+            user.setEmail((String) body.get("email"));
+            user.setAvatarFileName((String) body.get("avatarFileName"));
+
+            // 关键设置：角色设为 admin
+            user.setRole("admin");
+
+            // 设置一些默认值，防止数据库非空校验报错
+            user.setGender("secret");
+            user.setAddress("管理员办公地");
+            user.setStyles(new ArrayList<>());
+
+            // 3. 校验用户名是否已存在
+            if (userService.countByUsername(user.getUsername()) > 0) {
+                res.put("success", false);
+                res.put("message", "管理员账号已存在");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            // 4. 执行注册
+            boolean ok = userService.register(user);
+            if (ok) {
+                res.put("success", true);
+                res.put("message", "管理员注册成功！");
+                return ResponseEntity.ok(res);
+            } else {
+                res.put("success", false);
+                res.put("message", "注册失败，请重试");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "注册异常: " + e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
+    }
 
     /**
-     * 用户注册接口
-     * 前端：register.js -> fetch('/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(userData) })
-     * userData 字段：
-     *  username, password, gender, styles(List<String>), phone, address, avatarFileName
+     * 普通用户注册接口
+     * 逻辑：基本校验 -> 赋予 user 角色 -> 注册
      */
     @PostMapping(value = "/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, Object> body) {
-
-        System.out.println("🎯 register 接口被调用");
-        System.out.println("📥 接收到的数据: " + body);
 
         Map<String, Object> res = new HashMap<>();
 
@@ -93,113 +140,67 @@ public class UserController {
             @SuppressWarnings("unchecked")
             List<String> styles = (List<String>) body.get("styles");
 
-            // ===== 基本校验（和前端保持一致，防止绕过） =====
+            // ===== 基本校验 =====
             if (username == null || username.trim().isEmpty()) {
-                System.out.println("❌ 校验失败: 用户名为空");
-                res.put("success", false);
-                res.put("message", "美食昵称不能为空");
-                return ResponseEntity.badRequest().body(res);
+                res.put("success", false); res.put("message", "美食昵称不能为空"); return ResponseEntity.badRequest().body(res);
             }
-            if (password == null || password.trim().isEmpty()) {
-                System.out.println("❌ 校验失败: 密码为空");
-                res.put("success", false);
-                res.put("message", "登录密码不能为空");
-                return ResponseEntity.badRequest().body(res);
-            }
-            if (password.length() < 6) {
-                System.out.println("❌ 校验失败: 密码长度不足");
-                res.put("success", false);
-                res.put("message", "密码长度不能少于6位");
-                return ResponseEntity.badRequest().body(res);
+            if (password == null || password.trim().isEmpty() || password.length() < 6) {
+                res.put("success", false); res.put("message", "密码长度不能少于6位"); return ResponseEntity.badRequest().body(res);
             }
             if (phone == null || phone.trim().isEmpty()) {
-                System.out.println("❌ 校验失败: 手机号为空");
-                res.put("success", false);
-                res.put("message", "手机号不能为空");
-                return ResponseEntity.badRequest().body(res);
+                res.put("success", false); res.put("message", "手机号不能为空"); return ResponseEntity.badRequest().body(res);
             }
-            if (email == null || email.trim().isEmpty()) {
-                System.out.println("❌ 校验失败: 邮箱为空");
-                res.put("success", false);
-                res.put("message", "电子邮箱不能为空");
-                return ResponseEntity.badRequest().body(res);
-            }
-            if (address == null || address.trim().isEmpty()) {
-                System.out.println("❌ 校验失败: 地址为空");
-                res.put("success", false);
-                res.put("message", "食材配送地址不能为空");
-                return ResponseEntity.badRequest().body(res);
-            }
-            if (gender == null || gender.trim().isEmpty()) {
-                System.out.println("❌ 校验失败: 性别为空");
-                res.put("success", false);
-                res.put("message", "性别不能为空");
-                return ResponseEntity.badRequest().body(res);
-            }
-            if (styles == null || styles.isEmpty()) {
-                System.out.println("❌ 校验失败: 偏好为空");
-                res.put("success", false);
-                res.put("message", "至少选择一种美食偏好");
-                return ResponseEntity.badRequest().body(res);
-            }
+            // ... (可以添加更多校验)
+
+            // 默认头像处理
             if (avatarFileName == null || avatarFileName.trim().isEmpty()) {
-                // 与前端默认值保持一致
                 avatarFileName = "default_avatar.jpg";
-                System.out.println("ℹ️ 使用默认头像: " + avatarFileName);
             }
 
-            // ===== 检查用户名是否已存在 =====
-            int count = userService.countByUsername(username);
-            if (count > 0) {
-                System.out.println("❌ 用户名已存在: " + username);
+            // 检查用户名
+            if (userService.countByUsername(username) > 0) {
                 res.put("success", false);
                 res.put("message", "用户名已存在，请选择其他昵称");
                 return ResponseEntity.badRequest().body(res);
             }
 
-            // ===== 组装实体对象 =====
+            // 组装对象
             User user = new User();
             user.setUsername(username.trim());
             user.setPassword(password.trim());
-            user.setGender(gender.trim());
-            user.setStyles(styles);        // List<String>，由自定义 TypeHandler 处理
-            user.setPhone(phone.trim());
-            user.setEmail(email.trim());
-            user.setAddress(address.trim());
-            user.setAvatarFileName(avatarFileName.trim());
+            user.setGender(gender);
+            user.setStyles(styles);
+            user.setPhone(phone);
+            user.setEmail(email);
+            user.setAddress(address);
+            user.setAvatarFileName(avatarFileName);
 
-            System.out.println("👤 组装用户对象: " + user);
+            // 关键设置：普通用户角色
+            user.setRole("user");
 
-            // ===== 调用业务层保存 =====
             boolean ok = userService.register(user);
 
             if (!ok) {
-                System.out.println("❌ 注册失败，业务层返回 false");
                 res.put("success", false);
-                res.put("message", "注册失败，请稍后重试");
+                res.put("message", "注册失败");
                 return ResponseEntity.badRequest().body(res);
             }
 
-            System.out.println("✅ 注册成功: " + username);
             res.put("success", true);
             res.put("message", "注册成功，欢迎加入美食天地！");
             return ResponseEntity.ok(res);
 
         } catch (Exception e) {
-            System.out.println("❌ 注册异常: " + e.getMessage());
             e.printStackTrace();
             res.put("success", false);
             res.put("message", "服务器异常：" + e.getMessage());
             return ResponseEntity.badRequest().body(res);
         }
-
-
     }
 
-
     /**
-     * 用户登录接口（新增）
-     * 前端：login.js -> fetch(baseUrl + '/api/login', {...})
+     * 用户登录接口
+     * 返回结果中包含 role，供前端判断跳转
      */
     @PostMapping(value = "/login",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -208,52 +209,55 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, Object> body,
                                                      HttpServletRequest request) {
 
-        System.out.println("🎯 login 接口被调用");
-        System.out.println("📥 接收到的数据: " + body);
-
         Map<String, Object> res = new HashMap<>();
         try {
             String username = (String) body.get("username");
             String password = (String) body.get("password");
 
-            if (username == null || username.trim().isEmpty()) {
+            if (username == null || password == null) {
                 res.put("success", false);
-                res.put("message", "用户名不能为空");
-                return ResponseEntity.badRequest().body(res);
-            }
-            if (password == null || password.trim().isEmpty()) {
-                res.put("success", false);
-                res.put("message", "登录密码不能为空");
+                res.put("message", "用户名或密码不能为空");
                 return ResponseEntity.badRequest().body(res);
             }
 
             User user = userService.login(username.trim(), password.trim());
+
             if (user == null) {
-                System.out.println("❌ 登录失败：用户名或密码错误，username=" + username);
                 res.put("success", false);
                 res.put("message", "用户名或密码错误");
                 return ResponseEntity.status(401).body(res);
             }
 
-            // 可选：放入会话
+            // 检查账号状态 (如果做了封禁功能)
+            if (user.getStatus() != null && user.getStatus() == 0) {
+                res.put("success", false);
+                res.put("message", "账号已被禁用，请联系管理员");
+                return ResponseEntity.status(403).body(res);
+            }
+
+            // 登录成功，存入 Session
             request.getSession().setAttribute("currentUser", user);
 
-            System.out.println("✅ 登录成功: " + username);
             res.put("success", true);
-            res.put("message", "登录成功，欢迎回来！");
+            res.put("message", "登录成功");
             res.put("username", user.getUsername());
             res.put("avatarFileName", user.getAvatarFileName());
+            // 关键：返回角色信息
+            res.put("role", user.getRole());
+
             return ResponseEntity.ok(res);
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("❌ 登录异常：" + e.getMessage());
             res.put("success", false);
-            res.put("message", "服务器异常：" + e.getMessage());
+            res.put("message", "服务器异常");
             return ResponseEntity.badRequest().body(res);
         }
     }
 
+    /**
+     * 更新个人信息
+     */
     @PostMapping(value = "/update-profile", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody Map<String, Object> body,
@@ -268,15 +272,12 @@ public class UserController {
         }
 
         try {
-            // 更新 Session 中的对象属性
             currentUser.setUsername((String) body.get("username"));
             currentUser.setPhone((String) body.get("phone"));
             currentUser.setEmail((String) body.get("email"));
             currentUser.setGender((String) body.get("gender"));
-            // 注意：实际项目中应重新从DB查一次ID防止Session过期数据问题
 
             userService.updateUserInfo(currentUser);
-
             // 更新 Session
             request.getSession().setAttribute("currentUser", currentUser);
 
@@ -293,12 +294,9 @@ public class UserController {
 
     /**
      * 获取当前登录用户信息
+     * 包含 role 字段
      */
-    /**
-     * 获取当前登录用户信息 - 修改版
-     */
-    @GetMapping(value = "/current-user",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/current-user", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
@@ -313,15 +311,15 @@ public class UserController {
         res.put("success", true);
         res.put("username", currentUser.getUsername());
         res.put("avatarFileName", currentUser.getAvatarFileName());
-        // 新增返回的字段
         res.put("gender", currentUser.getGender());
         res.put("phone", currentUser.getPhone());
         res.put("email", currentUser.getEmail());
         res.put("address", currentUser.getAddress());
-        res.put("styles", currentUser.getStyles()); // 返回 List<String>
+        res.put("styles", currentUser.getStyles());
         res.put("createdAt", currentUser.getCreatedAt());
+        // 返回角色，方便前端展示不同菜单或跳转
+        res.put("role", currentUser.getRole());
 
         return ResponseEntity.ok(res);
     }
-
 }
