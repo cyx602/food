@@ -28,6 +28,18 @@
         SELECT COUNT(*) FROM users WHERE username = #{username}
     </select>
 
+    <select id="countAllUsers" resultType="int">
+        SELECT COUNT(*) FROM users
+    </select>
+
+    <select id="selectAllUsers" resultType="com.food.entity.User">
+        SELECT id, username, email, phone, status, created_at FROM users ORDER BY created_at DESC
+    </select>
+
+    <update id="updateUserStatus">
+        UPDATE users SET status = #{status} WHERE id = #{id}
+    </update>
+
     <update id="updateAvatarByUsername">
         UPDATE users
         SET avatar_file_name = #{avatarFileName}

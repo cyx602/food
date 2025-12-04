@@ -1,7 +1,7 @@
 -- 用户表
 CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+                                     id INT AUTO_INCREMENT PRIMARY KEY,
+                                     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
     gender VARCHAR(10),
     styles VARCHAR(200),
@@ -9,8 +9,9 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100),
     address VARCHAR(200),
     avatar_file_name VARCHAR(100),
+    status INT DEFAULT 1, -- 新增：1=正常, 0=禁用
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    );
 
 -- 管理员表
 CREATE TABLE IF NOT EXISTS admins (
@@ -268,3 +269,27 @@ CREATE TABLE IF NOT EXISTS shopping_list (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+-- 1. 修改食谱表，添加 '是否推荐' 字段
+ALTER TABLE recipes ADD COLUMN is_recommended BOOLEAN DEFAULT FALSE;
+
+-- 2. 确保系统配置表存在
+CREATE TABLE IF NOT EXISTS system_settings (
+                                               setting_key VARCHAR(50) PRIMARY KEY,
+    setting_value TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
+
+-- 3. 确保公告表存在
+CREATE TABLE IF NOT EXISTS announcements (
+                                             id INT AUTO_INCREMENT PRIMARY KEY,
+                                             title VARCHAR(100) NOT NULL,
+    content TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+-- 4. 初始化默认配置（防止查询为空）
+INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES
+('site_title', '美食天地后台管理'),
+('welcome_msg', '欢迎来到美食天地！');

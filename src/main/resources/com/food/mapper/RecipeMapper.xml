@@ -35,6 +35,17 @@
         WHERE r.id = #{id}
     </select>
 
+    <select id="countAllRecipes" resultType="int">
+        SELECT COUNT(*) FROM recipes
+    </select>
+
+    <select id="selectAllRecipes" resultType="com.food.entity.Recipe">
+        SELECT r.id, r.title, r.cuisine_id, r.created_at, u.username as authorName
+        FROM recipes r
+                 LEFT JOIN users u ON r.user_id = u.id
+        ORDER BY r.created_at DESC
+    </select>
+
     <update id="updateRecipe" parameterType="com.food.entity.Recipe">
         UPDATE recipes
         SET title = #{title},
@@ -49,6 +60,10 @@
 
     <delete id="deleteRecipe">
         DELETE FROM recipes WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+    <delete id="adminDeleteRecipe">
+        DELETE FROM recipes WHERE id = #{id}
     </delete>
 
 </mapper>

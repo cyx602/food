@@ -2,6 +2,7 @@ package com.food.mapper;
 
 import com.food.entity.User;
 import org.apache.ibatis.annotations.Param;
+import java.util.List;
 
 /**
  * MyBatis Mapper 接口：定义与用户表相关的数据库操作
@@ -32,4 +33,8 @@ public interface UserMapper {
     int countByUsername(@Param("username") String username);
     int updateAvatarByUsername(@Param("username") String username,
                                @Param("avatarFileName") String avatarFileName);
+
+    int countAllUsers();
+    List<User> selectAllUsers();
+    void updateUserStatus(@Param("id") int id, @Param("status") int status);
 }

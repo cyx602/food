@@ -7,4 +7,7 @@ public interface OrderMapper {
     void insertOrder(Order order);
     void insertOrderItem(OrderItem item);
     List<Order> selectOrdersByUserId(int userId);
+
+    int countAllOrders();
+    List<Order> selectAllOrders();
 }

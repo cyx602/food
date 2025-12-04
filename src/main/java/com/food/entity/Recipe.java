@@ -17,6 +17,10 @@ public class Recipe {
     private String authorName;
     private String authorAvatar;
 
+    private Boolean isRecommended;
+
+    public Boolean getIsRecommended() { return isRecommended; }
+    public void setIsRecommended(Boolean recommended) { isRecommended = recommended; }
     // Getters and Setters
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

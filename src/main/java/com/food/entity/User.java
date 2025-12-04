@@ -18,6 +18,7 @@ public class User {
     private String address;          // 地址
     private String avatarFileName;   // 头像文件名（存储路径或文件名） - 确保字段名正确
     private Date createdAt;          // 创建时间（数据库自动生成）
+    private Integer status;
 
     // 全参构造器（方便测试）
     public User(String username, String password, String gender, List<String> styles,
@@ -66,6 +67,9 @@ public class User {
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+
+    public Integer getStatus() { return status; }
+    public void setStatus(Integer status) { this.status = status; }
 
     // 添加toString方法用于调试
     @Override

@@ -20,4 +20,9 @@ public interface RecipeMapper {
 
     // 【新增】删除食谱方法
     void deleteRecipe(@Param("id") int id, @Param("userId") int userId);
+
+    void adminDeleteRecipe(@Param("id") int id);
+    int countAllRecipes();
+    List<Recipe> selectAllRecipes();
+
 }

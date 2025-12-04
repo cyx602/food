@@ -1,4 +1,6 @@
-// 推荐菜品数据
+// src/main/resources/static/static/js/recommendation.js
+
+// 推荐菜品数据 (已补全)
 const featuredRecipes = [
     {
         id: 101,
@@ -100,19 +102,20 @@ document.addEventListener('DOMContentLoaded', function() {
 // 显示推荐菜品
 function displayFeaturedRecipes() {
     const container = document.getElementById('featuredRecipes');
+    // 如果找不到容器，直接返回
+    if (!container) return;
+
+    // 清空容器，防止重复添加
+    container.innerHTML = '';
+
     const isAdmin = sessionStorage.getItem('adminLoggedIn') === 'true';
 
-    function displayFeaturedRecipes() {
-        const container = document.getElementById('featuredRecipes');
-        const isAdmin = sessionStorage.getItem('adminLoggedIn') === 'true';
+    featuredRecipes.forEach(recipe => {
+        const recipeElement = document.createElement('div');
+        recipeElement.className = 'featured-recipe common-card-style';
 
-        featuredRecipes.forEach(recipe => {
-            const recipeElement = document.createElement('div');
-            recipeElement.className = 'featured-recipe common-card-style';
-
-            // 修改：使用统一的 CSS 类名（需配合 cuisine.html 的样式）
-            // 这里为了确保一致，直接使用与 cuisine.js 相同的样式逻辑
-            let actionButtonsHtml = `
+        // 构建操作按钮HTML (统一使用 favorite-btn 和 add-list-btn 类名)
+        let actionButtonsHtml = `
             <button class="favorite-btn" onclick="addToFavorites(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #f7941e; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-heart"></i> 收藏食谱
             </button>
@@ -120,16 +123,15 @@ function displayFeaturedRecipes() {
                 <i class="fas fa-clipboard-list"></i> 加入清单
             </button>`;
 
-            if (isAdmin) {
-                actionButtonsHtml += `
+        if (isAdmin) {
+            actionButtonsHtml += `
                 <button class="delete-btn" onclick="deleteRecipe(${recipe.id}); event.stopPropagation();" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #dc3545; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-trash"></i> 删除
                 </button>`;
-            }
+        }
 
-            // ... (rest of the HTML generation)
-            recipeElement.innerHTML = `
-            <img src="${recipe.image}" class="recipe-image" onerror="handleImageError(this)">
+        recipeElement.innerHTML = `
+            <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="handleImageError(this)">
             <div class="recipe-content">
                 <h2 class="recipe-title">${recipe.title}</h2>
                 <div class="recipe-meta">
@@ -138,45 +140,57 @@ function displayFeaturedRecipes() {
                     <span><i class="fas fa-utensils"></i> ${getCuisineName(recipe.cuisine)}</span>
                 </div>
                 <p class="recipe-desc">${recipe.description}</p>
+
                 <div class="ingredients-section">
                     <h3 class="section-title">所需食材</h3>
                     <ul class="ingredients-list">
                         ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
                     </ul>
                 </div>
+
+                <div class="steps-section">
+                    <h3 class="section-title">详细步骤</h3>
+                    <ol class="steps-list">
+                        ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
+                    </ol>
+                </div>
+
                 <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 20px;">
                     ${actionButtonsHtml}
                 </div>
             </div>
         `;
-            container.appendChild(recipeElement);
-        });
-    }
+        container.appendChild(recipeElement);
+    });
 }
 
 // 获取菜系名称
 function getCuisineName(cuisine) {
     const names = {
-        'chinese': '中餐', 'western': '西餐', 'japanese': '日料',
-        'korean': '韩式', 'thai': '泰式', 'dessert': '甜点'
+        'chinese': '中餐',
+        'western': '西餐',
+        'japanese': '日料',
+        'korean': '韩式',
+        'thai': '泰式',
+        'dessert': '甜点'
     };
     return names[cuisine] || cuisine;
 }
 
 // 添加到收藏
 function addToFavorites(recipeId) {
-    // 简单前端模拟，实际应调用后端 /api/recipe/favorite/toggle
     const isLoggedIn = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
     if (!isLoggedIn) {
         alert('请先登录后再收藏食谱！');
         window.location.href = 'login.html';
         return;
     }
-    // 模拟调用
+    // 这里仅做前端演示，实际应调用后端接口
+    // fetch('/api/recipe/favorite/toggle', ...);
     alert('收藏成功 (如需持久化请连接后端接口)');
 }
 
-// 【新增】一键添加食谱食材到购物清单
+// 一键添加食谱食材到购物清单
 async function addRecipeToShoppingList(title, ingredientsStr) {
     if(!sessionStorage.getItem('currentUser')) {
         alert('请先登录');
@@ -230,7 +244,7 @@ async function addRecipeToShoppingList(title, ingredientsStr) {
     }
 }
 
-// 【修改】检查登录状态并显示头像
+// 检查登录状态并显示头像
 function checkLoginStatus() {
     const userJson = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
     const authSection = document.getElementById('authSection');
@@ -239,7 +253,7 @@ function checkLoginStatus() {
         const user = JSON.parse(userJson);
         const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
 
-        // 替换为头像链接
+        // 替换为头像
         authSection.innerHTML = `
             <a href="profile.html" style="display:flex; align-items:center; padding: 5px;">
                 <img src="${avatarPath}" alt="${user.username}" 
@@ -247,15 +261,19 @@ function checkLoginStatus() {
                      onerror="this.src='static/image/default_avatar.jpg'">
             </a>
         `;
-        // 移除原有的 "登录/注册" 样式，避免背景色冲突
         authSection.style.backgroundColor = 'transparent';
     }
 }
 
 function deleteRecipe(recipeId) {
-    if (confirm('确定要删除这个食谱吗？')) {
-        alert('删除演示成功');
-        location.reload();
+    if (confirm('确定要删除这个食谱吗？(仅演示前端效果)')) {
+        // 前端模拟删除
+        const index = featuredRecipes.findIndex(r => r.id === recipeId);
+        if (index > -1) {
+            featuredRecipes.splice(index, 1);
+            displayFeaturedRecipes();
+            alert('删除成功');
+        }
     }
 }
 
