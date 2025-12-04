@@ -143,6 +143,12 @@ function displayProducts(category) {
         : products.filter(product => product.category === category);
 
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+    // 确保当前页不超过总页数（防止切换分类时页码溢出）
+    if (currentPage > totalPages && totalPages > 0) {
+        currentPage = 1;
+    }
+
     const startIndex = (currentPage - 1) * productsPerPage;
     const endIndex = startIndex + productsPerPage;
     const productsToDisplay = filteredProducts.slice(startIndex, endIndex);
@@ -156,6 +162,8 @@ function displayProducts(category) {
                 <p style="font-size: 18px;">暂无相关商品</p>
             </div>
         `;
+        // 如果没有商品，清空分页
+        createProductPagination(0);
     } else {
         productsToDisplay.forEach(product => {
             let stockClass = 'in-stock';
@@ -184,10 +192,10 @@ function displayProducts(category) {
             `;
             grid.appendChild(productElement);
         });
+        // 生成完整分页
+        createProductPagination(totalPages);
     }
-    createProductPagination(totalPages);
 }
-
 // 更改数量
 function changeQuantity(productId, delta) {
     const input = document.getElementById(`quantity-${productId}`);
@@ -206,8 +214,39 @@ function createProductPagination(totalPages) {
 
     if (totalPages <= 1) return;
 
-    // 简单分页实现
-    for (let i = 1; i <= totalPages; i++) {
+    // 1. 首页按钮
+    const firstPageBtn = document.createElement('button');
+    firstPageBtn.className = 'pagination-btn';
+    firstPageBtn.textContent = '首页';
+    firstPageBtn.disabled = currentPage === 1;
+    firstPageBtn.onclick = () => {
+        currentPage = 1;
+        displayProducts(currentCategory);
+    };
+    container.appendChild(firstPageBtn);
+
+    // 2. 上一页按钮
+    const prevPageBtn = document.createElement('button');
+    prevPageBtn.className = 'pagination-btn';
+    prevPageBtn.textContent = '上一页';
+    prevPageBtn.disabled = currentPage === 1;
+    prevPageBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayProducts(currentCategory);
+        }
+    };
+    container.appendChild(prevPageBtn);
+
+    // 3. 页码按钮（逻辑：显示当前页附近的5个页码）
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
         const btn = document.createElement('button');
         btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
         btn.textContent = i;
@@ -217,8 +256,31 @@ function createProductPagination(totalPages) {
         };
         container.appendChild(btn);
     }
-}
 
+    // 4. 下一页按钮
+    const nextPageBtn = document.createElement('button');
+    nextPageBtn.className = 'pagination-btn';
+    nextPageBtn.textContent = '下一页';
+    nextPageBtn.disabled = currentPage === totalPages;
+    nextPageBtn.onclick = () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayProducts(currentCategory);
+        }
+    };
+    container.appendChild(nextPageBtn);
+
+    // 5. 末页按钮
+    const lastPageBtn = document.createElement('button');
+    lastPageBtn.className = 'pagination-btn';
+    lastPageBtn.textContent = '末页';
+    lastPageBtn.disabled = currentPage === totalPages;
+    lastPageBtn.onclick = () => {
+        currentPage = totalPages;
+        displayProducts(currentCategory);
+    };
+    container.appendChild(lastPageBtn);
+}
 // 添加到购物车
 async function addToCart(productId) {
     // 获取当前数量

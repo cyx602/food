@@ -1,5 +1,8 @@
+// src/main/resources/static/static/js/cuisine.js
+
 // 食谱数据
 const recipes = [
+    // ... (保留原有的食谱数据，此处省略以节省篇幅，实际文件中包含所有数据) ...
     // 推荐页面的特色食谱
     {
         id: 101,
@@ -686,39 +689,29 @@ let currentCuisine = 'all';
 document.addEventListener('DOMContentLoaded', function() {
     // 检查登录状态
     checkLoginStatus();
-    
+
     // 显示食谱
     displayRecipes(currentPage);
-    
+
     // 生成分页按钮
     generatePagination();
-    
+
     // 菜系切换事件监听
     const cuisineTabs = document.querySelectorAll('.cuisine-tab');
     cuisineTabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            // 移除所有tab的active类
             cuisineTabs.forEach(t => t.classList.remove('active'));
-            // 为当前点击的tab添加active类
             this.classList.add('active');
-            // 更新当前菜系
             currentCuisine = this.getAttribute('data-cuisine');
-            // 重置为第一页
             currentPage = 1;
-            // 重新显示食谱和分页
             displayRecipes(currentPage);
             generatePagination();
         });
     });
-    
-    // 模态框相关事件监听
+
+    // 修复 1：移除对动态元素 .close-modal 的直接绑定，改为事件委托或依赖 inline onclick
+    // 模态框点击背景关闭
     const recipeModal = document.getElementById('recipeModal');
-    const closeModal = document.querySelector('.close-modal');
-    
-    closeModal.addEventListener('click', function() {
-        recipeModal.style.display = 'none';
-    });
-    
     window.addEventListener('click', function(event) {
         if (event.target === recipeModal) {
             recipeModal.style.display = 'none';
@@ -730,43 +723,23 @@ document.addEventListener('DOMContentLoaded', function() {
 function displayRecipes(page) {
     const recipesGrid = document.getElementById('recipesGrid');
     recipesGrid.innerHTML = '';
-    
+
     // 根据当前菜系筛选食谱
     let filteredRecipes = recipes;
     if (currentCuisine !== 'all') {
         filteredRecipes = recipes.filter(recipe => recipe.cuisine === currentCuisine);
     }
-    
+
     // 计算起始和结束索引
     const startIndex = (page - 1) * recipesPerPage;
     const endIndex = startIndex + recipesPerPage;
     const currentRecipes = filteredRecipes.slice(startIndex, endIndex);
-    
+
     // 生成食谱卡片
     currentRecipes.forEach(recipe => {
         const recipeCard = document.createElement('div');
         recipeCard.className = 'recipe-card common-card-style';
-        
-        // 菜系标签样式映射
-        const cuisineClassMap = {
-            'chinese': 'cuisine-chinese',
-            'western': 'cuisine-western',
-            'japanese': 'cuisine-japanese',
-            'korean': 'cuisine-korean',
-            'thai': 'cuisine-thai',
-            'dessert': 'cuisine-dessert'
-        };
-        
-        // 菜系名称映射
-        const cuisineNameMap = {
-            'chinese': '中餐',
-            'western': '西餐',
-            'japanese': '日料',
-            'korean': '韩式',
-            'thai': '泰式',
-            'dessert': '甜点'
-        };
-        
+
         recipeCard.innerHTML = `
             <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="this.onerror=null; this.src='static/image/default.jpg';">
             <div class="recipe-info">
@@ -778,84 +751,67 @@ function displayRecipes(page) {
                     <button class="favorite-btn" data-id="${recipe.id}">
                         <i class="fas fa-heart"></i> 收藏
                     </button>
-                    <button class="buy-ingredients-btn" data-id="${recipe.id}">
-                        <i class="fas fa-shopping-cart"></i> 购买食材
+                    <button class="add-list-btn" data-id="${recipe.id}">
+                        <i class="fas fa-clipboard-list"></i> 加入清单
                     </button>
                 </div>
             </div>
         `;
-        
+
         recipesGrid.appendChild(recipeCard);
     });
-    
+
     // 为整个卡片添加点击事件监听（显示详情）
     document.querySelectorAll('.recipe-card').forEach(card => {
         card.addEventListener('click', function(event) {
-            // 如果点击的是按钮，不触发卡片的点击事件
             if (event.target.closest('button')) {
                 return;
             }
             const recipeId = parseInt(this.querySelector('button').getAttribute('data-id'));
             showRecipeDetails(recipeId);
-
-
         });
     });
 
     // 为收藏按钮添加事件监听
     document.querySelectorAll('.favorite-btn').forEach(button => {
         button.addEventListener('click', function (event) {
-            event.stopPropagation(); // 阻止事件冒泡
+            event.stopPropagation();
             const recipeId = parseInt(this.getAttribute('data-id'));
             addToFavorites(recipeId);
         });
     });
 
-    // 为购买食材按钮添加事件监听
-    document.querySelectorAll('.buy-ingredients-btn').forEach(button => {
+    // 为加入清单按钮添加事件监听 (替换原有的购买食材逻辑)
+    document.querySelectorAll('.add-list-btn').forEach(button => {
         button.addEventListener('click', function (event) {
             event.stopPropagation(); // 阻止事件冒泡
             const recipeId = parseInt(this.getAttribute('data-id'));
-            buyIngredients(recipeId);
+
+            const recipe = recipes.find(r => r.id === recipeId);
+            if(recipe) {
+                // 处理食材格式（如果是数组则转换为字符串）
+                let ingredientsStr = recipe.ingredients;
+                if(Array.isArray(ingredientsStr)) {
+                    ingredientsStr = ingredientsStr.join('\n');
+                }
+                addRecipeToShoppingList(recipe.title, ingredientsStr);
+            }
         });
     });
-
-// 购买食材函数
-    function buyIngredients(recipeId) {
-    // 找到对应的食谱
-    const recipe = recipes.find(r => r.id === recipeId);
-    if (!recipe) return;
-    
-    // 检查登录状态
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-        alert('请先登录后再购买食材');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    // 可以实现将食材添加到购物车的逻辑
-    alert(`已将「${recipe.title}」的食材添加到购物车！`);
-    // 这里可以跳转到购物车页面或实现其他逻辑
-    // window.location.href = 'market.html';
-}
 }
 
-// 生成分页按钮
+// 生成分页按钮 (保持不变)
 function generatePagination() {
     const paginationContainer = document.getElementById('paginationContainer');
     paginationContainer.innerHTML = '';
-    
-    // 根据当前菜系筛选食谱
+
     let filteredRecipes = recipes;
     if (currentCuisine !== 'all') {
         filteredRecipes = recipes.filter(recipe => recipe.cuisine === currentCuisine);
     }
-    
-    // 计算总页数
+
     const totalPages = Math.ceil(filteredRecipes.length / recipesPerPage);
-    
-    // 首页按钮
+
     const firstPageBtn = document.createElement('button');
     firstPageBtn.className = 'pagination-btn';
     firstPageBtn.textContent = '首页';
@@ -866,8 +822,7 @@ function generatePagination() {
         generatePagination();
     });
     paginationContainer.appendChild(firstPageBtn);
-    
-    // 上一页按钮
+
     const prevPageBtn = document.createElement('button');
     prevPageBtn.className = 'pagination-btn';
     prevPageBtn.textContent = '上一页';
@@ -880,34 +835,32 @@ function generatePagination() {
         }
     });
     paginationContainer.appendChild(prevPageBtn);
-    
-    // 页码按钮
+
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
-    
+
     if (endPage - startPage < 4) {
         startPage = Math.max(1, endPage - 4);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = 'pagination-btn';
         pageBtn.textContent = i;
-        
+
         if (i === currentPage) {
             pageBtn.classList.add('active');
         }
-        
+
         pageBtn.addEventListener('click', function() {
             currentPage = i;
             displayRecipes(currentPage);
             generatePagination();
         });
-        
+
         paginationContainer.appendChild(pageBtn);
     }
-    
-    // 下一页按钮
+
     const nextPageBtn = document.createElement('button');
     nextPageBtn.className = 'pagination-btn';
     nextPageBtn.textContent = '下一页';
@@ -920,8 +873,7 @@ function generatePagination() {
         }
     });
     paginationContainer.appendChild(nextPageBtn);
-    
-    // 末页按钮
+
     const lastPageBtn = document.createElement('button');
     lastPageBtn.className = 'pagination-btn';
     lastPageBtn.textContent = '末页';
@@ -934,29 +886,30 @@ function generatePagination() {
     paginationContainer.appendChild(lastPageBtn);
 }
 
-// 显示食谱详情
 // 显示食谱详情（含评论功能）
 async function showRecipeDetails(recipeId) {
-    // 1. 获取食谱详情（改为从后端获取，以确保拿到最新的作者ID）
-    // 注意：需要在 RecipeController 中确保返回了 userId 和 authorName
     let recipe;
     try {
         const res = await fetch(`/api/recipe/${recipeId}`);
         if (!res.ok) throw new Error('食谱不存在');
         recipe = await res.json();
     } catch (e) {
-        // 如果后端还没准备好，回退到静态数据（仅用于演示，实际应完全依赖后端）
         console.warn("使用本地数据回退");
         recipe = recipes.find(r => r.id === recipeId);
+        // 修复 3：为本地数据补充 userId 防止 undefined 错误 (模拟数据)
+        if (recipe && !recipe.userId) {
+            recipe.userId = 1;
+            recipe.authorName = "官方推荐";
+        }
     }
 
     if (!recipe) return;
 
     const modalContent = document.getElementById('modalContent');
     const recipeModal = document.getElementById('recipeModal');
-    const cuisineName = getCuisineName(recipe.cuisineId ? String(recipe.cuisineId) : recipe.cuisine); // 兼容新旧数据格式
+    const cuisineName = getCuisineName(recipe.cuisineId ? String(recipe.cuisineId) : recipe.cuisine);
 
-    // 2. 构建 HTML
+    // 构建 HTML - 删除 action-buttons 区域
     modalContent.innerHTML = `
         <div class="close-modal" onclick="closeRecipeModal()">&times;</div>
         
@@ -991,66 +944,41 @@ async function showRecipeDetails(recipeId) {
         </div>
 
         <div class="comments-section" id="commentsSection"></div>
-        
-        <div class="records-section" style="margin: 30px 0; border-top: 2px dashed #d9b38c; padding-top: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 class="section-title" style="margin:0; border:none;">大家的作业</h3>
-                <button class="btn btn-primary btn-sm" onclick="showUploadRecordModal(${recipe.id})">
-                    <i class="fas fa-camera"></i> 交作业
-                </button>
-            </div>
-            
-            <div id="recordListContainer" style="display:flex; gap:15px; overflow-x:auto; padding-bottom:10px;">
-                <p style="color:#999; font-size:14px;">暂无作业，快来抢沙发！</p>
-            </div>
-        </div>
-        
-        // 在 action-buttons 区域添加按钮
-        <div class="action-buttons">
-            <button class="cook-btn" onclick="startCooking(${recipe.id || 'null'})">
-                <i class="fas fa-utensils"></i> 开始烹饪
-            </button>
-            <button class="buy-ingredients-btn" style="background-color: #3498db;" onclick="addRecipeToShoppingList('${recipe.title}', '${recipe.ingredients}')">
-                <i class="fas fa-clipboard-list"></i> 加入清单
-            </button>
+       
         </div>
     `;
 
-    // 3. 检查关注状态 (如果是作者本人，隐藏关注按钮)
-    checkFollowStatus(recipe.userId);
+    // 修复 3：仅当 userId 存在时才检查关注状态
+    if (recipe.userId) {
+        checkFollowStatus(recipe.userId);
+    }
 
-    // 4. 加载评论
+    // 加载评论
     if(typeof loadComments === 'function') {
         const commentsHtml = `
-                <h3 class="section-title">食客评价</h3>
-                <div id="commentListContainer"></div>
-                
-                <div class="comment-form-container clearfix">
-                    <div class="comment-form-title">
-                        <i class="fas fa-pen"></i> 写下你的评价
-                    </div>
-                    
-                    <div class="rating-group">
-                        <input type="radio" id="star5" name="rating" value="5" class="rating-input" checked /><label for="star5" class="rating-label"><i class="fas fa-star"></i></label>
-                        <input type="radio" id="star4" name="rating" value="4" class="rating-input" /><label for="star4" class="rating-label"><i class="fas fa-star"></i></label>
-                        <input type="radio" id="star3" name="rating" value="3" class="rating-input" /><label for="star3" class="rating-label"><i class="fas fa-star"></i></label>
-                        <input type="radio" id="star2" name="rating" value="2" class="rating-input" /><label for="star2" class="rating-label"><i class="fas fa-star"></i></label>
-                        <input type="radio" id="star1" name="rating" value="1" class="rating-input" /><label for="star1" class="rating-label"><i class="fas fa-star"></i></label>
-                    </div>
-
-                    <textarea id="newCommentContent" class="comment-textarea" placeholder="味道如何？分享你的烹饪心得..."></textarea>
-                    
-                    <button class="comment-submit-btn" onclick="submitComment(${recipe.id})">
-                        发送评论 <i class="fas fa-paper-plane"></i>
-                    </button>
+            <h3 class="section-title">食客评价</h3>
+            <div id="commentListContainer"></div>
+            
+            <div class="comment-form-container clearfix">
+                <div class="comment-form-title"><i class="fas fa-pen"></i> 写下你的评价</div>
+                <div class="rating-group">
+                    <input type="radio" id="star5" name="rating" value="5" class="rating-input" checked /><label for="star5" class="rating-label"><i class="fas fa-star"></i></label>
+                    <input type="radio" id="star4" name="rating" value="4" class="rating-input" /><label for="star4" class="rating-label"><i class="fas fa-star"></i></label>
+                    <input type="radio" id="star3" name="rating" value="3" class="rating-input" /><label for="star3" class="rating-label"><i class="fas fa-star"></i></label>
+                    <input type="radio" id="star2" name="rating" value="2" class="rating-input" /><label for="star2" class="rating-label"><i class="fas fa-star"></i></label>
+                    <input type="radio" id="star1" name="rating" value="1" class="rating-input" /><label for="star1" class="rating-label"><i class="fas fa-star"></i></label>
                 </div>
-            `;
+                <textarea id="newCommentContent" class="comment-textarea" placeholder="味道如何？分享你的烹饪心得..."></textarea>
+                <button class="comment-submit-btn" onclick="submitComment(${recipe.id})">
+                    发送评论 <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        `;
         document.getElementById('commentsSection').innerHTML = commentsHtml;
         loadComments(recipe.id);
     }
 
     recipeModal.style.display = 'flex';
-    // 加载作业记录
     loadCookingRecords(recipe.id);
 }
 
@@ -1059,13 +987,13 @@ async function checkFollowStatus(targetUserId) {
     const btn = document.getElementById(`followBtn-${targetUserId}`);
     if(!btn) return;
 
-    // 获取当前用户ID (这一步可以通过 API /api/current-user 获取，或者直接发请求由后端判断)
     try {
         const res = await fetch(`/api/follow/status?targetUserId=${targetUserId}`);
-        const data = await res.json();
-
-        if (data.isFollowing) {
-            updateFollowBtnStyle(btn, true);
+        if(res.ok) {
+            const data = await res.json();
+            if (data.isFollowing) {
+                updateFollowBtnStyle(btn, true);
+            }
         }
     } catch(e) {
         console.error(e);
@@ -1106,7 +1034,7 @@ function updateFollowBtnStyle(btn, isFollowing) {
         btn.style.color = '#666';
     } else {
         btn.innerHTML = '<i class="fas fa-plus"></i> 关注';
-        btn.style.backgroundColor = ''; // 恢复默认
+        btn.style.backgroundColor = '';
         btn.style.borderColor = '';
         btn.style.color = '';
     }
@@ -1117,24 +1045,25 @@ async function loadComments(recipeId) {
     const container = document.getElementById('commentListContainer');
     try {
         const res = await fetch(`/api/comment/list?recipeId=${recipeId}`);
+
+        // 修复 2：检查响应状态
+        if (!res.ok) {
+            throw new Error(`请求失败: ${res.status}`);
+        }
+
         const comments = await res.json();
 
-        if (comments.length === 0) {
+        if (!Array.isArray(comments) || comments.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:#999; margin:20px 0;">暂无评论，快来抢沙发吧！</p>';
             return;
         }
 
         // 渲染评论列表
         container.innerHTML = comments.map(c => {
-            // 处理头像路径
             const avatarUrl = c.userAvatar
                 ? (c.userAvatar.startsWith('http') ? c.userAvatar : `static/upload/${c.userAvatar}`)
                 : 'static/image/default_avatar.jpg';
-
-            // 生成星星字符串
             const stars = '⭐'.repeat(c.rating || 5);
-
-            // 格式化时间
             const dateStr = new Date(c.createdAt).toLocaleDateString();
 
             return `
@@ -1154,14 +1083,13 @@ async function loadComments(recipeId) {
 
     } catch (e) {
         console.error("加载评论失败", e);
-        container.innerHTML = '<p style="color:red; text-align:center;">评论加载失败</p>';
+        container.innerHTML = '<p style="color:red; text-align:center;">暂无法加载评论</p>';
     }
 }
 
 // 提交评论函数
 async function submitComment(recipeId) {
     const content = document.getElementById('newCommentContent').value.trim();
-    // 修改获取评分的方式：查找被选中的 radio
     const ratingInput = document.querySelector('input[name="rating"]:checked');
     const rating = ratingInput ? ratingInput.value : 5;
 
@@ -1186,7 +1114,6 @@ async function submitComment(recipeId) {
         if (result.success) {
             alert("评论成功！");
             document.getElementById('newCommentContent').value = '';
-            // 重置评分为5星
             document.getElementById('star5').checked = true;
             loadComments(recipeId);
         } else {
@@ -1199,14 +1126,6 @@ async function submitComment(recipeId) {
         console.error(e);
         alert("网络请求错误");
     }
-}
-
-// 功能已移除
-
-// 开始烹饪
-function startCooking(recipeId) {
-    alert('开始烹饪功能即将上线，敬请期待！');
-    closeRecipeModal();
 }
 
 // 关闭模态框
@@ -1228,8 +1147,6 @@ function getCuisineName(cuisineKey) {
     return cuisineMap[cuisineKey] || cuisineKey;
 }
 
-// 功能已完全移除
-
 // 添加到收藏
 function addToFavorites(recipeId) {
     // 检查是否已登录
@@ -1238,62 +1155,33 @@ function addToFavorites(recipeId) {
         alert('请先登录后再使用此功能');
         return;
     }
-    
+
     // 获取当前用户的收藏列表
     let favoriteRecipes = JSON.parse(localStorage.getItem(`favorite_recipes_${user.username}`)) || [];
-    
+
     // 检查是否已收藏
     if (favoriteRecipes.includes(recipeId)) {
         alert('已收藏过此食谱');
         return;
     }
-    
+
     // 添加到收藏列表
     favoriteRecipes.push(recipeId);
-    
+
     // 保存到localStorage
     localStorage.setItem(`favorite_recipes_${user.username}`, JSON.stringify(favoriteRecipes));
-    
-    alert('收藏成功');
-}
 
-// 购买食材
-function buyIngredients(recipeId) {
-    const recipe = recipes.find(r => r.id === recipeId);
-    if (!recipe) return;
-    
-    // 构建食材购物清单
-    const ingredientsList = recipe.ingredients.join('\n');
-    
-    // 复制到剪贴板
-    navigator.clipboard.writeText(`购买清单：\n${recipe.title}\n\n${ingredientsList}`)
-        .then(() => {
-            alert('食材清单已复制到剪贴板！您可以粘贴到备忘录或购物应用中。');
-        })
-        .catch(err => {
-            console.error('复制失败:', err);
-            // 如果复制失败，显示食材列表
-            alert(`购买清单：\n${recipe.title}\n\n${ingredientsList}`);
-        });
+    alert('收藏成功');
 }
 
 // 检查登录状态
 function checkLoginStatus() {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem('currentUser'));
     const authSection = document.getElementById('authSection');
-    
-    if (user) {
-        // 已登录状态
-        authSection.innerHTML = `<span>欢迎，${user.username}!</span>`;
-    } else {
-        // 未登录状态（保持原样）
-    }
-}
 
-// 删除食谱（管理员功能，仅作演示）
-function deleteRecipe(recipeId) {
-    // 实际应用中，这里应该调用后端API进行删除
-    alert(`删除食谱ID：${recipeId}（演示功能）`);
+    if (user) {
+        authSection.innerHTML = `<span>欢迎，${user.username}!</span>`;
+    }
 }
 
 // 加载烹饪记录
@@ -1301,117 +1189,30 @@ async function loadCookingRecords(recipeId) {
     const container = document.getElementById('recordListContainer');
     try {
         const res = await fetch(`/api/record/list?recipeId=${recipeId}`);
-        const list = await res.json();
-
-        if(list.length > 0) {
-            container.innerHTML = list.map(item => `
-                <div style="min-width:120px; text-align:center;">
-                    <img src="${item.image}" style="width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid #eee; cursor:pointer;" onclick="viewImage('${item.image}')">
-                    <div style="font-size:12px; margin-top:5px; color:#666;">${item.username}</div>
-                    <div style="font-size:12px; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:120px;">${item.note}</div>
-                </div>
-            `).join('');
+        if(res.ok) {
+            const list = await res.json();
+            if(list.length > 0) {
+                container.innerHTML = list.map(item => `
+                    <div style="min-width:120px; text-align:center;">
+                        <img src="${item.image}" style="width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid #eee; cursor:pointer;" onclick="viewImage('${item.image}')">
+                        <div style="font-size:12px; margin-top:5px; color:#666;">${item.username}</div>
+                        <div style="font-size:12px; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:120px;">${item.note}</div>
+                    </div>
+                `).join('');
+            }
         }
     } catch(e) { console.error(e); }
 }
 
-// 显示上传作业模态框
-function showUploadRecordModal(recipeId) {
-    // 检查登录
-    if(!sessionStorage.getItem('currentUser')) {
-        alert('请先登录');
-        return;
-    }
-
-    // 创建临时模态框 HTML
-    const div = document.createElement('div');
-    div.id = 'uploadRecordModal';
-    div.className = 'modal';
-    div.style.display = 'flex';
-    div.innerHTML = `
-        <div class="modal-content" style="max-width:400px;">
-            <span class="close-modal" onclick="document.getElementById('uploadRecordModal').remove()">&times;</span>
-            <h3 style="text-align:center; color:#664b2e;">交作业</h3>
-            <div style="margin:20px 0;">
-                <div class="image-upload-box" onclick="document.getElementById('recordImgInput').click()" style="padding:20px;">
-                    <i class="fas fa-camera" style="font-size:30px; color:#d9b38c;"></i>
-                    <p style="font-size:12px;">上传成品图</p>
-                    <input type="file" id="recordImgInput" accept="image/*" style="display:none" onchange="previewRecordImg(this)">
-                </div>
-                <img id="recordImgPreview" style="width:100%; height:200px; object-fit:cover; display:none; margin-top:10px; border-radius:5px;">
-                <input type="hidden" id="recordImgPath">
-                
-                <textarea id="recordNote" style="width:100%; margin-top:15px; padding:10px; border:1px solid #ddd; border-radius:5px;" rows="3" placeholder="说说你的心得..."></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="submitRecord(${recipeId})" style="width:100%">提交</button>
-        </div>
-    `;
-    document.body.appendChild(div);
-}
-
-// 预览作业图片
-async function previewRecordImg(input) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = e => {
-            const img = document.getElementById('recordImgPreview');
-            img.src = e.target.result;
-            img.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-
-        // 上传
-        const formData = new FormData();
-        formData.append('avatar', file); // 复用接口
-        try {
-            const res = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
-            const data = await res.json();
-            if(data.success) document.getElementById('recordImgPath').value = 'static/upload/' + data.fileName;
-        } catch(e) {}
-    }
-}
-
-// 提交作业
-async function submitRecord(recipeId) {
-    const image = document.getElementById('recordImgPath').value;
-    const note = document.getElementById('recordNote').value;
-
-    if(!image) { alert('请上传成品图'); return; }
-
-    try {
-        const res = await fetch('/api/record/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipeId, image, note })
-        });
-        const data = await res.json();
-        if(data.success) {
-            alert('提交成功！');
-            document.getElementById('uploadRecordModal').remove();
-            loadCookingRecords(recipeId); // 刷新列表
-        } else {
-            alert(data.message);
-        }
-    } catch(e) { alert('网络错误'); }
-}
 
 // 查看大图
 function viewImage(src) {
     window.open(src, '_blank');
 }
 
-// 根据菜系显示食谱
-function showCuisineRecipes(cuisine) {
-    currentCuisine = cuisine;
-    currentPage = 1;
-    displayRecipes(currentPage);
-    generatePagination();
-}
-
 // 图片错误处理
 function handleImageError(img) {
-    img.onerror = null; // 防止无限循环
+    img.onerror = null;
     img.src = 'static/image/default.jpg';
 }
 
@@ -1427,11 +1228,7 @@ async function addRecipeToShoppingList(title, ingredientsStr) {
         return;
     }
 
-    // 解析食材字符串
-    // 假设格式为 "鸡蛋 3个, 番茄 2个" 或 "鸡蛋 3个\n番茄 2个"
-    // 或者是 JSON 字符串
     let items = [];
-
     // 简单解析逻辑：按逗号或换行符分割
     const rawItems = ingredientsStr.split(/[,，\n]/);
 
@@ -1439,14 +1236,12 @@ async function addRecipeToShoppingList(title, ingredientsStr) {
         item = item.trim();
         if(!item) return null;
 
-        // 尝试分离名称和数量 (例如 "鸡蛋 3个")
-        // 这里做一个简单的切分，实际可能需要更复杂的正则
         const parts = item.split(' ');
         let name = item;
         let qty = '';
 
         if(parts.length > 1) {
-            qty = parts[parts.length-1]; // 最后一部分作为数量
+            qty = parts[parts.length-1];
             name = item.replace(qty, '').trim();
         }
 

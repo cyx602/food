@@ -5,8 +5,8 @@
 <mapper namespace="com.food.mapper.CommentMapper">
 
     <insert id="insertComment" parameterType="com.food.entity.Comment" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO comments (user_id, recipe_id, content, rating, created_at)
-        VALUES (#{userId}, #{recipeId}, #{content}, #{rating}, NOW())
+        INSERT INTO comments (user_id, recipe_id, content, rating, image, created_at)
+        VALUES (#{userId}, #{recipeId}, #{content}, #{rating}, #{image}, NOW())
     </insert>
 
     <select id="selectCommentsByRecipeId" resultType="com.food.entity.Comment">
@@ -16,7 +16,7 @@
             c.recipe_id AS recipeId,
             c.content,
             c.rating,
-            c.created_at AS createdAt,
+            c.image,  c.created_at AS createdAt,
             u.username,
             u.avatar_file_name AS avatar
         FROM comments c

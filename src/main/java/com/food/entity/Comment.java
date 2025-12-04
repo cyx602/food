@@ -12,6 +12,7 @@ public class Comment {
     private Integer recipeId;
     private String content;
     private Integer rating; // 1-5分
+    private String image;   // 新增：评论图片
     private Date createdAt;
 
     // --- 扩展字段 (用于前端展示评论者的信息) ---
@@ -33,6 +34,9 @@ public class Comment {
 
     public Integer getRating() { return rating; }
     public void setRating(Integer rating) { this.rating = rating; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }

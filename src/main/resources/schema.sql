@@ -124,8 +124,9 @@ CREATE TABLE IF NOT EXISTS comments (
                                         recipe_id INT NOT NULL,
                                         content TEXT,
                                         rating INT DEFAULT 5, -- 评分 1-5
-                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                        FOREIGN KEY (user_id) REFERENCES users(id),
+                                        image VARCHAR(255),   -- 新增：评论图片路径
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (recipe_id) REFERENCES recipes(id)
     );
 
@@ -178,72 +179,72 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
     );
 
--- 3. 初始化食材数据 (对应 market.js 中的数据，确保 ID 一致)
--- 先清空旧数据防止主键冲突（开发环境）
+
+-- 3. 初始化食材数据 (修复后的 SQL)
 TRUNCATE TABLE ingredients;
 
 INSERT INTO ingredients (id, name, category_id, price, unit, stock, image) VALUES
--- 蔬菜类
-    { id: 1, name: "新鲜番茄", category: "vegetables", price: 8.5, image: "static/image/新鲜番茄.png", unit: "500g", stock: 50 },
-    { id: 2, name: "有机黄瓜", category: "vegetables", price: 6.8, image: "static/image/有机黄瓜.png", unit: "500g", stock: 45 },
-    { id: 3, name: "胡萝卜", category: "vegetables", price: 4.5, image: "static/image/胡萝卜.png", unit: "500g", stock: 60 },
-    { id: 4, name: "土豆", category: "vegetables", price: 3.8, image: "static/image/土豆.png", unit: "500g", stock: 80 },
-    { id: 5, name: "洋葱", category: "vegetables", price: 5.2, image: "static/image/洋葱.png", unit: "500g", stock: 55 },
-    { id: 22, name: "青椒", category: "vegetables", price: 7.5, image: "static/image/青椒.png", unit: "500g", stock: 40 },
-    { id: 23, name: "菠菜", category: "vegetables", price: 6.2, image: "static/image/菠菜.png", unit: "500g", stock: 35 },
-    { id: 24, name: "西兰花", category: "vegetables", price: 9.8, image: "static/image/西兰花.png", unit: "500g", stock: 30 },
-    { id: 25, name: "大白菜", category: "vegetables", price: 3.5, image: "static/image/大白菜.png", unit: "500g", stock: 65 },
-    { id: 26, name: "芹菜", category: "vegetables", price: 5.8, image: "static/image/芹菜.png", unit: "500g", stock: 25 },
+-- 蔬菜类 (category_id 需要对应: 1=蔬菜, 2=肉类, 3=海鲜, 4=奶制品, 5=调味品, 6=水果, 7=主食)
+(1, '新鲜番茄', 1, 8.5, '500g', 50, 'static/image/新鲜番茄.png'),
+(2, '有机黄瓜', 1, 6.8, '500g', 45, 'static/image/有机黄瓜.png'),
+(3, '胡萝卜', 1, 4.5, '500g', 60, 'static/image/胡萝卜.png'),
+(4, '土豆', 1, 3.8, '500g', 80, 'static/image/土豆.png'),
+(5, '洋葱', 1, 5.2, '500g', 55, 'static/image/洋葱.png'),
+(22, '青椒', 1, 7.5, '500g', 40, 'static/image/青椒.png'),
+(23, '菠菜', 1, 6.2, '500g', 35, 'static/image/菠菜.png'),
+(24, '西兰花', 1, 9.8, '500g', 30, 'static/image/西兰花.png'),
+(25, '大白菜', 1, 3.5, '500g', 65, 'static/image/大白菜.png'),
+(26, '芹菜', 1, 5.8, '500g', 25, 'static/image/芹菜.png'),
 
 -- 肉类
-    { id: 6, name: "鸡胸肉", category: "meat", price: 25.8, image: "static/image/鸡胸肉.png", unit: "500g", stock: 30 },
-    { id: 7, name: "猪里脊", category: "meat", price: 32.5, image: "static/image/猪里脊.png", unit: "500g", stock: 25 },
-    { id: 8, name: "牛肉片", category: "meat", price: 48.9, image: "static/image/牛肉片.png", unit: "500g", stock: 20 },
-    { id: 9, name: "三文鱼", category: "meat", price: 68.0, image: "static/image/三文鱼.png", unit: "300g", stock: 15 },
-    { id: 27, name: "鸡翅", category: "meat", price: 28.5, image: "static/image/鸡翅.png", unit: "500g", stock: 35 },
-    { id: 28, name: "猪五花肉", category: "meat", price: 35.8, image: "static/image/猪五花肉.png", unit: "500g", stock: 28 },
-    { id: 29, name: "牛排", category: "meat", price: 59.9, image: "static/image/牛排.png", unit: "300g", stock: 18 },
-    { id: 30, name: "羊肉片", category: "meat", price: 52.5, image: "static/image/羊肉片.png", unit: "500g", stock: 22 },
+(6, '鸡胸肉', 2, 25.8, '500g', 30, 'static/image/鸡胸肉.png'),
+(7, '猪里脊', 2, 32.5, '500g', 25, 'static/image/猪里脊.png'),
+(8, '牛肉片', 2, 48.9, '500g', 20, 'static/image/牛肉片.png'),
+(9, '三文鱼', 2, 68.0, '300g', 15, 'static/image/三文鱼.png'),
+(27, '鸡翅', 2, 28.5, '500g', 35, 'static/image/鸡翅.png'),
+(28, '猪五花肉', 2, 35.8, '500g', 28, 'static/image/猪五花肉.png'),
+(29, '牛排', 2, 59.9, '300g', 18, 'static/image/牛排.png'),
+(30, '羊肉片', 2, 52.5, '500g', 22, 'static/image/羊肉片.png'),
 
 -- 蛋奶类
-    { id: 10, name: "新鲜鸡蛋", category: "dairy", price: 12.8, image: "static/image/新鲜鸡蛋.png", unit: "30个", stock: 100 },
-    { id: 11, name: "纯牛奶", category: "dairy", price: 8.5, image: "static/image/纯牛奶.png", unit: "1L", stock: 60 },
-    { id: 12, name: "黄油", category: "dairy", price: 15.9, image: "static/image/黄油.png", unit: "200g", stock: 40 },
-    { id: 31, name: "酸奶", category: "dairy", price: 6.8, image: "static/image/酸奶.png", unit: "200g", stock: 55 },
-    { id: 32, name: "奶酪", category: "dairy", price: 22.5, image: "static/image/奶酪.png", unit: "200g", stock: 30 },
-    { id: 33, name: "淡奶油", category: "dairy", price: 18.9, image: "static/image/淡奶油.png", unit: "250ml", stock: 25 },
+(10, '新鲜鸡蛋', 4, 12.8, '30个', 100, 'static/image/新鲜鸡蛋.png'),
+(11, '纯牛奶', 4, 8.5, '1L', 60, 'static/image/纯牛奶.png'),
+(12, '黄油', 4, 15.9, '200g', 40, 'static/image/黄油.png'),
+(31, '酸奶', 4, 6.8, '200g', 55, 'static/image/酸奶.png'),
+(32, '奶酪', 4, 22.5, '200g', 30, 'static/image/奶酪.png'),
+(33, '淡奶油', 4, 18.9, '250ml', 25, 'static/image/淡奶油.png'),
 
 -- 调味品
-    { id: 13, name: "生抽", category: "seasoning", price: 12.8, image: "static/image/生抽.png", unit: "500ml", stock: 80 },
-    { id: 14, name: "老抽", category: "seasoning", price: 10.5, image: "static/image/老抽.png", unit: "500ml", stock: 70 },
-    { id: 15, name: "香醋", category: "seasoning", price: 8.9, image: "static/image/香醋.png", unit: "500ml", stock: 65 },
-    { id: 16, name: "料酒", category: "seasoning", price: 9.8, image: "static/image/料酒.png", unit: "500ml", stock: 75 },
-    { id: 17, name: "白糖", category: "seasoning", price: 6.5, image: "static/image/白糖.png", unit: "500g", stock: 90 },
-    { id: 18, name: "食盐", category: "seasoning", price: 3.5, image: "static/image/食盐.png", unit: "500g", stock: 95 },
-    { id: 34, name: "蚝油", category: "seasoning", price: 11.5, image: "static/image/蚝油.png", unit: "500g", stock: 60 },
-    { id: 35, name: "芝麻油", category: "seasoning", price: 15.8, image: "static/image/芝麻油.png", unit: "200ml", stock: 45 },
-    { id: 36, name: "辣椒酱", category: "seasoning", price: 8.9, image: "static/image/辣椒酱.png", unit: "300g", stock: 50 },
+(13, '生抽', 5, 12.8, '500ml', 80, 'static/image/生抽.png'),
+(14, '老抽', 5, 10.5, '500ml', 70, 'static/image/老抽.png'),
+(15, '香醋', 5, 8.9, '500ml', 65, 'static/image/香醋.png'),
+(16, '料酒', 5, 9.8, '500ml', 75, 'static/image/料酒.png'),
+(17, '白糖', 5, 6.5, '500g', 90, 'static/image/白糖.png'),
+(18, '食盐', 5, 3.5, '500g', 95, 'static/image/食盐.png'),
+(34, '蚝油', 5, 11.5, '500g', 60, 'static/image/蚝油.png'),
+(35, '芝麻油', 5, 15.8, '200ml', 45, 'static/image/芝麻油.png'),
+(36, '辣椒酱', 5, 8.9, '300g', 50, 'static/image/辣椒酱.png'),
 
 -- 水果类
-    { id: 19, name: "香蕉", category: "fruits", price: 6.8, image: "static/image/香蕉.png", unit: "500g", stock: 40 },
-    { id: 20, name: "苹果", category: "fruits", price: 9.9, image: "static/image/苹果.png", unit: "500g", stock: 55 },
-    { id: 21, name: "柠檬", category: "fruits", price: 12.5, image: "static/image/柠檬.png", unit: "500g", stock: 30 },
-    { id: 37, name: "橙子", category: "fruits", price: 11.8, image: "static/image/橙子.png", unit: "500g", stock: 48 },
-    { id: 38, name: "葡萄", category: "fruits", price: 15.9, image: "static/image/葡萄.png", unit: "500g", stock: 35 },
-    { id: 39, name: "草莓", category: "fruits", price: 22.5, image: "static/image/草莓.png", unit: "500g", stock: 20 },
-    { id: 40, name: "西瓜", category: "fruits", price: 8.9, image: "static/image/西瓜.png", unit: "个", stock: 25 },
+(19, '香蕉', 6, 6.8, '500g', 40, 'static/image/香蕉.png'),
+(20, '苹果', 6, 9.9, '500g', 55, 'static/image/苹果.png'),
+(21, '柠檬', 6, 12.5, '500g', 30, 'static/image/柠檬.png'),
+(37, '橙子', 6, 11.8, '500g', 48, 'static/image/橙子.png'),
+(38, '葡萄', 6, 15.9, '500g', 35, 'static/image/葡萄.png'),
+(39, '草莓', 6, 22.5, '500g', 20, 'static/image/草莓.png'),
+(40, '西瓜', 6, 8.9, '个', 25, 'static/image/西瓜.png'),
 
--- 新增分类：主食类
-    { id: 41, name: "大米", category: "staple", price: 6.5, image: "static/image/大米.png", unit: "1kg", stock: 120 },
-    { id: 42, name: "面粉", category: "staple", price: 5.8, image: "static/image/面粉.png", unit: "1kg", stock: 110 },
-    { id: 43, name: "面条", category: "staple", price: 8.2, image: "static/image/面条.png", unit: "500g", stock: 85 },
-    { id: 44, name: "意大利面", category: "staple", price: 12.5, image: "static/image/意大利面.png", unit: "500g", stock: 60 },
+-- 主食类
+(41, '大米', 7, 6.5, '1kg', 120, 'static/image/大米.png'),
+(42, '面粉', 7, 5.8, '1kg', 110, 'static/image/面粉.png'),
+(43, '面条', 7, 8.2, '500g', 85, 'static/image/面条.png'),
+(44, '意大利面', 7, 12.5, '500g', 60, 'static/image/意大利面.png'),
 
--- 新增分类：海鲜类
-    { id: 45, name: "虾仁", category: "seafood", price: 45.8, image: "static/image/虾仁.png", unit: "500g", stock: 25 },
-    { id: 46, name: "鱿鱼", category: "seafood", price: 38.9, image: "static/image/鱿鱼.png", unit: "500g", stock: 20 },
-    { id: 47, name: "带鱼", category: "seafood", price: 32.5, image: "static/image/带鱼.png", unit: "500g", stock: 18 },
-    { id: 48, name: "蛤蜊", category: "seafood", price: 18.9, image: "static/image/蛤蜊.png", unit: "500g", stock: 15 }
+-- 海鲜类
+(45, '虾仁', 3, 45.8, '500g', 25, 'static/image/虾仁.png'),
+(46, '鱿鱼', 3, 38.9, '500g', 20, 'static/image/鱿鱼.png'),
+(47, '带鱼', 3, 32.5, '500g', 18, 'static/image/带鱼.png'),
+(48, '蛤蜊', 3, 18.9, '500g', 15, 'static/image/蛤蜊.png');
 
 
 CREATE TABLE IF NOT EXISTS cooking_records (
