@@ -100,8 +100,8 @@ function displayCategories() {
     // 1. 【购物清单】按钮
     const listBtn = document.createElement('button');
     listBtn.className = 'cart-btn';
-    listBtn.style.backgroundColor = '#3498db'; // 蓝色
-    listBtn.style.borderColor = '#2980b9';
+    listBtn.style.backgroundColor = '#f7941e'; // 项目主色调橙色
+    listBtn.style.borderColor = '#e67e22';
     listBtn.style.marginRight = '10px';
     listBtn.innerHTML = '<i class="fas fa-clipboard-list"></i> 待买清单';
     listBtn.onclick = function() {

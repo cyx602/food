@@ -747,11 +747,12 @@ function displayRecipes(page) {
                     <h3 class="recipe-title">${recipe.title}</h3>
                     <p class="recipe-desc">${recipe.description}</p>
                 </div>
-                <div class="recipe-actions">
-                    <button class="favorite-btn" data-id="${recipe.id}">
+                <div class="recipe-actions" style="display: flex; gap: 10px;">
+                    <button class="favorite-btn" data-id="${recipe.id}" style="flex: 1;">
                         <i class="fas fa-heart"></i> 收藏
                     </button>
-                    <button class="add-list-btn" data-id="${recipe.id}">
+                    
+                    <button class="favorite-btn add-list-btn" data-id="${recipe.id}" style="flex: 1; background-color: #f7941e;">
                         <i class="fas fa-clipboard-list"></i> 加入清单
                     </button>
                 </div>
@@ -764,16 +765,14 @@ function displayRecipes(page) {
     // 为整个卡片添加点击事件监听（显示详情）
     document.querySelectorAll('.recipe-card').forEach(card => {
         card.addEventListener('click', function(event) {
-            if (event.target.closest('button')) {
-                return;
-            }
+            if (event.target.closest('button')) return;
             const recipeId = parseInt(this.querySelector('button').getAttribute('data-id'));
             showRecipeDetails(recipeId);
         });
     });
 
     // 为收藏按钮添加事件监听
-    document.querySelectorAll('.favorite-btn').forEach(button => {
+    document.querySelectorAll('.favorite-btn:not(.add-list-btn)').forEach(button => {
         button.addEventListener('click', function (event) {
             event.stopPropagation();
             const recipeId = parseInt(this.getAttribute('data-id'));
@@ -784,16 +783,11 @@ function displayRecipes(page) {
     // 为加入清单按钮添加事件监听 (替换原有的购买食材逻辑)
     document.querySelectorAll('.add-list-btn').forEach(button => {
         button.addEventListener('click', function (event) {
-            event.stopPropagation(); // 阻止事件冒泡
+            event.stopPropagation();
             const recipeId = parseInt(this.getAttribute('data-id'));
-
             const recipe = recipes.find(r => r.id === recipeId);
             if(recipe) {
-                // 处理食材格式（如果是数组则转换为字符串）
-                let ingredientsStr = recipe.ingredients;
-                if(Array.isArray(ingredientsStr)) {
-                    ingredientsStr = ingredientsStr.join('\n');
-                }
+                let ingredientsStr = Array.isArray(recipe.ingredients) ? recipe.ingredients.join('\n') : recipe.ingredients;
                 addRecipeToShoppingList(recipe.title, ingredientsStr);
             }
         });
@@ -896,11 +890,7 @@ async function showRecipeDetails(recipeId) {
     } catch (e) {
         console.warn("使用本地数据回退");
         recipe = recipes.find(r => r.id === recipeId);
-        // 修复 3：为本地数据补充 userId 防止 undefined 错误 (模拟数据)
-        if (recipe && !recipe.userId) {
-            recipe.userId = 1;
-            recipe.authorName = "官方推荐";
-        }
+        if (recipe && !recipe.userId) { recipe.userId = 1; recipe.authorName = "官方推荐"; }
     }
 
     if (!recipe) return;
@@ -909,7 +899,7 @@ async function showRecipeDetails(recipeId) {
     const recipeModal = document.getElementById('recipeModal');
     const cuisineName = getCuisineName(recipe.cuisineId ? String(recipe.cuisineId) : recipe.cuisine);
 
-    // 构建 HTML - 删除 action-buttons 区域
+    // 构建 HTML
     modalContent.innerHTML = `
         <div class="close-modal" onclick="closeRecipeModal()">&times;</div>
         
@@ -928,9 +918,7 @@ async function showRecipeDetails(recipeId) {
         <img src="${recipe.image}" class="recipe-detail-image" onerror="handleImageError(this)">
         <h2 class="detail-title">${recipe.title}</h2>
         
-        <div class="cuisine-info">
-            <span class="cuisine-tag">${cuisineName}</span>
-        </div>
+        <div class="cuisine-info"><span class="cuisine-tag">${cuisineName}</span></div>
         <p class="recipe-desc">${recipe.description}</p>
         
         <div class="ingredients-section">
@@ -944,23 +932,28 @@ async function showRecipeDetails(recipeId) {
         </div>
 
         <div class="comments-section" id="commentsSection"></div>
-       
-        </div>
     `;
 
-    // 修复 3：仅当 userId 存在时才检查关注状态
-    if (recipe.userId) {
-        checkFollowStatus(recipe.userId);
-    }
+    if (recipe.userId) checkFollowStatus(recipe.userId);
 
-    // 加载评论
-    if(typeof loadComments === 'function') {
-        const commentsHtml = `
-            <h3 class="section-title">食客评价</h3>
-            <div id="commentListContainer"></div>
+    // 加载评论区（带图片上传功能）
+    const commentsHtml = `
+        <h3 class="section-title">食客评价</h3>
+        <div id="commentListContainer"></div>
+        
+        <div class="comment-form-container clearfix">
+            <div class="comment-form-title"><i class="fas fa-pen"></i> 写下你的评价</div>
             
-            <div class="comment-form-container clearfix">
-                <div class="comment-form-title"><i class="fas fa-pen"></i> 写下你的评价</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div style="position:relative;">
+                    <input type="file" id="commentImgInput" accept="image/*" style="display:none" onchange="previewCommentImage(this)">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('commentImgInput').click()" style="padding: 5px 10px; font-size: 12px; border:1px solid #ccc; background:#f9f9f9; color:#666;">
+                        <i class="fas fa-camera"></i> 添加照片
+                    </button>
+                    <span id="imgUploadStatus" style="font-size:12px; color:#999; margin-left:5px;"></span>
+                    <input type="hidden" id="commentImgPath">
+                </div>
+
                 <div class="rating-group">
                     <input type="radio" id="star5" name="rating" value="5" class="rating-input" checked /><label for="star5" class="rating-label"><i class="fas fa-star"></i></label>
                     <input type="radio" id="star4" name="rating" value="4" class="rating-input" /><label for="star4" class="rating-label"><i class="fas fa-star"></i></label>
@@ -968,18 +961,24 @@ async function showRecipeDetails(recipeId) {
                     <input type="radio" id="star2" name="rating" value="2" class="rating-input" /><label for="star2" class="rating-label"><i class="fas fa-star"></i></label>
                     <input type="radio" id="star1" name="rating" value="1" class="rating-input" /><label for="star1" class="rating-label"><i class="fas fa-star"></i></label>
                 </div>
-                <textarea id="newCommentContent" class="comment-textarea" placeholder="味道如何？分享你的烹饪心得..."></textarea>
-                <button class="comment-submit-btn" onclick="submitComment(${recipe.id})">
-                    发送评论 <i class="fas fa-paper-plane"></i>
-                </button>
             </div>
-        `;
-        document.getElementById('commentsSection').innerHTML = commentsHtml;
-        loadComments(recipe.id);
-    }
 
+            <div id="commentImgPreviewContainer" style="display:none; margin-bottom:10px; position:relative; width:fit-content;">
+                <img id="commentImgPreview" src="" style="max-height:80px; border-radius:5px; border:1px solid #ddd;">
+                <div style="position:absolute; top:-8px; right:-8px; background:#ff4444; color:white; border-radius:50%; width:20px; height:20px; text-align:center; line-height:18px; cursor:pointer; font-size:14px;" onclick="clearCommentImage()">×</div>
+            </div>
+
+            <textarea id="newCommentContent" class="comment-textarea" placeholder="味道如何？分享你的烹饪心得..."></textarea>
+            
+            <button class="comment-submit-btn" onclick="submitComment(${recipe.id})">
+                发送评价 <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    `;
+
+    document.getElementById('commentsSection').innerHTML = commentsHtml;
+    loadComments(recipe.id);
     recipeModal.style.display = 'flex';
-    loadCookingRecords(recipe.id);
 }
 
 // 检查关注状态
@@ -998,6 +997,46 @@ async function checkFollowStatus(targetUserId) {
     } catch(e) {
         console.error(e);
     }
+}
+
+async function previewCommentImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const statusSpan = document.getElementById('imgUploadStatus');
+        statusSpan.innerText = '上传中...';
+
+        // 预览
+        const reader = new FileReader();
+        reader.onload = e => {
+            const previewContainer = document.getElementById('commentImgPreviewContainer');
+            document.getElementById('commentImgPreview').src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        // 上传
+        const formData = new FormData();
+        formData.append('avatar', file); // 复用接口
+        try {
+            const res = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('commentImgPath').value = 'static/upload/' + data.fileName;
+                statusSpan.innerText = '已上传';
+                statusSpan.style.color = '#8cc63f';
+            } else {
+                statusSpan.innerText = '失败';
+                statusSpan.style.color = 'red';
+            }
+        } catch(e) { statusSpan.innerText = '错误'; }
+    }
+}
+
+function clearCommentImage() {
+    document.getElementById('commentImgInput').value = '';
+    document.getElementById('commentImgPath').value = '';
+    document.getElementById('commentImgPreviewContainer').style.display = 'none';
+    document.getElementById('imgUploadStatus').innerText = '';
 }
 
 // 切换关注
@@ -1045,46 +1084,35 @@ async function loadComments(recipeId) {
     const container = document.getElementById('commentListContainer');
     try {
         const res = await fetch(`/api/comment/list?recipeId=${recipeId}`);
-
-        // 修复 2：检查响应状态
-        if (!res.ok) {
-            throw new Error(`请求失败: ${res.status}`);
-        }
-
+        if (!res.ok) return;
         const comments = await res.json();
 
-        if (!Array.isArray(comments) || comments.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#999; margin:20px 0;">暂无评论，快来抢沙发吧！</p>';
+        if (!comments || comments.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#999; margin:20px 0;">暂无评论</p>';
             return;
         }
 
-        // 渲染评论列表
         container.innerHTML = comments.map(c => {
-            const avatarUrl = c.userAvatar
-                ? (c.userAvatar.startsWith('http') ? c.userAvatar : `static/upload/${c.userAvatar}`)
-                : 'static/image/default_avatar.jpg';
+            const avatar = c.userAvatar ? `static/upload/${c.userAvatar}` : 'static/image/default_avatar.jpg';
             const stars = '⭐'.repeat(c.rating || 5);
-            const dateStr = new Date(c.createdAt).toLocaleDateString();
+            // 显示评论图片
+            const imgHtml = c.image ? `<div style="margin-top:8px;"><img src="${c.image}" style="max-width:100px; border-radius:4px; cursor:pointer;" onclick="window.open(this.src)"></div>` : '';
 
             return `
                 <div class="comment-item">
-                    <img src="${avatarUrl}" alt="用户头像" class="comment-avatar" onerror="this.src='static/image/default_avatar.jpg'">
+                    <img src="${avatar}" class="comment-avatar" onerror="this.src='static/image/default_avatar.jpg'">
                     <div class="comment-body">
                         <div class="comment-header">
-                            <span class="comment-user">${c.username || '匿名用户'}</span>
-                            <span>${dateStr}</span>
+                            <span class="comment-user">${c.username || '匿名'}</span>
+                            <span>${new Date(c.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div class="comment-rating">${stars}</div>
-                        <div class="comment-content">${c.content}</div>
+                        <div class="comment-content">${c.content}${imgHtml}</div>
                     </div>
                 </div>
             `;
         }).join('');
-
-    } catch (e) {
-        console.error("加载评论失败", e);
-        container.innerHTML = '<p style="color:red; text-align:center;">暂无法加载评论</p>';
-    }
+    } catch (e) { console.error(e); }
 }
 
 // 提交评论函数
@@ -1092,11 +1120,9 @@ async function submitComment(recipeId) {
     const content = document.getElementById('newCommentContent').value.trim();
     const ratingInput = document.querySelector('input[name="rating"]:checked');
     const rating = ratingInput ? ratingInput.value : 5;
+    const imagePath = document.getElementById('commentImgPath').value;
 
-    if (!content) {
-        alert("请输入评论内容！");
-        return;
-    }
+    if (!content) return alert("请输入评论内容！");
 
     try {
         const res = await fetch('/api/comment/add', {
@@ -1105,27 +1131,22 @@ async function submitComment(recipeId) {
             body: JSON.stringify({
                 recipeId: recipeId,
                 content: content,
-                rating: parseInt(rating)
+                rating: parseInt(rating),
+                image: imagePath // 携带图片路径
             })
         });
 
         const result = await res.json();
-
         if (result.success) {
             alert("评论成功！");
             document.getElementById('newCommentContent').value = '';
-            document.getElementById('star5').checked = true;
+            clearCommentImage();
             loadComments(recipeId);
         } else {
             alert(result.message || "评论失败");
-            if (res.status === 401) {
-                window.location.href = 'login.html';
-            }
+            if (res.status === 401) window.location.href = 'login.html';
         }
-    } catch (e) {
-        console.error(e);
-        alert("网络请求错误");
-    }
+    } catch (e) { alert("网络请求错误"); }
 }
 
 // 关闭模态框
