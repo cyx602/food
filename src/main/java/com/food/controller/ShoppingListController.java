@@ -38,24 +38,37 @@ public class ShoppingListController {
         return ResponseEntity.ok("success");
     }
 
-    // 批量添加（接收前端解析好的列表）
+    // 将原来的 batchAdd 方法替换为：
     @PostMapping("/batch-add")
     public ResponseEntity<Map<String, Object>> batchAdd(@RequestBody List<ShoppingItem> items, HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
         User user = (User) request.getSession().getAttribute("currentUser");
-        if (user == null) return ResponseEntity.status(401).build();
-
-        if (items != null && !items.isEmpty()) {
-            // 填充userId
-            for (ShoppingItem item : items) {
-                item.setUserId(user.getId());
-            }
-            shoppingListMapper.batchInsertItems(items);
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "请先登录");
+            return ResponseEntity.status(401).body(res);
         }
 
-        res.put("success", true);
-        res.put("message", "已添加到清单");
-        return ResponseEntity.ok(res);
+        try {
+            if (items != null && !items.isEmpty()) {
+                for (ShoppingItem item : items) {
+                    item.setUserId(user.getId());
+                    // 关键修复：防止字段为 null 导致数据库报错
+                    if (item.getName() == null) item.setName("未知食材");
+                    if (item.getQuantity() == null) item.setQuantity("适量");
+                }
+                shoppingListMapper.batchInsertItems(items);
+            }
+            res.put("success", true);
+            res.put("message", "已添加到清单");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "添加失败: " + e.getMessage());
+            // 关键修复：返回 JSON 错误而非 500 页面
+            return ResponseEntity.status(500).body(res);
+        }
     }
 
     // 更新状态

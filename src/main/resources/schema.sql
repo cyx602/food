@@ -263,10 +263,10 @@ CREATE TABLE IF NOT EXISTS cooking_records (
 
 -- 购物清单表
 CREATE TABLE IF NOT EXISTS shopping_list (
-                                             id INT AUTO_INCREMENT PRIMARY KEY,
-                                             user_id INT NOT NULL,
-                                             name VARCHAR(100) NOT NULL, -- 食材名称
-    quantity VARCHAR(50),       -- 用量（如 "500g", "2个"）
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL, -- 食材名称
+    quantity VARCHAR(50),       -- 用量
     is_bought BOOLEAN DEFAULT FALSE, -- 状态：0=待买，1=已买
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)

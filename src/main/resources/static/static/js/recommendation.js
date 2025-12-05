@@ -13,7 +13,6 @@ async function loadFeaturedRecipes() {
     container.innerHTML = '<p style="text-align:center; padding: 40px;">正在加载推荐美食...</p>';
 
     try {
-        // 调用新添加的接口
         const res = await fetch('/api/common/featured-recipes');
         if (!res.ok) throw new Error('Failed to fetch data');
 
@@ -42,31 +41,33 @@ function displayFeaturedRecipes(recipes) {
         const recipeElement = document.createElement('div');
         recipeElement.className = 'featured-recipe common-card-style';
 
-        // 解析食材和步骤 (数据库中通常存储为换行分隔的字符串)
+        // 【关键修改1】整个卡片点击跳转到详情页
+        recipeElement.style.cursor = 'pointer';
+        recipeElement.onclick = function(e) {
+            // 防止点击按钮时触发跳转
+            if(e.target.closest('button')) return;
+            window.location.href = `recipe_detail.html?id=${recipe.id}`;
+        };
         const ingredientsList = recipe.ingredients
             ? recipe.ingredients.split('\n').map(i => `<li>${i}</li>`).join('')
             : '<li>暂无详细食材</li>';
 
         const stepsList = recipe.steps
-            ? recipe.steps.split('\n').map(s => {
-                // 去除开头的数字序号
-                const cleanStep = s.replace(/^\d+[.、\s]\s*/, '');
-                return `<li>${cleanStep}</li>`;
-            }).join('')
+            ? recipe.steps.split('\n').map(s => `<li>${s.replace(/^\d+[.、\s]\s*/, '')}</li>`).join('')
             : '<li>暂无详细步骤</li>';
 
-        // 构建操作按钮
+        // 【关键修改2】按钮添加 event.stopPropagation() 防止冒泡触发跳转
         let actionButtonsHtml = `
-            <button class="favorite-btn" onclick="addToFavorites(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #f7941e; display: flex; align-items: center; gap: 8px;">
+            <button class="favorite-btn" onclick="event.stopPropagation(); addToFavorites(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #f7941e; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-heart"></i> 收藏食谱
             </button>
-            <button class="add-list-btn" onclick="addRecipeToShoppingList('${recipe.title.replace(/'/g, "\\'")}', \`${recipe.ingredients || ''}\`)" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #f7941e; display: flex; align-items: center; gap: 8px;">
+            <button class="add-list-btn" onclick="event.stopPropagation(); addRecipeToShoppingList('${recipe.title.replace(/'/g, "\\'")}', \`${recipe.ingredients || ''}\`)" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #f7941e; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-clipboard-list"></i> 加入清单
             </button>`;
 
         if (isAdmin) {
             actionButtonsHtml += `
-                <button class="delete-btn" onclick="deleteRecipe(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #dc3545; display: flex; align-items: center; gap: 8px;">
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteRecipe(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #dc3545; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-trash"></i> 删除 (管理员)
                 </button>`;
         }
@@ -131,61 +132,84 @@ function addToFavorites(recipeId) {
         .then(data => alert(data.message || '操作成功'));
 }
 
-function addRecipeToShoppingList(title, ingredientsStr) {
+// 【关键修改3】同步 cuisine.js 的加入清单逻辑（含错误处理）
+async function addRecipeToShoppingList(title, ingredientsStr) {
     if(!sessionStorage.getItem('currentUser')) {
         alert('请先登录');
         window.location.href = 'login.html';
         return;
     }
-    if (!ingredientsStr) {
-        alert("该食谱暂无详细食材信息");
+    if (!ingredientsStr || ingredientsStr.trim() === '') {
+        alert("该食谱暂无详细食材信息，无法自动添加");
         return;
     }
 
-    // 解析食材字符串 (简单按换行或逗号分割)
+    if(!confirm(`确定将《${title}》的食材加入购物清单吗？`)) return;
+
     const items = ingredientsStr.split(/[\n,，]/)
         .map(s => s.trim())
         .filter(s => s.length > 0)
         .map(s => {
-            // 尝试分离名称和数量 (简单逻辑：假设空格分隔)
-            const parts = s.split(' ');
-            return { name: parts[0], quantity: parts.slice(1).join(' ') || '适量' };
-        });
-
-    if (items.length === 0) return;
-
-    if(!confirm(`确定将《${title}》的食材加入购物清单吗？`)) return;
-
-    fetch('/api/shopping-list/batch-add', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(items)
-    }).then(res => res.json())
-        .then(data => {
-            if (data.success && confirm('添加成功！是否前往查看清单？')) {
-                window.location.href = 'market.html';
+            const firstSpace = s.indexOf(' ');
+            if (firstSpace > 0) {
+                return { name: s.substring(0, firstSpace), quantity: s.substring(firstSpace + 1).trim() };
+            } else {
+                return { name: s, quantity: '适量' };
             }
         });
-}
 
-function checkLoginStatus() {
-    const userJson = sessionStorage.getItem('currentUser');
-    const authSection = document.getElementById('authSection');
-    if (userJson && authSection) {
-        const user = JSON.parse(userJson);
-        const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
-        authSection.innerHTML = `
-            <a href="profile.html" style="display:flex; align-items:center; padding: 5px;">
-                <img src="${avatarPath}" alt="${user.username}" 
-                     style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
-                     onerror="this.src='static/image/default_avatar.jpg'">
-            </a>
-        `;
-        authSection.style.backgroundColor = 'transparent';
+    if (items.length === 0) return alert('未解析到有效食材');
+
+    try {
+        const res = await fetch('/api/shopping-list/batch-add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(items)
+        });
+
+        // 处理非 JSON 响应 (例如 500 错误页)
+        if (!res.ok) {
+            const text = await res.text();
+            try {
+                const json = JSON.parse(text);
+                throw new Error(json.message || "服务器错误");
+            } catch(e) { throw new Error("服务器响应异常 (" + res.status + ")"); }
+        }
+
+        const data = await res.json();
+        if (data.success) {
+            if (confirm('添加成功！是否前往查看清单？')) {
+                window.location.href = 'market.html';
+            }
+        } else {
+            alert(data.message || '添加失败');
+        }
+    } catch(e) {
+        console.error(e);
+        alert('请求失败: ' + e.message);
     }
 }
 
-// 仅限管理员在前端移除 (实际后端需校验)
+// 【关键修改4】同步头像显示修复逻辑
+function checkLoginStatus() {
+    const user = JSON.parse(sessionStorage.getItem('currentUser'));
+    const authSection = document.getElementById('authSection');
+
+    if (user && authSection) {
+        const avatarPath = user.avatarFileName ?
+            'static/upload/' + user.avatarFileName :
+            'static/image/default_avatar.jpg';
+
+        authSection.innerHTML = `
+            <a href="profile.html" style="display: flex; align-items: center; height: 100%; padding: 0 15px;">
+                <img src="${avatarPath}" alt="${user.username}" 
+                     style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);">
+            </a>
+        `;
+        authSection.style.background = 'transparent';
+    }
+}
+
 function deleteRecipe(recipeId) {
     if (confirm('确定要删除这个推荐吗？(此操作会调用管理员删除接口)')) {
         fetch('/api/admin/recipe/delete', {
@@ -202,9 +226,4 @@ function deleteRecipe(recipeId) {
                 }
             });
     }
-}
-
-function handleImageError(img) {
-    img.onerror = null;
-    img.src = 'static/image/default_food.jpg';
 }

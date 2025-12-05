@@ -271,11 +271,23 @@ public class UserController {
             return ResponseEntity.status(401).body(res);
         }
 
+        if (body.containsKey("styles")) {
+            @SuppressWarnings("unchecked")
+            List<String> styles = (List<String>) body.get("styles");
+            currentUser.setStyles(styles);
+        }
+
         try {
             currentUser.setUsername((String) body.get("username"));
             currentUser.setPhone((String) body.get("phone"));
             currentUser.setEmail((String) body.get("email"));
             currentUser.setGender((String) body.get("gender"));
+
+            if (body.containsKey("styles")) {
+                @SuppressWarnings("unchecked")
+                List<String> styles = (List<String>) body.get("styles");
+                currentUser.setStyles(styles);
+            }
 
             userService.updateUserInfo(currentUser);
             // 更新 Session

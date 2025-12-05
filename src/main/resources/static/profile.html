@@ -663,10 +663,6 @@
                                     <div class="info-value">${currentUser.email || '未设置'}</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="info-label">注册配送地址</div>
-                                    <div class="info-value address-display">${currentUser.address || '未设置'}</div>
-                                </div>
-                                <div class="info-item">
                                     <div class="info-label">注册时间</div>
                                     <div class="info-value">${formatDate(currentUser.createdAt)}</div>
                                 </div>
@@ -807,6 +803,13 @@
         });
     }
 
+    function switchSection(id) {
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        event.target.classList.add('active');
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id + 'Section').classList.add('active');
+    }
+
     // 初始化美食偏好显示
     function initPreferencesCards(userStyles) {
         const preferencesGrid = document.getElementById('preferencesGrid');
@@ -845,42 +848,40 @@
     }
 
     // --- 收货地址逻辑 (核心修改) ---
-
     function loadAddresses() {
         const container = document.getElementById('addressList');
-        if (!container) return;
-
-        // 从本地存储读取
         let addresses = JSON.parse(localStorage.getItem('userAddresses') || '[]');
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
 
-        // 【修改3】: 移除自动添加默认地址的逻辑
-        // 如果没有地址，显示空状态
+        // 【核心修复】如果列表为空且有注册地址，自动创建默认记录
+        if (addresses.length === 0 && user && user.address) {
+            addresses.push({
+                id: Date.now(),
+                name: '注册默认地址',
+                recipient: user.username,
+                phone: user.phone,
+                address: user.address,
+                isDefault: true
+            });
+            localStorage.setItem('userAddresses', JSON.stringify(addresses));
+        }
+
         if (addresses.length === 0) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#999; border:1px dashed #d9b38c; border-radius:8px;">暂无收货地址，请点击上方按钮添加</div>';
+            container.innerHTML = '<div style="color:#999; text-align:center; padding:20px;">暂无地址，请点击右上角添加</div>';
             return;
         }
 
-        container.innerHTML = '';
-        addresses.forEach(address => {
-            const addressElement = document.createElement('div');
-            addressElement.className = `address-item ${address.isDefault ? 'address-default' : ''} common-card-style`;
-            addressElement.innerHTML = `
-                <div class="address-name">
-                    ${address.name} ${address.isDefault ? '<span style="color: #f7941e; font-size: 12px;">(默认)</span>' : ''}
-                </div>
-                <div class="address-details">
-                    <div>收货人: ${address.recipient}</div>
-                    <div>电话: ${address.phone}</div>
-                    <div>地址: ${address.address}</div>
-                </div>
+        container.innerHTML = addresses.map(addr => `
+            <div class="address-item ${addr.isDefault ? 'address-default' : ''}">
+                <div style="font-weight:bold; color:#664b2e;">${addr.name} ${addr.isDefault ? '<span style="color:#f7941e;font-size:12px;">(默认)</span>' : ''}</div>
+                <div style="color:#666; font-size:14px; margin:5px 0;">${addr.recipient} | ${addr.phone}</div>
+                <div style="color:#666; font-size:14px;">${addr.address}</div>
                 <div class="address-actions">
-                    <button class="action-btn primary" onclick="setDefaultAddress(${address.id})">设为默认</button>
-                    <button class="action-btn" onclick="editAddress(${address.id})">编辑</button>
-                    <button class="action-btn" onclick="deleteAddress(${address.id})">删除</button>
+                    <button class="action-btn" onclick="deleteAddress(${addr.id})">删除</button>
+                    <button class="action-btn" onclick="setDefaultAddress(${addr.id})">设为默认</button>
                 </div>
-            `;
-            container.appendChild(addressElement);
-        });
+            </div>
+        `).join('');
     }
 
     function addNewAddress() {
@@ -925,6 +926,8 @@
             return;
         }
 
+        if (newAddr.isDefault) addresses.forEach(a => a.isDefault = false);
+
         let addresses = JSON.parse(localStorage.getItem('userAddresses') || '[]');
 
         if (id) { // 更新
@@ -941,7 +944,7 @@
         }
 
         localStorage.setItem('userAddresses', JSON.stringify(addresses));
-        closeAddressModal();
+        document.getElementById('addressModal').style.display = 'none';
         loadAddresses();
     }
 
@@ -976,6 +979,7 @@
         if (document.getElementById('editPhone')) document.getElementById('editPhone').value = user.phone || '';
         if (document.getElementById('editEmail')) document.getElementById('editEmail').value = user.email || '';
 
+        const styles = user.styles || [];
         // 回显性别
         const radios = document.getElementsByName('gender');
         if (radios) {
@@ -987,17 +991,23 @@
         modal.style.display = 'block';
     }
 
+    document.getElementsByName('editStyles').forEach(cb => {
+        cb.checked = styles.includes(cb.value);
+    });
+
     function closeProfileEditModal() {
         document.getElementById('profileEditModal').style.display = 'none';
     }
 
     async function saveProfileChanges(event) {
         event.preventDefault();
+        document.querySelectorAll('input[name="editStyles"]:checked').forEach(cb => selectedStyles.push(cb.value));
         const updateData = {
             username: document.getElementById('editUsername').value,
             phone: document.getElementById('editPhone').value,
             email: document.getElementById('editEmail').value,
-            gender: document.querySelector('input[name="gender"]:checked')?.value
+            gender: document.querySelector('input[name="gender"]:checked')?.value,
+            styles: selectedStyles
         };
 
         try {
@@ -1021,19 +1031,20 @@
     // 订单部分保持简单渲染
     function loadOrders() {
         fetch('/api/order/list').then(r=>r.json()).then(orders => {
-            const list = document.getElementById('ordersList');
-            document.getElementById('ordersCount').textContent = orders.length;
             if(orders.length === 0) {
-                list.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">暂无订单</div>';
+                document.getElementById('ordersList').innerHTML = '<div style="color:#999;text-align:center;">暂无订单</div>';
                 return;
             }
-            list.innerHTML = orders.map(o => `
-                <div class="order-item common-card-style">
-                    <div class="order-header"><span>订单号: ${o.orderNo}</span><span>${new Date(o.createdAt).toLocaleDateString()}</span></div>
-                    <div>总价: <span style="color:#f7941e; font-weight:bold;">¥${o.totalAmount}</span> <span class="order-status status-${o.status.toLowerCase()}">${o.status}</span></div>
+            document.getElementById('ordersList').innerHTML = orders.map(o => `
+                <div style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:5px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span style="font-weight:bold; color:#664b2e;">订单号: ${o.orderNo}</span>
+                        <span style="color:#f7941e;">${o.status}</span>
+                    </div>
+                    <div style="text-align:right;">总价: <span style="color:#f7941e; font-weight:bold;">¥${o.totalAmount}</span></div>
                 </div>
             `).join('');
-        }).catch(() => {});
+        });
     }
 </script>
 </body>
