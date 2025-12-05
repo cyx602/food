@@ -18,7 +18,6 @@ function checkAdminAuth() {
         window.location.href = 'index.html';
     }
 }
-
 // 新增：更新顶部管理员信息
 function updateAdminInfo() {
     const userJson = sessionStorage.getItem('currentUser');
@@ -34,6 +33,18 @@ function updateAdminInfo() {
 function logout() {
     sessionStorage.clear();
     window.location.href = 'login.html';
+}
+
+async function handleResponse(res) {
+    if (res.status === 401 || res.status === 403) {
+        alert('登录已过期或权限不足，请重新登录');
+        window.location.href = 'login.html';
+        throw new Error('Unauthorized');
+    }
+    if (!res.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return await res.json();
 }
 
 function setupMenuTabs() {
@@ -64,12 +75,26 @@ function setupMenuTabs() {
 function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const totalPages = Math.ceil(total / pageSize);
-    if (totalPages <= 1) { container.innerHTML = ''; return; }
 
-    let html = `<span class="page-info" style="margin-right:10px; color:#666;">共 ${total} 条, 第 ${currentPage}/${totalPages} 页</span>`;
+    const totalPages = Math.ceil(total / pageSize);
+    container.innerHTML = '';
+
+    if (totalPages <= 0) return;
+
+    let html = `<span class="page-info" style="margin-right:15px; color:#664b2e; font-size:14px;">共 ${total} 条，${currentPage}/${totalPages} 页</span>`;
+
+    // 首页
+    html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(1)">首页</button>`;
+
+    // 上一页
     html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage - 1})">上一页</button>`;
-    html += `<button class="page-btn" style="margin-left:5px;" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
+
+    // 下一页
+    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
+
+    // 末页
+    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${totalPages})">末页</button>`;
+
     container.innerHTML = html;
 }
 
@@ -77,22 +102,32 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
 async function loadDashboardStats() {
     try {
         const res = await fetch('/api/admin/stats');
-        if(!res.ok) throw new Error('Network error');
+        // 如果 handleResponse 处理了跳转，这里可能不需要继续
+        if (res.status === 401 || res.status === 403) return;
+
         const data = await res.json();
 
+        // 【关键修复】增加 || 0 的默认值保护
         document.getElementById('statUserCount').innerText = data.userCount || 0;
         document.getElementById('statRecipeCount').innerText = data.recipeCount || 0;
         document.getElementById('statOrderCount').innerText = data.orderCount || 0;
         document.getElementById('statSystem').innerText = data.systemStatus || '正常';
 
         const hotList = document.getElementById('hotRecipesList');
-        if (hotList && data.hotRecipes) {
-            hotList.innerHTML = data.hotRecipes.length ? data.hotRecipes.map((r, i) =>
-                `<li><span style="font-weight:bold;margin-right:10px;">${i+1}.</span> ${r.title} <span style="float:right;color:#f7941e">${r.favorite_count} 收藏</span></li>`
-            ).join('') : '<li>暂无数据</li>';
+        if (hotList) {
+            if (data.hotRecipes && data.hotRecipes.length > 0) {
+                hotList.innerHTML = data.hotRecipes.map((r, i) =>
+                    `<li><span style="font-weight:bold;margin-right:10px;">${i+1}.</span> ${r.title} <span style="float:right;color:#f7941e">${r.favorite_count || 0} 收藏</span></li>`
+                ).join('');
+            } else {
+                hotList.innerHTML = '<li>暂无热门数据</li>';
+            }
         }
-    } catch(e) { console.error("加载仪表盘失败", e); }
+    } catch(e) {
+        console.error("加载仪表盘失败", e);
+    }
 }
+
 
 // 2. 用户管理
 async function loadUserList(page = 1) {
@@ -201,28 +236,45 @@ async function adminDeleteRecipe(id) {
 // 4. 订单管理
 async function loadOrderList(page = 1) {
     const tbody = document.getElementById('orderTableBody');
+    // 显示加载状态
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">加载中...</td></tr>';
+
     try {
         const res = await fetch(`/api/admin/orders?page=${page}&size=10`);
-        const data = await res.json();
+        const data = await handleResponse(res);
+
+        // 【关键修复】确保 rows 和 total 都有默认值
         const list = data.rows || [];
-        tbody.innerHTML = list.map(o => `
-            <tr>
-                <td>${o.orderNo}</td>
-                <td>${o.userName}</td>
-                <td style="color:#f7941e; font-weight:bold;">¥${o.totalAmount}</td>
-                <td>
-                    <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding:4px; border-radius:4px; border:1px solid #ddd;">
-                        <option value="PENDING" ${o.status==='PENDING'?'selected':''}>待发货</option>
-                        <option value="SHIPPED" ${o.status==='SHIPPED'?'selected':''}>已发货</option>
-                        <option value="COMPLETED" ${o.status==='COMPLETED'?'selected':''}>已完成</option>
-                    </select>
-                </td>
-                <td>${new Date(o.createdAt).toLocaleString()}</td>
-            </tr>
-        `).join('');
-        renderPagination('orderPagination', page, data.total, 10, loadOrderList);
-    } catch(e) {}
+        const total = data.total || 0; // 防止 undefined 导致 NaN
+
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无订单数据</td></tr>';
+        } else {
+            tbody.innerHTML = list.map(o => `
+                <tr>
+                    <td>${o.orderNo || o.id}</td>
+                    <td>${o.userName || '未知用户'}</td>
+                    <td style="color:#f7941e; font-weight:bold;">¥${(o.totalAmount || 0).toFixed(2)}</td>
+                    <td>
+                        <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding:4px; border-radius:4px; border:1px solid #ddd;">
+                            <option value="PENDING" ${o.status==='PENDING'?'selected':''}>待发货</option>
+                            <option value="SHIPPED" ${o.status==='SHIPPED'?'selected':''}>已发货</option>
+                            <option value="COMPLETED" ${o.status==='COMPLETED'?'selected':''}>已完成</option>
+                        </select>
+                    </td>
+                    <td>${o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // 渲染分页
+        renderPagination('orderPagination', page, total, 10, loadOrderList);
+    } catch(e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">加载失败</td></tr>';
+    }
 }
+
 async function updateOrderStatus(id, status) {
     await fetch('/api/admin/order/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status}) });
     loadOrderStats();
@@ -294,6 +346,8 @@ async function loadAnnouncements() {
         </li>
     `).join('');
 }
+
+
 
 // 辅助函数 (Edit/Save/Delete) 保持与之前逻辑一致
 function openIngredientModal() { document.getElementById('ingredientForm').reset(); document.getElementById('ingId').value = ''; document.getElementById('ingredientModal').style.display = 'flex'; }
