@@ -1,346 +1,286 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. 严格权限检查
     checkAdminAuth();
-    // 2. 初始化菜单
     setupMenuTabs();
-    // 3. 默认加载仪表盘
     loadDashboardStats();
+    updateAdminInfo(); // 新增：显示管理员名字
 });
 
 // 权限检查
 function checkAdminAuth() {
     const userJson = sessionStorage.getItem('currentUser');
     if (!userJson) {
-        alert('请先登录');
         window.location.href = 'login.html';
         return;
     }
     const user = JSON.parse(userJson);
-    // 检查用户名是否为 admin 或者角色是否为 admin
     if (user.username !== 'admin' && user.role !== 'admin') {
-        alert('权限不足：您不是管理员');
+        alert('权限不足');
         window.location.href = 'index.html';
     }
+}
+
+// 新增：更新顶部管理员信息
+function updateAdminInfo() {
+    const userJson = sessionStorage.getItem('currentUser');
+    if (userJson) {
+        const user = JSON.parse(userJson);
+        const adminNameEl = document.getElementById('adminUserName');
+        if(adminNameEl) {
+            adminNameEl.innerHTML = `管理员: <b>${user.username}</b>`;
+        }
+    }
+}
+
+function logout() {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
 }
 
 function setupMenuTabs() {
     const items = document.querySelectorAll('.menu-item');
     items.forEach(item => {
         item.addEventListener('click', () => {
-            // 样式切换
             items.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
-
-            // 内容切换
             const targetId = item.getAttribute('data-target');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(targetId).classList.add('active');
-
-            // 标题更新
             document.getElementById('pageTitle').innerText = item.innerText.trim();
 
-            // 数据加载分发
-            if (targetId === 'users') loadUserList();
-            if (targetId === 'recipes') loadRecipeList();
-            if (targetId === 'ingredients') loadIngredientList();
-            if (targetId === 'cuisines') loadCuisineList();
-            if (targetId === 'orders') { loadOrderList(); loadOrderStats(); }
-            if (targetId === 'settings') { loadAnnouncements(); }
+            if (targetId === 'users') loadUserList(1);
+            if (targetId === 'recipes') loadRecipeList(1);
+            if (targetId === 'ingredients') loadIngredientList(1);
+            if (targetId === 'cuisines') loadCuisineList(1);
+            if (targetId === 'orders') { loadOrderList(1); loadOrderStats(); }
+            if (targetId === 'settings') loadAnnouncements();
             if (targetId === 'dashboard') loadDashboardStats();
         });
     });
-
-    // 模态框背景关闭
     window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
-        }
+        if (event.target.classList.contains('modal')) event.target.style.display = "none";
     }
 }
 
-// 退出登录
-function logout() {
-    sessionStorage.clear();
-    window.location.href = 'login.html';
+function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const totalPages = Math.ceil(total / pageSize);
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+    let html = `<span class="page-info" style="margin-right:10px; color:#666;">共 ${total} 条, 第 ${currentPage}/${totalPages} 页</span>`;
+    html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage - 1})">上一页</button>`;
+    html += `<button class="page-btn" style="margin-left:5px;" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
+    container.innerHTML = html;
 }
 
-function animateNumber(id, target) {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.innerText = target; // 简化版，直接显示
-}
-
-// ==================== 1. 仪表盘 ====================
+// 1. 仪表盘
 async function loadDashboardStats() {
     try {
         const res = await fetch('/api/admin/stats');
+        if(!res.ok) throw new Error('Network error');
         const data = await res.json();
 
-        animateNumber('statUserCount', data.userCount);
-        animateNumber('statRecipeCount', data.recipeCount);
-        animateNumber('statOrderCount', data.orderCount);
+        document.getElementById('statUserCount').innerText = data.userCount || 0;
+        document.getElementById('statRecipeCount').innerText = data.recipeCount || 0;
+        document.getElementById('statOrderCount').innerText = data.orderCount || 0;
         document.getElementById('statSystem').innerText = data.systemStatus || '正常';
 
-        // 热门食谱
         const hotList = document.getElementById('hotRecipesList');
-        if (data.hotRecipes && data.hotRecipes.length > 0) {
-            hotList.innerHTML = data.hotRecipes.map((r, i) =>
+        if (hotList && data.hotRecipes) {
+            hotList.innerHTML = data.hotRecipes.length ? data.hotRecipes.map((r, i) =>
                 `<li><span style="font-weight:bold;margin-right:10px;">${i+1}.</span> ${r.title} <span style="float:right;color:#f7941e">${r.favorite_count} 收藏</span></li>`
-            ).join('');
-        } else {
-            hotList.innerHTML = '<li>暂无数据</li>';
+            ).join('') : '<li>暂无数据</li>';
         }
-
-        // 最新公告 (复用公告列表接口获取)
-        const annRes = await fetch('/api/admin/announcements');
-        const anns = await annRes.json();
-        const dashboardAnns = document.getElementById('dashboardAnnouncements');
-        if (anns.length > 0) {
-            dashboardAnns.innerHTML = anns.slice(0, 5).map(a => `<li>【公告】${a.title} <span style="float:right;color:#999;font-size:12px;">${new Date(a.createdAt).toLocaleDateString()}</span></li>`).join('');
-        } else {
-            dashboardAnns.innerHTML = '<li>暂无公告</li>';
-        }
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error("加载仪表盘失败", e); }
 }
 
-// ==================== 2. 用户管理 ====================
-async function loadUserList() {
+// 2. 用户管理
+async function loadUserList(page = 1) {
     const tbody = document.getElementById('userTableBody');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">加载中...</td></tr>';
     try {
-        const res = await fetch('/api/admin/users');
-        const users = await res.json();
-        tbody.innerHTML = users.map(u => `
+        const res = await fetch(`/api/admin/users?page=${page}&size=10`);
+        const data = await res.json();
+        const users = data.rows || [];
+
+        tbody.innerHTML = users.map(u => {
+            const status = (u.status === undefined || u.status === null) ? 1 : u.status;
+            return `
             <tr>
                 <td>${u.id}</td>
                 <td>${u.username}</td>
                 <td>${u.email || '-'}</td>
                 <td>${new Date(u.createdAt).toLocaleDateString()}</td>
-                <td><span class="status-badge ${u.status === 1 ? 'status-normal' : 'status-banned'}">${u.status === 1 ? '正常' : '禁用'}</span></td>
+                <td><span class="status-badge ${status === 1 ? 'status-normal' : 'status-banned'}">${status === 1 ? '正常' : '禁用'}</span></td>
                 <td>
                     ${u.username !== 'admin' ?
-            `<button class="btn btn-sm ${u.status===1?'btn-danger':'btn-primary'}" onclick="toggleUserStatus(${u.id}, ${u.status})">${u.status===1?'禁用':'解封'}</button>` :
-            '<span style="color:#ccc">不可操作</span>'}
+                `<button class="btn btn-sm ${status===1?'status-banned':'status-normal'}" style="border:none; cursor:pointer;" onclick="toggleUserStatus(${u.id}, ${status})">${status===1?'禁用':'解封'}</button>` :
+                '<span style="color:#ccc">不可操作</span>'}
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
+        renderPagination('userPagination', page, data.total, 10, loadUserList);
     } catch(e) { tbody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>'; }
 }
 
 async function toggleUserStatus(id, currentStatus) {
     const newStatus = currentStatus === 1 ? 0 : 1;
     if(!confirm(`确定${newStatus===1?'解封':'禁用'}该用户？`)) return;
-    await fetch('/api/admin/user/status', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id, status: newStatus})
-    });
-    loadUserList();
+    await fetch('/api/admin/user/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status: newStatus}) });
+    loadUserList(1);
 }
 
-// ==================== 3. 食材管理 ====================
-async function loadIngredientList() {
-    const tbody = document.getElementById('ingredientTableBody');
-    const res = await fetch('/api/admin/ingredients');
-    const list = await res.json();
-    tbody.innerHTML = list.map(i => `
-        <tr>
-            <td><img src="${i.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
-            <td>${i.name}</td>
-            <td>${i.categoryId}</td>
-            <td>¥${i.price} / ${i.unit}</td>
-            <td>${i.stock}</td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick='editIngredient(${JSON.stringify(i).replace(/'/g, "&#39;")})'>编辑</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteIngredient(${i.id})">删除</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function openIngredientModal() {
-    document.getElementById('ingredientForm').reset();
-    document.getElementById('ingId').value = '';
-    document.getElementById('ingredientModal').style.display = 'block';
-}
-
-function editIngredient(i) {
-    document.getElementById('ingId').value = i.id;
-    document.getElementById('ingName').value = i.name;
-    document.getElementById('ingCategory').value = i.categoryId;
-    document.getElementById('ingPrice').value = i.price;
-    document.getElementById('ingUnit').value = i.unit;
-    document.getElementById('ingStock').value = i.stock;
-    document.getElementById('ingImage').value = i.image;
-    document.getElementById('ingredientModal').style.display = 'block';
-}
-
-async function saveIngredient() {
-    const data = {
-        id: document.getElementById('ingId').value || null,
-        name: document.getElementById('ingName').value,
-        categoryId: document.getElementById('ingCategory').value,
-        price: document.getElementById('ingPrice').value,
-        unit: document.getElementById('ingUnit').value,
-        stock: document.getElementById('ingStock').value,
-        image: document.getElementById('ingImage').value
-    };
-    await fetch('/api/admin/ingredient/save', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    });
-    document.getElementById('ingredientModal').style.display = 'none';
-    loadIngredientList();
-}
-
-async function deleteIngredient(id) {
-    if(!confirm('确定删除该食材？')) return;
-    await fetch('/api/admin/ingredient/delete', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id})
-    });
-    loadIngredientList();
-}
-
-// ==================== 4. 菜系管理 ====================
-async function loadCuisineList() {
-    const tbody = document.getElementById('cuisineTableBody');
-    const res = await fetch('/api/admin/cuisines');
-    const list = await res.json();
-    tbody.innerHTML = list.map(c => `
-        <tr>
-            <td>${c.name}</td>
-            <td>${c.code}</td>
-            <td>${c.description || '-'}</td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick='editCuisine(${JSON.stringify(c).replace(/'/g, "&#39;")})'>编辑</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteCuisine(${c.id})">删除</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function openCuisineModal() {
-    document.getElementById('cuisineForm').reset();
-    document.getElementById('cuiId').value='';
-    document.getElementById('cuisineModal').style.display='block';
-}
-
-function editCuisine(c) {
-    document.getElementById('cuiId').value = c.id;
-    document.getElementById('cuiName').value = c.name;
-    document.getElementById('cuiCode').value = c.code;
-    document.getElementById('cuiDesc').value = c.description;
-    document.getElementById('cuisineModal').style.display='block';
-}
-
-async function saveCuisine() {
-    const data = {
-        id: document.getElementById('cuiId').value || null,
-        name: document.getElementById('cuiName').value,
-        code: document.getElementById('cuiCode').value,
-        description: document.getElementById('cuiDesc').value
-    };
-    await fetch('/api/admin/cuisine/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    document.getElementById('cuisineModal').style.display = 'none';
-    loadCuisineList();
-}
-
-async function deleteCuisine(id) {
-    if(!confirm('确定删除该菜系？')) return;
-    await fetch('/api/admin/cuisine/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
-    loadCuisineList();
-}
-
-// ==================== 5. 食谱管理 ====================
-async function loadRecipeList() {
+// 3. 食谱管理 (含审核)
+async function loadRecipeList(page = 1) {
     const tbody = document.getElementById('recipeTableBody');
-    const res = await fetch('/api/admin/recipes');
-    const list = await res.json();
-    tbody.innerHTML = list.map(r => `
-        <tr>
-            <td>${r.id}</td>
-            <td>${r.title}</td>
-            <td>${r.authorName || '未知'}</td>
-            <td>
-                <label style="cursor:pointer">
-                    <input type="checkbox" ${r.isRecommended ? 'checked' : ''} onchange="toggleRecommend(${r.id}, this.checked)"> 推荐
-                </label>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="window.open('my_recipes.html?id=${r.id}', '_blank')">查看</button>
-                <button class="btn btn-sm btn-danger" onclick="adminDeleteRecipe(${r.id})">删除</button>
-            </td>
-        </tr>
-    `).join('');
+    try {
+        const res = await fetch(`/api/admin/recipes?page=${page}&size=10`);
+        const data = await res.json();
+        const list = data.rows || [];
+
+        tbody.innerHTML = list.map(r => {
+            // 状态逻辑
+            let statusBadge = '<span class="status-badge status-pending">待审核</span>';
+            let auditBtns = `
+                <button onclick="auditRecipe(${r.id}, 1)" style="color:green; border:none; background:none; cursor:pointer; margin-right:5px;">通过</button>
+                <button onclick="auditRecipe(${r.id}, 2)" style="color:red; border:none; background:none; cursor:pointer;">拒绝</button>
+            `;
+
+            if (r.status === 1) {
+                statusBadge = '<span class="status-badge status-approved">已通过</span>';
+                auditBtns = ''; // 已通过则不显示审核按钮
+            } else if (r.status === 2) {
+                statusBadge = '<span class="status-badge status-rejected">已拒绝</span>';
+                auditBtns = `<button onclick="auditRecipe(${r.id}, 1)" style="color:green; border:none; background:none; cursor:pointer;">重新通过</button>`;
+            }
+
+            return `
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.title}</td>
+                <td>${r.authorName || '未知'}</td>
+                <td>${statusBadge}</td>
+                <td><input type="checkbox" ${r.isRecommended ? 'checked' : ''} onchange="toggleRecommend(${r.id}, this.checked)"></td>
+                <td>
+                    ${auditBtns}
+                    <button onclick="adminDeleteRecipe(${r.id})" style="color:#666; border:none; background:none; cursor:pointer; margin-left:5px;"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `}).join('');
+        renderPagination('recipePagination', page, data.total, 10, loadRecipeList);
+    } catch(e) {}
 }
 
-async function toggleRecommend(id, isRecommended) {
-    await fetch('/api/admin/recipe/recommend', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id, isRecommended})
-    });
-}
+// 审核函数
+async function auditRecipe(id, status) {
+    const action = status === 1 ? '通过' : '拒绝';
+    if(!confirm(`确定${action}该食谱吗？`)) return;
 
-async function adminDeleteRecipe(id) {
-    if(!confirm('确定强制删除此食谱？')) return;
-    const res = await fetch('/api/admin/recipe/delete', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id})
-    });
-    const data = await res.json();
-    if(data.success) {
-        alert('删除成功');
-        loadRecipeList();
-    } else {
-        alert(data.message);
-    }
-}
-
-// ==================== 6. 订单管理 ====================
-async function loadOrderList() {
-    const tbody = document.getElementById('orderTableBody');
-    const res = await fetch('/api/admin/orders');
-    const list = await res.json();
-    tbody.innerHTML = list.map(o => `
-        <tr>
-            <td>${o.orderNo}</td>
-            <td>${o.userName}</td>
-            <td style="color:#f7941e; font-weight:bold;">¥${o.totalAmount}</td>
-            <td>
-                <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding:4px; border-radius:4px; border:1px solid #ddd;">
-                    <option value="PENDING" ${o.status==='PENDING'?'selected':''}>待发货</option>
-                    <option value="SHIPPED" ${o.status==='SHIPPED'?'selected':''}>已发货</option>
-                    <option value="COMPLETED" ${o.status==='COMPLETED'?'selected':''}>已完成</option>
-                </select>
-            </td>
-            <td>${new Date(o.createdAt).toLocaleString()}</td>
-        </tr>
-    `).join('');
-}
-
-async function updateOrderStatus(id, status) {
-    await fetch('/api/admin/order/status', {
+    const res = await fetch('/api/admin/recipe/audit', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({id, status})
     });
-    loadOrderStats();
+    if((await res.json()).success) {
+        alert('操作成功');
+        loadRecipeList(1); // 刷新列表
+    } else {
+        alert('操作失败');
+    }
 }
 
+async function toggleRecommend(id, isRecommended) {
+    await fetch('/api/admin/recipe/recommend', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, isRecommended}) });
+}
+async function adminDeleteRecipe(id) {
+    if(!confirm('确定强制删除？')) return;
+    const res = await fetch('/api/admin/recipe/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+    if((await res.json()).success) { alert('删除成功'); loadRecipeList(1); }
+}
+
+// 4. 订单管理
+async function loadOrderList(page = 1) {
+    const tbody = document.getElementById('orderTableBody');
+    try {
+        const res = await fetch(`/api/admin/orders?page=${page}&size=10`);
+        const data = await res.json();
+        const list = data.rows || [];
+        tbody.innerHTML = list.map(o => `
+            <tr>
+                <td>${o.orderNo}</td>
+                <td>${o.userName}</td>
+                <td style="color:#f7941e; font-weight:bold;">¥${o.totalAmount}</td>
+                <td>
+                    <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding:4px; border-radius:4px; border:1px solid #ddd;">
+                        <option value="PENDING" ${o.status==='PENDING'?'selected':''}>待发货</option>
+                        <option value="SHIPPED" ${o.status==='SHIPPED'?'selected':''}>已发货</option>
+                        <option value="COMPLETED" ${o.status==='COMPLETED'?'selected':''}>已完成</option>
+                    </select>
+                </td>
+                <td>${new Date(o.createdAt).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        renderPagination('orderPagination', page, data.total, 10, loadOrderList);
+    } catch(e) {}
+}
+async function updateOrderStatus(id, status) {
+    await fetch('/api/admin/order/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status}) });
+    loadOrderStats();
+}
 async function loadOrderStats() {
     const res = await fetch('/api/admin/order/stats');
     const list = await res.json();
     const map = {'PENDING':'待发货', 'SHIPPED':'已发货', 'COMPLETED':'已完成'};
-    document.getElementById('orderStatsBar').innerHTML = list.map(s => `<span>${map[s.status]||s.status}: <b style="color:#f7941e; margin-left:5px;">${s.count}</b></span>`).join(' <span style="color:#ddd; margin:0 10px;">|</span> ');
+    const el = document.getElementById('orderStatsBar');
+    if(el) el.innerHTML = list.map(s => `<span>${map[s.status]||s.status}: <b style="color:#f7941e; margin-left:5px;">${s.count}</b></span>`).join(' <span style="color:#ddd; margin:0 10px;">|</span> ');
 }
-// ==================== 7. 公告管理 (原系统配置) ====================
-// 删除 saveSystemSettings 函数
 
+// 5. 菜系 & 食材 & 公告 (保持分页逻辑)
+// 食材
+async function loadIngredientList(page = 1) {
+    const tbody = document.getElementById('ingredientTableBody');
+    try {
+        const res = await fetch(`/api/admin/ingredients?page=${page}&size=10`);
+        const data = await res.json();
+        const list = data.rows || [];
+        tbody.innerHTML = list.map(i => `
+            <tr>
+                <td><img src="${i.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.src='static/image/default_food.jpg'"></td>
+                <td>${i.name}</td>
+                <td>${i.categoryId}</td>
+                <td>¥${i.price} / ${i.unit}</td>
+                <td>${i.stock}</td>
+                <td>
+                    <button onclick='editIngredient(${JSON.stringify(i).replace(/'/g, "&#39;")})' style="color:#007bff; border:none; background:none; cursor:pointer;">编辑</button>
+                    <button onclick="deleteIngredient(${i.id})" style="color:#dc3545; border:none; background:none; cursor:pointer; margin-left:5px;">删除</button>
+                </td>
+            </tr>
+        `).join('');
+        renderPagination('ingredientPagination', page, data.total, 10, loadIngredientList);
+    } catch(e) {}
+}
+// 菜系
+async function loadCuisineList(page = 1) {
+    const tbody = document.getElementById('cuisineTableBody');
+    try {
+        const res = await fetch(`/api/admin/cuisines?page=${page}&size=10`);
+        const data = await res.json();
+        const list = data.rows || [];
+        tbody.innerHTML = list.map(c => `
+            <tr>
+                <td>${c.name}</td>
+                <td>${c.code}</td>
+                <td>${c.description || '-'}</td>
+                <td>
+                    <button onclick='editCuisine(${JSON.stringify(c).replace(/'/g, "&#39;")})' style="color:#007bff; border:none; background:none; cursor:pointer;">编辑</button>
+                    <button onclick="deleteCuisine(${c.id})" style="color:#dc3545; border:none; background:none; cursor:pointer; margin-left:5px;">删除</button>
+                </td>
+            </tr>
+        `).join('');
+        renderPagination('cuisinePagination', page, data.total, 10, loadCuisineList);
+    } catch(e) {}
+}
+// 公告
 async function loadAnnouncements() {
     const res = await fetch('/api/admin/announcements');
     const list = await res.json();
@@ -355,28 +295,16 @@ async function loadAnnouncements() {
     `).join('');
 }
 
-async function publishAnnouncement() {
-    const title = document.getElementById('annTitle').value;
-    const content = document.getElementById('annContent').value;
-    if(!title) return alert('标题不能为空');
+// 辅助函数 (Edit/Save/Delete) 保持与之前逻辑一致
+function openIngredientModal() { document.getElementById('ingredientForm').reset(); document.getElementById('ingId').value = ''; document.getElementById('ingredientModal').style.display = 'flex'; }
+function editIngredient(i) { document.getElementById('ingId').value = i.id; document.getElementById('ingName').value = i.name; document.getElementById('ingCategory').value = i.categoryId; document.getElementById('ingPrice').value = i.price; document.getElementById('ingUnit').value = i.unit; document.getElementById('ingStock').value = i.stock; document.getElementById('ingImage').value = i.image; document.getElementById('ingredientModal').style.display = 'flex'; }
+async function saveIngredient() { const data = { id: document.getElementById('ingId').value || null, name: document.getElementById('ingName').value, categoryId: document.getElementById('ingCategory').value, price: document.getElementById('ingPrice').value, unit: document.getElementById('ingUnit').value, stock: document.getElementById('ingStock').value, image: document.getElementById('ingImage').value }; await fetch('/api/admin/ingredient/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) }); document.getElementById('ingredientModal').style.display = 'none'; loadIngredientList(1); }
+async function deleteIngredient(id) { if(!confirm('删除？')) return; await fetch('/api/admin/ingredient/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadIngredientList(1); }
 
-    await fetch('/api/admin/announcement/publish', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({title, content})
-    });
-    alert('公告发布成功');
-    document.getElementById('annTitle').value = '';
-    document.getElementById('annContent').value = '';
-    loadAnnouncements();
-}
+function openCuisineModal() { document.getElementById('cuisineForm').reset(); document.getElementById('cuiId').value=''; document.getElementById('cuisineModal').style.display='flex'; }
+function editCuisine(c) { document.getElementById('cuiId').value=c.id; document.getElementById('cuiName').value=c.name; document.getElementById('cuiCode').value=c.code; document.getElementById('cuiDesc').value=c.description; document.getElementById('cuisineModal').style.display='flex'; }
+async function saveCuisine() { const data = { id: document.getElementById('cuiId').value || null, name: document.getElementById('cuiName').value, code: document.getElementById('cuiCode').value, description: document.getElementById('cuiDesc').value }; await fetch('/api/admin/cuisine/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}); document.getElementById('cuisineModal').style.display = 'none'; loadCuisineList(1); }
+async function deleteCuisine(id) { if(!confirm('删除?')) return; await fetch('/api/admin/cuisine/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); loadCuisineList(1); }
 
-async function deleteAnn(id) {
-    if(!confirm('删除此公告？')) return;
-    await fetch('/api/admin/announcement/delete', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id})
-    });
-    loadAnnouncements();
-}
+async function publishAnnouncement() { const title = document.getElementById('annTitle').value; const content = document.getElementById('annContent').value; if(!title) return alert('标题不能为空'); await fetch('/api/admin/announcement/publish', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title, content}) }); alert('发布成功'); document.getElementById('annTitle').value=''; document.getElementById('annContent').value=''; loadAnnouncements(); }
+async function deleteAnn(id) { if(!confirm('删除?')) return; await fetch('/api/admin/announcement/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadAnnouncements(); }

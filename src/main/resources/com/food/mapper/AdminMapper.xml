@@ -1,75 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.food.mapper.AdminMapper">
-
-    <select id="selectAllIngredients" resultType="com.food.entity.Ingredient">
-        SELECT * FROM ingredients ORDER BY id DESC
-    </select>
-    <insert id="insertIngredient">
-        INSERT INTO ingredients (name, category_id, price, unit, stock, image)
-        VALUES (#{name}, #{categoryId}, #{price}, #{unit}, #{stock}, #{image})
-    </insert>
-    <update id="updateIngredient">
-        UPDATE ingredients SET name=#{name}, category_id=#{categoryId}, price=#{price},
-                               unit=#{unit}, stock=#{stock}, image=#{image} WHERE id=#{id}
-    </update>
-    <delete id="deleteIngredient">
-        DELETE FROM ingredients WHERE id=#{id}
-    </delete>
-
-    <select id="selectAllCuisines" resultType="com.food.entity.Cuisine">
-        SELECT * FROM cuisines ORDER BY id
-    </select>
-    <insert id="insertCuisine">
-        INSERT INTO cuisines (name, code, description) VALUES (#{name}, #{code}, #{description})
-    </insert>
-    <update id="updateCuisine">
-        UPDATE cuisines SET name=#{name}, code=#{code}, description=#{description} WHERE id=#{id}
-    </update>
-    <delete id="deleteCuisine">
-        DELETE FROM cuisines WHERE id=#{id}
-    </delete>
-
-    <update id="updateRecipeRecommendation">
-        UPDATE recipes SET is_recommended = #{isRecommended} WHERE id = #{id}
-    </update>
-    <select id="selectHotRecipes" resultType="map">
-        SELECT r.title, COUNT(f.id) as favorite_count
+    <select id="selectRecipesPage" resultType="com.food.entity.Recipe">
+        SELECT r.id, r.title, r.cuisine_id, r.image, r.description, r.is_recommended, r.status, u.username as authorName
         FROM recipes r
-                 LEFT JOIN favorites f ON r.id = f.recipe_id
-        GROUP BY r.id
-        ORDER BY favorite_count DESC
-            LIMIT 10
+                 LEFT JOIN users u ON r.user_id = u.id
+        ORDER BY r.created_at DESC
+            LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <select id="selectAllOrders" resultType="com.food.entity.Order">
-        SELECT o.*, u.username as userName
-        FROM orders o
-                 LEFT JOIN users u ON o.user_id = u.id
-        ORDER BY o.created_at DESC
-    </select>
-    <update id="updateOrderStatus">
-        UPDATE orders SET status = #{status} WHERE id = #{id}
-    </update>
-    <select id="countOrdersByStatus" resultType="map">
-        SELECT status, COUNT(*) as count FROM orders GROUP BY status
-    </select>
-
-    <select id="selectSettingValue" resultType="string">
-        SELECT setting_value FROM system_settings WHERE setting_key = #{key}
-    </select>
-    <update id="updateSetting">
-        REPLACE INTO system_settings (setting_key, setting_value) VALUES (#{key}, #{value})
+    <update id="updateRecipeStatus">
+        UPDATE recipes SET status = #{status} WHERE id = #{id}
     </update>
 
-    <select id="selectAllAnnouncements" resultType="com.food.entity.Announcement">
-        SELECT * FROM announcements ORDER BY created_at DESC
-    </select>
-    <insert id="insertAnnouncement">
-        INSERT INTO announcements (title, content, is_active) VALUES (#{title}, #{content}, true)
-    </insert>
-    <delete id="deleteAnnouncement">
-        DELETE FROM announcements WHERE id = #{id}
-    </delete>
-
+    <select id="selectUsersPage" resultType="com.food.entity.User">SELECT * FROM users ORDER BY created_at DESC LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="selectIngredientsPage" resultType="com.food.entity.Ingredient">SELECT * FROM ingredients ORDER BY id DESC LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="countIngredients" resultType="int">SELECT COUNT(*) FROM ingredients</select>
+    <select id="selectAllIngredients" resultType="com.food.entity.Ingredient">SELECT * FROM ingredients ORDER BY id DESC</select>
+    <insert id="insertIngredient">INSERT INTO ingredients (name, category_id, price, unit, stock, image) VALUES (#{name}, #{categoryId}, #{price}, #{unit}, #{stock}, #{image})</insert>
+    <update id="updateIngredient">UPDATE ingredients SET name=#{name}, category_id=#{categoryId}, price=#{price}, unit=#{unit}, stock=#{stock}, image=#{image} WHERE id=#{id}</update>
+    <delete id="deleteIngredient">DELETE FROM ingredients WHERE id=#{id}</delete>
+    <select id="selectCuisinesPage" resultType="com.food.entity.Cuisine">SELECT * FROM cuisines ORDER BY id LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="countCuisines" resultType="int">SELECT COUNT(*) FROM cuisines</select>
+    <select id="selectAllCuisines" resultType="com.food.entity.Cuisine">SELECT * FROM cuisines ORDER BY id</select>
+    <insert id="insertCuisine">INSERT INTO cuisines (name, code, description) VALUES (#{name}, #{code}, #{description})</insert>
+    <update id="updateCuisine">UPDATE cuisines SET name=#{name}, code=#{code}, description=#{description} WHERE id=#{id}</update>
+    <delete id="deleteCuisine">DELETE FROM cuisines WHERE id=#{id}</delete>
+    <update id="updateRecipeRecommendation">UPDATE recipes SET is_recommended = #{isRecommended} WHERE id = #{id}</update>
+    <select id="selectHotRecipes" resultType="map">SELECT r.title, COUNT(f.id) as favorite_count FROM recipes r LEFT JOIN favorites f ON r.id = f.recipe_id GROUP BY r.id ORDER BY favorite_count DESC LIMIT 10</select>
+    <select id="selectOrdersPage" resultType="com.food.entity.Order">SELECT o.*, u.username as userName FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT #{limit} OFFSET #{offset}</select>
+    <select id="selectAllOrders" resultType="com.food.entity.Order">SELECT o.*, u.username as userName FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC</select>
+    <update id="updateOrderStatus">UPDATE orders SET status = #{status} WHERE id = #{id}</update>
+    <select id="countOrdersByStatus" resultType="map">SELECT status, COUNT(*) as count FROM orders GROUP BY status</select>
+    <select id="selectAllAnnouncements" resultType="com.food.entity.Announcement">SELECT * FROM announcements ORDER BY created_at DESC</select>
+    <insert id="insertAnnouncement">INSERT INTO announcements (title, content, is_active) VALUES (#{title}, #{content}, true)</insert>
+    <delete id="deleteAnnouncement">DELETE FROM announcements WHERE id = #{id}</delete>
 </mapper>

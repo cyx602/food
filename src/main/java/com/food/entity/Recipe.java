@@ -12,13 +12,16 @@ public class Recipe {
     private String steps;       // 烹饪步骤
     private Integer userId;     // 作者ID (新增字段，记得在数据库添加此列或关联)
     private Date createdAt;
-
+    private Integer status;
     // 扩展字段，用于展示
     private String authorName;
     private String authorAvatar;
 
     private Boolean isRecommended;
 
+
+    public Integer getStatus() { return status; }
+    public void setStatus(Integer status) { this.status = status; }
     public Boolean getIsRecommended() { return isRecommended; }
     public void setIsRecommended(Boolean recommended) { isRecommended = recommended; }
     // Getters and Setters

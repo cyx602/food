@@ -31,34 +31,63 @@ public class AdminController {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
 
         Map<String, Object> stats = new HashMap<>();
-        stats.put("userCount", userMapper.countAllUsers());
-        stats.put("recipeCount", recipeMapper.countAllRecipes());
-        stats.put("orderCount", orderMapper.countAllOrders());
-        stats.put("hotRecipes", adminMapper.selectHotRecipes()); // 热门食谱
-        stats.put("systemStatus", "运行正常");
-        return ResponseEntity.ok(stats);
+        try {
+            stats.put("userCount", userMapper.countAllUsers());
+            stats.put("recipeCount", recipeMapper.countAllRecipes());
+            stats.put("orderCount", orderMapper.countAllOrders());
+            stats.put("hotRecipes", adminMapper.selectHotRecipes()); // 热门食谱
+            stats.put("systemStatus", "运行正常");
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    // 2. 用户管理
+    // 2. 用户管理 (已修改：支持分页)
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getUserList(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getUserList(@RequestParam(defaultValue = "1") int page,
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(userMapper.selectAllUsers());
+
+        int offset = (page - 1) * size;
+        List<User> list = adminMapper.selectUsersPage(offset, size);
+        int total = userMapper.countAllUsers();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("rows", list);
+        res.put("total", total);
+        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/user/status")
     public ResponseEntity<String> updateUserStatus(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
+        if (body.get("status") == null) {
+            return ResponseEntity.badRequest().body("状态不能为空");
+        }
         userMapper.updateUserStatus(body.get("id"), body.get("status"));
         return ResponseEntity.ok("更新成功");
     }
 
-    // --- 食材管理 ---
+    // --- 食材管理 (已修改：支持分页) ---
     @GetMapping("/ingredients")
-    public ResponseEntity<List<Ingredient>> getIngredients(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getIngredients(@RequestParam(defaultValue = "1") int page,
+                                                              @RequestParam(defaultValue = "10") int size,
+                                                              HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(adminMapper.selectAllIngredients());
+
+        int offset = (page - 1) * size;
+        List<Ingredient> list = adminMapper.selectIngredientsPage(offset, size);
+        int total = adminMapper.countIngredients();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("rows", list);
+        res.put("total", total);
+        return ResponseEntity.ok(res);
     }
+
     @PostMapping("/ingredient/save")
     public ResponseEntity<String> saveIngredient(@RequestBody Ingredient ingredient, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -66,6 +95,7 @@ public class AdminController {
         else adminMapper.updateIngredient(ingredient);
         return ResponseEntity.ok("保存成功");
     }
+
     @PostMapping("/ingredient/delete")
     public ResponseEntity<String> deleteIngredient(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -73,12 +103,23 @@ public class AdminController {
         return ResponseEntity.ok("删除成功");
     }
 
-    // --- 菜系管理 ---
+    // --- 菜系管理 (已修改：支持分页) ---
     @GetMapping("/cuisines")
-    public ResponseEntity<List<Cuisine>> getCuisines(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getCuisines(@RequestParam(defaultValue = "1") int page,
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(adminMapper.selectAllCuisines());
+
+        int offset = (page - 1) * size;
+        List<Cuisine> list = adminMapper.selectCuisinesPage(offset, size);
+        int total = adminMapper.countCuisines();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("rows", list);
+        res.put("total", total);
+        return ResponseEntity.ok(res);
     }
+
     @PostMapping("/cuisine/save")
     public ResponseEntity<String> saveCuisine(@RequestBody Cuisine cuisine, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -86,6 +127,7 @@ public class AdminController {
         else adminMapper.updateCuisine(cuisine);
         return ResponseEntity.ok("保存成功");
     }
+
     @PostMapping("/cuisine/delete")
     public ResponseEntity<String> deleteCuisine(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -93,12 +135,87 @@ public class AdminController {
         return ResponseEntity.ok("删除成功");
     }
 
-    // --- 食谱管理 (推荐) ---
+    // 3. 食谱管理 (已修改：支持分页)
+    @GetMapping("/recipes")
+    public ResponseEntity<Map<String, Object>> getRecipeList(@RequestParam(defaultValue = "1") int page,
+                                                             @RequestParam(defaultValue = "10") int size,
+                                                             HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(403).build();
+
+        int offset = (page - 1) * size;
+        List<Recipe> list = adminMapper.selectRecipesPage(offset, size);
+        int total = recipeMapper.countAllRecipes();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("rows", list);
+        res.put("total", total);
+        return ResponseEntity.ok(res);
+    }
+
+    // 在 AdminController 类中添加以下方法
+
+    // 审核食谱接口
+    @PostMapping("/recipe/audit")
+    public ResponseEntity<Map<String, Object>> auditRecipe(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
+        Map<String, Object> res = new HashMap<>();
+        if (!isAdmin(request)) {
+            res.put("success", false);
+            res.put("message", "权限不足");
+            return ResponseEntity.status(403).body(res);
+        }
+        try {
+            Integer id = body.get("id");
+            Integer status = body.get("status"); // 1:通过, 2:拒绝
+            if (id == null || status == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            adminMapper.updateRecipeStatus(id, status);
+            res.put("success", true);
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "操作失败");
+            return ResponseEntity.internalServerError().body(res);
+        }
+    }
+
+    // --- 食谱推荐 ---
     @PostMapping("/recipe/recommend")
     public ResponseEntity<String> toggleRecommend(@RequestBody Map<String, Object> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
         adminMapper.updateRecipeRecommendation((Integer) body.get("id"), (Boolean) body.get("isRecommended"));
         return ResponseEntity.ok("操作成功");
+    }
+
+    // 4. 订单管理 (已修改：支持分页)
+    @GetMapping("/orders")
+    public ResponseEntity<Map<String, Object>> getAllOrders(@RequestParam(defaultValue = "1") int page,
+                                                            @RequestParam(defaultValue = "10") int size,
+                                                            HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(403).build();
+
+        int offset = (page - 1) * size;
+        List<Order> list = adminMapper.selectOrdersPage(offset, size);
+        int total = orderMapper.countAllOrders();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("rows", list);
+        res.put("total", total);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/order/status")
+    public ResponseEntity<String> updateOrderStatus(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(403).build();
+        adminMapper.updateOrderStatus((Integer) body.get("id"), (String) body.get("status"));
+        return ResponseEntity.ok("状态更新成功");
+    }
+
+    @GetMapping("/order/stats")
+    public ResponseEntity<List<Map<String, Object>>> getOrderStats(HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(adminMapper.countOrdersByStatus());
     }
 
     // --- 系统配置 & 公告 ---
@@ -107,12 +224,14 @@ public class AdminController {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(adminMapper.selectAllAnnouncements());
     }
+
     @PostMapping("/announcement/publish")
     public ResponseEntity<String> publishAnnouncement(@RequestBody Announcement announcement, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
         adminMapper.insertAnnouncement(announcement);
         return ResponseEntity.ok("发布成功");
     }
+
     @PostMapping("/announcement/delete")
     public ResponseEntity<String> deleteAnnouncement(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -120,56 +239,7 @@ public class AdminController {
         return ResponseEntity.ok("删除成功");
     }
 
-    // 3. 食谱管理
-    @GetMapping("/recipes")
-    public ResponseEntity<List<Recipe>> getRecipeList(HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(recipeMapper.selectAllRecipes());
-    }
-
-
-    // 4. 订单管理
-    @GetMapping("/orders")
-    public ResponseEntity<List<Order>> getAllOrders(HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(adminMapper.selectAllOrders());
-    }
-    @PostMapping("/order/status")
-    public ResponseEntity<String> updateOrderStatus(@RequestBody Map<String, Object> body, HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        adminMapper.updateOrderStatus((Integer) body.get("id"), (String) body.get("status"));
-        return ResponseEntity.ok("状态更新成功");
-    }
-    @GetMapping("/order/stats")
-    public ResponseEntity<List<Map<String, Object>>> getOrderStats(HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(adminMapper.countOrdersByStatus());
-    }
-
-    @RestController
-    @RequestMapping("/api/common")
-    public class CommonController {
-
-        @Autowired
-        private AdminMapper adminMapper; // 复用 AdminMapper 获取食材列表
-
-        @Autowired
-        private RecipeMapper recipeMapper;
-
-        // 获取所有食材列表 (供 market.html 使用)
-        @GetMapping("/ingredients")
-        public ResponseEntity<List<Ingredient>> getAllIngredients() {
-            return ResponseEntity.ok(adminMapper.selectAllIngredients());
-        }
-
-        // 获取所有食谱列表 (供 cuisine.html 使用)
-        @GetMapping("/recipes")
-        public ResponseEntity<List<Recipe>> getAllRecipes() {
-            return ResponseEntity.ok(recipeMapper.selectAllRecipes());
-        }
-    }
-
-    // 5. 【新增】管理员删除食谱接口
+    // 5. 管理员删除食谱接口
     @PostMapping("/recipe/delete")
     public ResponseEntity<Map<String, Object>> deleteRecipe(@RequestBody Map<String, Integer> body,
                                                             HttpServletRequest request) {

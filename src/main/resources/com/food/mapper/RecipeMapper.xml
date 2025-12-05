@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.food.mapper.RecipeMapper">
+
     <insert id="insertFavorite">
         INSERT IGNORE INTO favorites (user_id, recipe_id, favorited_at)
         VALUES (#{userId}, #{recipeId}, NOW())
@@ -20,9 +20,19 @@
     </select>
 
     <insert id="insertRecipe" parameterType="com.food.entity.Recipe" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO recipes (title, cuisine_id, image, description, ingredients, steps, user_id, created_at)
-        VALUES (#{title}, #{cuisineId}, #{image}, #{description}, #{ingredients}, #{steps}, #{userId}, NOW())
+        INSERT INTO recipes (title, cuisine_id, image, description, ingredients, steps, user_id, status, created_at)
+        VALUES (#{title}, #{cuisineId}, #{image}, #{description}, #{ingredients}, #{steps}, #{userId}, 0, NOW())
     </insert>
+
+    <select id="selectAllRecipes" resultType="com.food.entity.Recipe">
+        SELECT
+            r.id, r.title, r.cuisine_id, r.image, r.description, r.ingredients, r.steps, r.created_at,
+            u.username as authorName, u.avatar_file_name as authorAvatar
+        FROM recipes r
+                 LEFT JOIN users u ON r.user_id = u.id
+        WHERE r.status = 1
+        ORDER BY r.created_at DESC
+    </select>
 
     <select id="selectRecipesByUserId" resultType="com.food.entity.Recipe">
         SELECT * FROM recipes WHERE user_id = #{userId} ORDER BY created_at DESC
@@ -39,21 +49,11 @@
         SELECT COUNT(*) FROM recipes
     </select>
 
-    <select id="selectAllRecipes" resultType="com.food.entity.Recipe">
-        SELECT r.id, r.title, r.cuisine_id, r.created_at, u.username as authorName
-        FROM recipes r
-                 LEFT JOIN users u ON r.user_id = u.id
-        ORDER BY r.created_at DESC
-    </select>
-
     <update id="updateRecipe" parameterType="com.food.entity.Recipe">
         UPDATE recipes
-        SET title = #{title},
-            cuisine_id = #{cuisineId},
-            image = #{image},
-            description = #{description},
-            ingredients = #{ingredients},
-            steps = #{steps},
+        SET title = #{title}, cuisine_id = #{cuisineId}, image = #{image},
+            description = #{description}, ingredients = #{ingredients}, steps = #{steps},
+            status = 0,
             updated_at = NOW()
         WHERE id = #{id} AND user_id = #{userId}
     </update>

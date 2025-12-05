@@ -302,12 +302,17 @@
                         <button class="delete-btn" onclick="event.stopPropagation(); deleteRecipe(${recipe.id})"><i class="fas fa-trash"></i> 删除</button>
                     </div>` :
                     `<button class="remove-favorite" onclick="event.stopPropagation(); removeFromFavorites(${recipe.id})"><i class="fas fa-times"></i></button>`;
-
+                let statusLabel = '';
+                if (type === 'created') {
+                    if (recipe.status === 0) statusLabel = '<span style="background:#ffc107; color:white; padding:2px 6px; border-radius:4px; font-size:12px; margin-left:5px;">待审核</span>';
+                    else if (recipe.status === 1) statusLabel = '<span style="background:#28a745; color:white; padding:2px 6px; border-radius:4px; font-size:12px; margin-left:5px;">已发布</span>';
+                    else if (recipe.status === 2) statusLabel = '<span style="background:#dc3545; color:white; padding:2px 6px; border-radius:4px; font-size:12px; margin-left:5px;">未通过</span>';
+                }
                 card.innerHTML = `
                     ${actionBtnHtml}
                     <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="handleImageError(this)">
                     <div class="recipe-info">
-                        <div class="recipe-title">${recipe.title}</div>
+                        <div class="recipe-title">${recipe.title} ${statusLabel}</div>
                         <div class="recipe-meta">${getCuisineName(recipe.cuisineId)}</div>
                         <div class="recipe-desc">${recipe.description}</div>
                     </div>

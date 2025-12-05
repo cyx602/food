@@ -24,6 +24,8 @@ public interface UserMapper {
      */
     User selectByUsername(@Param("username") String username);
 
+
+
     void updateUser(User user);
     /**
      * 统计指定用户名的数量（用于检查用户名是否已存在）
