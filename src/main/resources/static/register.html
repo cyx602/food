@@ -47,12 +47,22 @@
         </div>
         <div class="form-group">
             <label for="password">登录密码：</label>
-            <input type="password" id="password" placeholder="请设置登录密码">
+            <div style="position: relative; flex: 1;">
+                <input type="password" id="password" placeholder="请设置登录密码" style="width: 100%; padding-right: 40px;">
+                <i id="toggleRegPassword" class="fas fa-eye-slash"
+                   style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999;"></i>
+            </div>
         </div>
+
         <div class="form-group">
             <label for="confirmPassword">确认密码：</label>
-            <input type="password" id="confirmPassword" placeholder="请再次输入登录密码">
+            <div style="position: relative; flex: 1;">
+                <input type="password" id="confirmPassword" placeholder="请再次输入登录密码" style="width: 100%; padding-right: 40px;">
+                <i id="toggleConfirmPassword" class="fas fa-eye-slash"
+                   style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999;"></i>
+            </div>
         </div>
+
         <div class="form-group">
             <label>性别：</label>
             <div class="radio-group">
@@ -61,9 +71,9 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label>美食偏好：</label>
-            <div class="checkbox-group" style="flex-wrap: wrap; gap: 10px;">
+        <div class="form-group" style="align-items: flex-start;">
+            <label style="padding-top: 5px;">美食偏好：</label>
+            <div class="checkbox-group" style="flex-wrap: wrap; gap: 10px; flex: 1; padding-left: 10px;">
                 <label><input type="checkbox" name="preference" value="chinese"> 中餐</label>
                 <label><input type="checkbox" name="preference" value="western"> 西餐</label>
                 <label><input type="checkbox" name="preference" value="japanese"> 日料</label>
@@ -92,8 +102,8 @@
         </div>
 
         <div class="form-footer-links" style="position: static; margin-top: 25px; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-            <a href="admin_register.html" class="admin-register-link" style="color: #f7941e; text-decoration: none; font-size: 14px;">管理员注册</a>
-            <a href="login.html" class="login-link" style="color: #f7941e; text-decoration: none; font-size: 14px;">已有账号？去登录</a>
+            <a href="admin_register.html" class="admin-register-link">管理员注册</a>
+            <a href="login.html" class="login-link">已有账号？去登录</a>
         </div>
     </form>
 </main>

@@ -50,12 +50,20 @@ public class RecipeController {
 
     // 获取我的收藏ID列表
     @GetMapping("/favorites")
-    public ResponseEntity<List<Integer>> getMyFavorites(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getMyFavorites(@RequestParam(defaultValue = "1") int page,
+                                                              @RequestParam(defaultValue = "8") int size,
+                                                              HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute("currentUser");
         if (user == null) return ResponseEntity.status(401).build();
 
-        List<Integer> ids = recipeMapper.selectFavoriteRecipeIds(user.getId());
-        return ResponseEntity.ok(ids);
+        int offset = (page - 1) * size;
+        List<Recipe> recipes = recipeMapper.selectFavoriteRecipesPage(user.getId(), offset, size);
+        int total = recipeMapper.countFavoriteRecipes(user.getId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("rows", recipes);
+        response.put("total", total);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/create")
@@ -92,12 +100,20 @@ public class RecipeController {
 
     // 获取我的食谱列表
     @GetMapping("/my-list")
-    public ResponseEntity<List<Recipe>> getMyRecipes(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getMyRecipes(@RequestParam(defaultValue = "1") int page,
+                                                            @RequestParam(defaultValue = "8") int size,
+                                                            HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute("currentUser");
         if (user == null) return ResponseEntity.status(401).build();
 
-        List<Recipe> list = recipeMapper.selectRecipesByUserId(user.getId());
-        return ResponseEntity.ok(list);
+        int offset = (page - 1) * size;
+        List<Recipe> list = recipeMapper.selectRecipesByUserIdPage(user.getId(), offset, size);
+        int total = recipeMapper.countRecipesByUserId(user.getId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("rows", list);
+        response.put("total", total);
+        return ResponseEntity.ok(response);
     }
 
     // 获取食谱详情（包含作者信息）

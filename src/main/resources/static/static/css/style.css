@@ -372,13 +372,16 @@ body {
     flex-direction: column;      /* 垂直排列：上-下 */
     align-items: flex-end;       /* 整体靠右对齐 */
     gap: 10px;
+    text-decoration: none;
 }
+
+
 
 .form-footer-links a {
     color: #f7941e;
-    text-decoration: none;
     transition: color 0.3s;
     font-size: 14px;
+    text-decoration: underline;
 }
 
 .form-footer-links a:hover {

@@ -31,8 +31,6 @@
         .delete-btn { background-color: #ff6b6b; }
         .delete-btn:hover { background-color: #e64c4c; }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #664b2e; }
-        .empty-icon { font-size: 60px; color: #d9b38c; margin-bottom: 20px; }
 
         .add-recipe-card { border: 2px dashed #d9b38c; background-color: rgba(255, 255, 255, 0.6); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
         .add-recipe-card:hover { border-color: #f7941e; background-color: rgba(255, 248, 240, 0.9); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(247, 148, 30, 0.2); }
@@ -56,6 +54,61 @@
         .cuisine-info { text-align: center; margin-bottom: 20px; }
         .cuisine-tag { background: #f7941e; color: white; padding: 5px 15px; border-radius: 15px; font-size: 14px; }
 
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+
+        .pagination-btn {
+            padding: 8px 16px;
+            background-color: rgba(245, 230, 210, 0.9);
+            border: 1px solid #d9b38c;
+            border-radius: 4px; /* 统一为微圆角 */
+            color: #664b2e;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+            transform: translateY(-2px);
+        }
+
+        .pagination-btn.active {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 【修改】空状态布局调整 - 增加卡片背景，优化居中 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: #664b2e;
+            /* 新增背景样式 */
+            background-color: rgba(245, 230, 210, 0.95);
+            border: 1px solid #d9b38c;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin: 40px auto;
+            max-width: 600px; /* 限制最大宽度，防止太宽 */
+        }
+        .empty-icon { font-size: 60px; color: #d9b38c; margin-bottom: 20px; }
+        .empty-title { font-size: 24px; margin-bottom: 10px; font-weight: bold; }
+        .empty-desc { font-size: 16px; margin-bottom: 30px; color: #888; }
         /* 登录提示专用样式 */
         .login-tip-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px 0; color: #664b2e; }
         .login-tip-text { font-size: 18px; margin-bottom: 20px; }
@@ -85,6 +138,7 @@
         <div class="recipes-tab" data-tab="created">我的创作</div>
     </div>
     <div class="recipes-grid" id="recipesGrid"></div>
+    <div id="pagination" class="pagination"></div>
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-icon"><i class="fas fa-heart"></i></div>
         <h2 class="empty-title">还没有收藏的食谱</h2>
@@ -210,62 +264,123 @@
 
 <script src="static/js/cuisine.js"></script>
 <script>
+    let currentFavoritesPage = 1;
+    let currentCreatedPage = 1;
+    const pageSize = 8;
+    let currentTab = 'favorites';
+
     document.addEventListener('DOMContentLoaded', function() {
         setupEventListeners();
-        displayFavorites();
+        displayFavorites(1);
         checkLoginStatus();
     });
 
     function setupEventListeners() {
         document.querySelectorAll('.recipes-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
+            tab.addEventListener('click', function () {
                 document.querySelectorAll('.recipes-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
-                if(this.dataset.tab === 'favorites') displayFavorites();
-                else displayCreated();
+
+                currentTab = this.dataset.tab;
+                if (currentTab === 'favorites') {
+                    currentFavoritesPage = 1;
+                    displayFavorites(1);
+                } else {
+                    currentCreatedPage = 1;
+                    displayCreated(1);
+                }
             });
         });
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) event.target.style.display = "none";
+    }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+
+    async function displayFavorites(page) {
+        const grid = document.getElementById('recipesGrid');
+        grid.innerHTML = '<p style="text-align:center;width:100%">加载中...</p>';
+
+        try {
+            const response = await fetch(`/api/recipe/favorites?page=${page}&size=${pageSize}`);
+            if (response.status === 401) {
+                renderLoginTip(grid);
+                return;
+            }
+            const data = await response.json();
+            const recipes = data.rows || [];
+            const total = data.total || 0;
+
+            grid.innerHTML = '';
+            if (total === 0) {
+                showEmptyState('favorites');
+                document.getElementById('pagination').innerHTML = ''; // 清空分页
+            } else {
+                document.getElementById('emptyState').style.display = 'none';
+                displayRecipesList(recipes, 'favorites');
+                renderPagination(page, total, 'displayFavorites');
+            }
+        } catch (e) {
+            console.error(e);
+            grid.innerHTML = '<p style="text-align:center;">加载失败</p>';
+        }
+    }
+    async function displayCreated(page) {
+        const grid = document.getElementById('recipesGrid');
+        grid.innerHTML = '<p style="text-align:center;width:100%">加载中...</p>';
+        try {
+            const response = await fetch(`/api/recipe/my-list?page=${page}&size=${pageSize}`);
+            if (response.status === 401) {
+                renderLoginTip(grid);
+                return;
+            }
+            const data = await response.json();
+            const recipes = data.rows || [];
+            const total = data.total || 0;
+
+            document.getElementById('emptyState').style.display = 'none';
+            // 清空grid在displayRecipesList中处理
+            displayRecipesList(recipes, 'created');
+            renderPagination(page, total, 'displayCreated');
+
+        } catch (e) {
+            console.error(e);
+            grid.innerHTML = '<p style="color:red; text-align:center;">加载失败</p>';
         }
     }
 
-    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+    // 【新增】通用分页渲染函数
+    function renderPagination(currentPage, totalCount, loadFuncName) {
+        const container = document.getElementById('pagination');
+        const totalPages = Math.ceil(totalCount / pageSize);
 
-    async function displayFavorites() {
-        const grid = document.getElementById('recipesGrid');
-        grid.innerHTML = '<p style="text-align:center;width:100%">加载中...</p>';
-        try {
-            const response = await fetch('/api/recipe/favorites');
-            if (response.status === 401) {
-                renderLoginTip(grid);
-                return;
-            }
-            const ids = await response.json();
-            grid.innerHTML = '';
-            if (ids.length === 0) showEmptyState('favorites');
-            else {
-                if(typeof ids[0] === 'number') grid.innerHTML = '<p style="text-align:center;">您有收藏的食谱，但后端接口需更新以返回详情。</p>';
-                else displayRecipesList(ids, 'favorites');
-            }
-        } catch (e) { grid.innerHTML = '<p style="text-align:center;">加载失败</p>'; }
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            container.style.display = 'none'; // 只有一页时不显示
+            return;
+        }
+
+        let html = '';
+        // 首页
+        html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFuncName}(1)">首页</button>`;
+        // 上一页
+        html += `<button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFuncName}(${currentPage - 1})">上一页</button>`;
+
+        // 页码按钮 (简单逻辑：显示所有，或者参考之前 cuisine.js 的省略号逻辑)
+        // 这里为了和 cuisine.html 风格一致，我们渲染数字页码
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="${loadFuncName}(${i})">${i}</button>`;
+        }
+
+        // 下一页
+        html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFuncName}(${currentPage + 1})">下一页</button>`;
+        // 末页
+        html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFuncName}(${totalPages})">末页</button>`;
+
+        container.innerHTML = html;
+        container.style.display = 'flex';
     }
-
-    async function displayCreated() {
-        const grid = document.getElementById('recipesGrid');
-        grid.innerHTML = '<p style="text-align:center;width:100%">加载中...</p>';
-        try {
-            const response = await fetch('/api/recipe/my-list');
-            if (response.status === 401) {
-                renderLoginTip(grid);
-                return;
-            }
-            const myRecipes = await response.json();
-            document.getElementById('emptyState').style.display = 'none';
-            displayRecipesList(myRecipes, 'created');
-        } catch (e) { grid.innerHTML = '<p style="color:red; text-align:center;">加载失败</p>'; }
-    }
-
     // 渲染未登录提示
     function renderLoginTip(container) {
         container.innerHTML = `

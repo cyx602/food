@@ -243,6 +243,7 @@ function updateView() {
 }
 
 // 显示详情
+// 显示详情
 async function showRecipeDetails(recipeId) {
     let recipe;
     try {
@@ -271,10 +272,7 @@ async function showRecipeDetails(recipeId) {
                 <div style="font-weight:bold; color:#664b2e; font-size:16px;">${recipe.authorName || '美食达人'}</div>
                 <div style="font-size:12px; color:#999;">发布于 ${new Date(recipe.createdAt || Date.now()).toLocaleDateString()}</div>
             </div>
-            <button id="followBtn-${recipe.userId}" class="btn btn-secondary btn-sm" onclick="toggleFollow(${recipe.userId})" style="padding:5px 15px; font-size:12px;">
-                <i class="fas fa-plus"></i> 关注
-            </button>
-        </div>
+            </div>
 
         <img src="${recipe.image || 'static/image/default_food.jpg'}" class="recipe-detail-image" onerror="this.src='static/image/default_food.jpg'">
         <h2 class="detail-title">${recipe.title}</h2>
@@ -310,7 +308,9 @@ async function showRecipeDetails(recipeId) {
         loadComments(recipe.id);
     }
 
-    if (recipe.userId && typeof checkFollowStatus === 'function') checkFollowStatus(recipe.userId);
+    // 删除原本这里的关注状态检查调用
+    // if (recipe.userId && typeof checkFollowStatus === 'function') checkFollowStatus(recipe.userId);
+
     recipeModal.style.display = 'flex';
 }
 

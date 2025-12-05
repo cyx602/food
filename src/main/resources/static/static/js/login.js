@@ -16,6 +16,22 @@ document.addEventListener('DOMContentLoaded', function () {
         loginBtn.textContent = submitting ? '登录中...' : '登录';
     }
 
+    // 密码可见性切换
+    const toggleLoginPwdBtn = document.getElementById('toggleLoginPassword');
+    const loginPwdInput = document.getElementById('loginPassword');
+
+    if(toggleLoginPwdBtn && loginPwdInput) {
+        toggleLoginPwdBtn.addEventListener('click', function() {
+            // 切换 type 属性
+            const type = loginPwdInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            loginPwdInput.setAttribute('type', type);
+
+            // 切换图标: password(隐藏) -> eye-slash, text(显示) -> eye
+            this.classList.toggle('fa-eye-slash');
+            this.classList.toggle('fa-eye');
+        });
+    }
+
     // 表单提交事件
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -69,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
                 // 【新增】如果是管理员，设置额外标记
-                if (data.username === 'admin') {
+                if (data.username === 'admin' || data.role === 'admin') {
                     sessionStorage.setItem('adminLoggedIn', 'true');
                 } else {
                     sessionStorage.removeItem('adminLoggedIn');

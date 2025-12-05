@@ -38,7 +38,11 @@
             </div>
             <div class="form-group">
                 <label for="loginPassword">登录密码：</label>
-                <input type="password" id="loginPassword" name="password" placeholder="请输入登录密码">
+                <div style="position: relative; flex: 1;">
+                    <input type="password" id="loginPassword" name="password" placeholder="请输入登录密码" style="width: 100%; padding-right: 40px;">
+                    <i id="toggleLoginPassword" class="fas fa-eye-slash"
+                       style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999;"></i>
+                </div>
             </div>
             <div class="form-row">
                 <!-- 复选框区域 -->

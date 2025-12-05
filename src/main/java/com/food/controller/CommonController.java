@@ -39,4 +39,9 @@ public class CommonController {
         // 调用 RecipeMapper 中已存在的 selectAllRecipes 方法
         return ResponseEntity.ok(recipeMapper.selectAllRecipes());
     }
+
+    @GetMapping("/featured-recipes")
+    public ResponseEntity<List<Recipe>> getFeaturedRecipes() {
+        return ResponseEntity.ok(recipeMapper.selectRecommendedRecipes());
+    }
 }
