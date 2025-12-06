@@ -22,4 +22,10 @@ public interface OrderMapper {
 
     int countAllOrders();
     List<Order> selectAllOrders();
+    void deleteOrderItems(@Param("orderId") int orderId);
+
+    // 【新增】删除订单
+    int deleteOrder(@Param("id") int id, @Param("userId") int userId);
+
+    int updateReceiverInfo(Integer orderId, Integer id, String name, String phone, String address);
 }

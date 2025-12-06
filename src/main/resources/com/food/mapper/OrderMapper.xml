@@ -32,7 +32,12 @@
     </select>
 
     <select id="selectOrdersPageByUserId" resultMap="OrderMap">
-        SELECT DISTINCT o.*
+        SELECT
+        o.*,
+        oi.id as item_id,
+        oi.name,
+        oi.price,
+        oi.quantity
         FROM orders o
         LEFT JOIN order_items oi ON o.id = oi.order_id
         WHERE o.user_id = #{userId}
@@ -58,6 +63,22 @@
             )
         </if>
     </select>
+
+    <update id="updateReceiverInfo">
+        UPDATE orders
+        SET receiver_name = #{name},
+            receiver_phone = #{phone},
+            receiver_address = #{address}
+        WHERE id = #{id} AND user_id = #{userId} AND status = 'PENDING'
+    </update>
+
+    <delete id="deleteOrderItems">
+        DELETE FROM order_items WHERE order_id = #{orderId}
+    </delete>
+
+    <delete id="deleteOrder">
+        DELETE FROM orders WHERE id = #{id} AND user_id = #{userId}
+    </delete>
 
     <resultMap id="OrderMap" type="com.food.entity.Order">
         <id property="id" column="id"/>
