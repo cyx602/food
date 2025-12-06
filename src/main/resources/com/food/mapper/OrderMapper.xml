@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.food.mapper.OrderMapper">
+
     <insert id="insertOrder" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO orders (user_id, order_no, total_amount, status, created_at)
-        VALUES (#{userId}, #{orderNo}, #{totalAmount}, 'COMPLETED', NOW())
+        VALUES (#{userId}, #{orderNo}, #{totalAmount}, 'PENDING', NOW())
     </insert>
 
     <insert id="insertOrderItem">
@@ -23,7 +24,7 @@
         SELECT COUNT(*) FROM orders
     </select>
 
-    <select id="selectAllOrders" resultMap="OrderMap">
+    <select id="selectAllOrders" resultType="com.food.entity.Order">
         SELECT o.*, u.username as userName
         FROM orders o
                  LEFT JOIN users u ON o.user_id = u.id

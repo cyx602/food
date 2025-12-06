@@ -12,7 +12,10 @@ public class Order {
 
     private List<OrderItem> items; // 订单包含的商品列表
 
-    // Getters and Setters...
+    // --- 新增字段：用于后台显示下单用户名 ---
+    private String userName;
+
+    // Getters and Setters
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public Integer getUserId() { return userId; }
@@ -27,4 +30,8 @@ public class Order {
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+
+    // 新增字段的 Getter/Setter
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 }

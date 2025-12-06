@@ -371,11 +371,28 @@
     function checkLoginStatus() {
         const user = sessionStorage.getItem('currentUser');
         const authSection = document.getElementById('authSection');
+
+        // 1. 处理导航栏（如果已登录则隐藏登录链接）
         if (user && authSection) {
             authSection.style.display = 'none';
-            loadProfile();
+        }
+
+        // 2. 处理页面内容
+        if (user) {
+            loadProfile(); // 已登录，加载数据
         } else {
-            window.location.href = 'login.html';
+            // --- 核心修改：未登录时显示提示，而不是跳转 ---
+            const container = document.getElementById('profileContent');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 80px 20px; background-color: rgba(255,255,255,0.8); border-radius: 12px; margin-top: 40px;">
+                    <i class="fas fa-user-lock" style="font-size: 60px; color: #d9b38c; margin-bottom: 20px;"></i>
+                    <h2 style="color: #664b2e; margin-bottom: 15px;">请先登录</h2>
+                    <p style="color: #666; margin-bottom: 30px;">登录后即可管理您的个人资料、收货地址及订单信息</p>
+                    <a href="login.html" class="btn btn-primary" style="padding: 12px 40px; text-decoration: none; display: inline-block;">
+                        立即登录
+                    </a>
+                </div>
+            `;
         }
     }
 

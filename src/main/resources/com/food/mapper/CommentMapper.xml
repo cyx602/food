@@ -16,7 +16,8 @@
             c.recipe_id AS recipeId,
             c.content,
             c.rating,
-            c.image,  c.created_at AS createdAt,
+            c.image,
+            c.created_at AS createdAt,
             u.username,
             u.avatar_file_name AS avatar
         FROM comments c
