@@ -44,6 +44,7 @@ public interface UserMapper {
     // 新增：根据邮箱查询用户
     User selectByEmail(@Param("email") String email);
 
+    int countByEmail(@Param("email") String email);
     // 新增：更新密码
     void updatePasswordByEmail(@Param("email") String email, @Param("password") String password);
 }

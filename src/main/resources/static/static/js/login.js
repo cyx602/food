@@ -11,6 +11,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const loginUrl = baseUrl + '/api/login';
     console.log('🔗 登录接口地址:', loginUrl);
 
+    const savedEmail = localStorage.getItem('saved_email');
+    const savedPass = localStorage.getItem('saved_password'); // 注意：实际生产环境不建议明文存密码
+    if (savedEmail && savedPass) {
+        loginEmail.value = savedEmail;
+        loginPassword.value = savedPass;
+        rememberMe.checked = true;
+    }
+
     function setSubmitting(submitting) {
         loginBtn.disabled = submitting;
         loginBtn.textContent = submitting ? '登录中...' : '登录';
@@ -36,82 +44,59 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        const username = loginUsername.value.trim();
+        const email = loginEmail.value.trim();
         const password = loginPassword.value.trim();
 
-        if (!username) {
-            alert('美食昵称不能为空！');
-            loginUsername.focus();
-            return;
-        }
-        if (!password) {
-            alert('登录密码不能为空！');
-            loginPassword.focus();
-            return;
-        }
-        if (password.length < 6) {
-            alert('密码长度不能少于6位！');
-            loginPassword.focus();
-            return;
+        if (!email) return alert('邮箱不能为空！');
+        if (!password) return alert('密码不能为空！');
+
+        // --- 核心修改：记住我逻辑 ---
+        if (rememberMe.checked) {
+            localStorage.setItem('saved_email', email);
+            localStorage.setItem('saved_password', password);
+        } else {
+            localStorage.removeItem('saved_email');
+            localStorage.removeItem('saved_password');
         }
 
-        setSubmitting(true);
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登录中...';
+
         try {
-            // ✅ 修改为 JSON 格式（与后端保持一致）
-            const bodyData = {
-                username: username,
-                password: password
-            };
-
+            // 发送 email 而不是 username
             const res = await fetch(loginUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json;charset=UTF-8'
-                },
-                body: JSON.stringify(bodyData),
-                credentials: 'same-origin'
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
             });
 
-            const data = await res.json().catch(() => null);
+            const data = await res.json();
 
-            if (res.ok && data && data.success) {
-                // 保存用户登录状态
+            if (data.success) {
+                // ... (原有 Session 存储逻辑不变)
                 const userObj = {
                     username: data.username,
                     avatarFileName: data.avatarFileName,
-                    role: data.role // 存储角色
+                    role: data.role
                 };
                 sessionStorage.setItem('currentUser', JSON.stringify(userObj));
 
-
-                // 【新增】如果是管理员，设置额外标记
                 if (data.username === 'admin' || data.role === 'admin') {
                     sessionStorage.setItem('adminLoggedIn', 'true');
+                    window.location.href = 'admin.html';
                 } else {
                     sessionStorage.removeItem('adminLoggedIn');
-                }
-
-                alert(`欢迎回来，${username}！`);
-
-                // 如果是管理员，直接跳后台，否则跳首页
-                if (data.username === 'admin' || data.role === 'admin') {
-                    sessionStorage.setItem('adminLoggedIn', 'true'); // 兼容旧逻辑
-                    window.location.href = baseUrl + '/admin.html';
-                } else {
-                    sessionStorage.removeItem('adminLoggedIn');
-                    window.location.href = baseUrl + '/index.html';
+                    window.location.href = 'index.html';
                 }
             } else {
-                const message =
-                    (data && (data.message || data.error)) ||
-                    (res.status === 401 ? '用户名或密码错误' : '登录失败，请稍后重试');
-                alert(message);
+                alert(data.message || '登录失败');
             }
         } catch (err) {
             console.error(err);
-            alert('网络异常，请检查你的网络后重试');
+            alert('网络错误');
         } finally {
-            setSubmitting(false);
+            loginBtn.disabled = false;
+            loginBtn.textContent = '登录';
         }
     });
 

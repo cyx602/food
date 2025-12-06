@@ -89,6 +89,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // 4. 注册提交
     if (elements.submitBtn) {
         elements.submitBtn.addEventListener('click', async function() {
+
+            // 1. 严格校验密码一致性
+            const pwd = elements.password.value;
+            const confirmPwd = elements.confirmPassword.value;
+
+            if (!pwd) return alert('请输入密码');
+            if (pwd.length < 6) return alert('密码长度不能少于6位');
+
+            // 核心需求：两次密码必须一样
+            if (pwd !== confirmPwd) {
+                alert('❌ 两次输入的密码不一致，请重新输入！');
+                // 清空确认密码框并聚焦
+                elements.confirmPassword.value = '';
+                elements.confirmPassword.focus();
+                return;
+            }
+
+            const email = elements.email.value.trim();
+            if (!email) return alert('请输入注册邮箱');
+            // 简单的邮箱格式正则
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return alert('请输入有效的邮箱地址');
+            }
+
             // --- 表单验证 ---
             if (!elements.username.value.trim()) return alert('请输入昵称');
             if (!elements.password.value) return alert('请输入密码');

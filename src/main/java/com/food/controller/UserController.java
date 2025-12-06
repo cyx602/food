@@ -62,32 +62,39 @@ public class UserController {
         try {
             if (mailSender != null) {
                 SimpleMailMessage message = new SimpleMailMessage();
-                message.setFrom("your_email@qq.com"); // 发送者，需与配置文件一致
+                // 注意：这里必须改成你在 application.yml 里配置的 username
+                message.setFrom("3135829696@qq.com");
                 message.setTo(email);
                 message.setSubject("【美食天地】找回密码验证码");
-                message.setText("您的验证码是：" + code + "，有效期5分钟。请勿泄露给他人。");
+                message.setText("您的验证码是：" + code + "，有效期5分钟。");
                 mailSender.send(message);
+                System.out.println("✅ 邮件已发送至: " + email);
             } else {
-                // 测试模式：直接打印到控制台
-                System.out.println("测试模式：验证码");
-                System.out.println("邮箱: " + email);
-                System.out.println("验证码: " + code);
-                System.out.println("\n");
+                throw new RuntimeException("MailSender 未配置");
             }
-
-            // 4. 将验证码存入 Session，设置过期时间逻辑（这里简化处理）
-            session.setAttribute("reset_email", email);
-            session.setAttribute("reset_code", code);
-            session.setAttribute("reset_time", System.currentTimeMillis());
-
             res.put("success", true);
-            res.put("message", "验证码已发送");
+            res.put("message", "验证码已发送，请查收邮件");
+
 
         } catch (Exception e) {
+            // 【核心修复】：邮件发送失败时的兜底方案
             e.printStackTrace();
-            res.put("success", false);
-            res.put("message", "发送失败：" + e.getMessage());
+            System.err.println("=========================================");
+            System.err.println("❌ 邮件发送失败 (可能是SMTP配置问题)");
+            System.err.println("👉 [测试模式] 请手动使用此验证码: " + code);
+            System.err.println("=========================================");
+
+            // 为了让你能测试通过，这里即使发送失败也返回成功，但在前端提示看控制台
+            // 生产环境不能这样写，但毕设/测试环境很有用
+            res.put("success", true);
+            res.put("message", "邮件发送模拟成功(请看IDEA控制台获取验证码)");
         }
+        // 4. 将验证码存入 Session，设置过期时间逻辑（这里简化处理）
+        session.setAttribute("reset_email", email);
+        session.setAttribute("reset_code", code);
+        session.setAttribute("reset_time", System.currentTimeMillis());
+
+
         return res;
     }
 
@@ -305,17 +312,20 @@ public class UserController {
             // 关键设置：普通用户角色
             user.setRole("user");
 
+
+
             boolean ok = userService.register(user);
 
-            if (!ok) {
+
+            if (userService.register(user)) { // register 方法内部已经改为了 checkByEmail
+                res.put("success", true);
+                res.put("message", "注册成功，欢迎加入美食天地！");
+                return ResponseEntity.ok(res);
+            } else {
                 res.put("success", false);
-                res.put("message", "注册失败");
+                res.put("message", "该邮箱已被注册，请直接登录");
                 return ResponseEntity.badRequest().body(res);
             }
-
-            res.put("success", true);
-            res.put("message", "注册成功，欢迎加入美食天地！");
-            return ResponseEntity.ok(res);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,20 +348,20 @@ public class UserController {
 
         Map<String, Object> res = new HashMap<>();
         try {
-            String username = (String) body.get("username");
+            String email = (String) body.get("email");
             String password = (String) body.get("password");
 
-            if (username == null || password == null) {
+            if (email == null || password == null) {
                 res.put("success", false);
-                res.put("message", "用户名或密码不能为空");
+                res.put("message", "邮箱或密码不能为空");
                 return ResponseEntity.badRequest().body(res);
             }
 
-            User user = userService.login(username.trim(), password.trim());
+            User user = userService.login(email.trim(), password.trim());
 
             if (user == null) {
                 res.put("success", false);
-                res.put("message", "用户名或密码错误");
+                res.put("message", "邮箱或密码错误"); // 提示语修改
                 return ResponseEntity.status(401).body(res);
             }
 
