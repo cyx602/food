@@ -121,56 +121,70 @@ function generatePagination() {
     if (!container) return;
     container.innerHTML = '';
 
+    // 计算总页数 (复用原逻辑中的筛选)
     const searchTerm = document.getElementById('recipeSearchInput') ? document.getElementById('recipeSearchInput').value.toLowerCase().trim() : '';
     let filtered = recipes.filter(r => {
         const matchCuisine = currentCuisine === 'all' || r.cuisine === currentCuisine;
         const matchSearch = r.title.toLowerCase().includes(searchTerm);
         return matchCuisine && matchSearch;
     });
-
     const totalPages = Math.ceil(filtered.length / recipesPerPage);
+
     if (totalPages <= 1) return;
 
-    // 首页
-    const firstBtn = document.createElement('button');
-    firstBtn.textContent = '首页';
-    firstBtn.disabled = currentPage === 1;
-    firstBtn.onclick = () => { currentPage = 1; updateView(); };
-    container.appendChild(firstBtn);
-
-    // 上一页
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = '上一页';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; updateView(); } };
-    container.appendChild(prevBtn);
-
-    // 页码
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-    for (let i = startPage; i <= endPage; i++) {
+    const createBtn = (text, page, disabled, active) => {
         const btn = document.createElement('button');
-        btn.className = i === currentPage ? 'active' : '';
-        btn.textContent = i;
-        btn.onclick = () => { currentPage = i; updateView(); };
-        container.appendChild(btn);
+        btn.textContent = text;
+        if (disabled) btn.disabled = true;
+        if (active) btn.className = 'active';
+        btn.onclick = () => {
+            if (!disabled && !active) {
+                currentPage = page;
+                updateView();
+            }
+        };
+        return btn;
+    };
+
+    container.appendChild(createBtn('首页', 1, currentPage === 1, false));
+    container.appendChild(createBtn('上一页', currentPage - 1, currentPage === 1, false));
+
+    const delta = 1;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+            range.push(i);
+        }
     }
 
-    // 下一页
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = '下一页';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => { if(currentPage < totalPages) { currentPage++; updateView(); } };
-    container.appendChild(nextBtn);
+    for (let i of range) {
+        if (l) {
+            if (i - l === 2) {
+                rangeWithDots.push(l + 1);
+            } else if (i - l !== 1) {
+                rangeWithDots.push('...');
+            }
+        }
+        rangeWithDots.push(i);
+        l = i;
+    }
 
-    // 末页
-    const lastBtn = document.createElement('button');
-    lastBtn.textContent = '末页';
-    lastBtn.disabled = currentPage === totalPages;
-    lastBtn.onclick = () => { currentPage = totalPages; updateView(); };
-    container.appendChild(lastBtn);
+    rangeWithDots.forEach(item => {
+        if (item === '...') {
+            const span = document.createElement('span');
+            span.className = 'page-ellipsis';
+            span.innerText = '...';
+            container.appendChild(span);
+        } else {
+            container.appendChild(createBtn(item, item, false, item === currentPage));
+        }
+    });
+
+    container.appendChild(createBtn('下一页', currentPage + 1, currentPage === totalPages, false));
+    container.appendChild(createBtn('末页', totalPages, currentPage === totalPages, false));
 }
 
 function updateView() {

@@ -1,14 +1,16 @@
+let currentOrderStatus = '';
+
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminAuth();
     setupMenuTabs();
     updateAdminInfo();
     const userMenuBtn = document.querySelector('.menu-item[data-target="users"]');
     if (userMenuBtn) {
-          userMenuBtn.click();
+        userMenuBtn.click();
     }
 });
 
-// 权限检查
+// 1. 修改权限检查提示
 function checkAdminAuth() {
     const userJson = sessionStorage.getItem('currentUser');
     if (!userJson) {
@@ -17,7 +19,7 @@ function checkAdminAuth() {
     }
     const user = JSON.parse(userJson);
     if (user.username !== 'admin' && user.role !== 'admin') {
-        alert('权限不足');
+        alert('你没有权限'); // 修改提示语
         window.location.href = 'index.html';
     }
 }
@@ -82,27 +84,34 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     const totalPages = Math.ceil(total / pageSize);
     container.innerHTML = '';
 
-    // 如果没有数据或只有1页，不显示分页（或者你可以选择显示禁用状态）
-    if (totalPages <= 0) return;
+    if (totalPages <= 1) return; // 只有1页时不显示
 
-    let html = '';
+    // 创建按钮的辅助函数
+    const createBtn = (text, page, disabled, active) => {
+        const btn = document.createElement('button');
+        // 保留 admin.js 原有的 page-btn 样式类
+        btn.className = `page-btn ${text.length > 2 ? 'text-btn' : ''} ${active ? 'active' : ''}`;
+        btn.innerHTML = text; // 使用 innerHTML 支持图标
+        if (disabled) btn.disabled = true;
+        btn.onclick = () => {
+            if (!disabled && !active) {
+                loadFunc(page); // admin.js 的加载函数通常接受 page 参数
+            }
+        };
+        return btn;
+    };
 
-    // --- 1. 首页 & 上一页 ---
-    html += `<button class="page-btn text-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(1)">首页</button>`;
-    html += `<button class="page-btn text-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage - 1})">上一页</button>`;
+    // 1. 首页 & 上一页
+    container.appendChild(createBtn('首页', 1, currentPage === 1, false));
+    container.appendChild(createBtn('上一页', currentPage - 1, currentPage === 1, false));
 
-    // --- 2. 页码生成算法 (核心逻辑) ---
-    // 逻辑：始终显示第1页和最后一页，当前页前后保留 delta 个页码，中间用省略号
-    const delta = 2; // 当前页前后显示的页数
+    // 2. 页码生成算法
+    const delta = 1;
     const range = [];
     const rangeWithDots = [];
     let l;
 
     for (let i = 1; i <= totalPages; i++) {
-        // 满足以下条件之一则显示页码：
-        // 1. 第一页
-        // 2. 最后一页
-        // 3. 当前页范围内的 (currentPage - delta <= i <= currentPage + delta)
         if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
             range.push(i);
         }
@@ -111,10 +120,8 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     for (let i of range) {
         if (l) {
             if (i - l === 2) {
-                // 如果只隔一个数（比如 1, 3），就把中间那个 2 补上，不显示省略号
                 rangeWithDots.push(l + 1);
             } else if (i - l !== 1) {
-                // 如果隔得远，显示省略号
                 rangeWithDots.push('...');
             }
         }
@@ -122,32 +129,32 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
         l = i;
     }
 
-    // --- 3. 渲染页码按钮 ---
-    rangeWithDots.forEach(page => {
-        if (page === '...') {
-            html += `<span class="page-ellipsis">...</span>`;
+    // 3. 渲染页码
+    rangeWithDots.forEach(item => {
+        if (item === '...') {
+            const span = document.createElement('span');
+            span.className = 'page-ellipsis';
+            span.innerText = '...';
+            container.appendChild(span);
         } else {
-            const activeClass = page === currentPage ? 'active' : '';
-            html += `<button class="page-btn ${activeClass}" onclick="${loadFunc.name}(${page})">${page}</button>`;
+            container.appendChild(createBtn(item, item, false, item === currentPage));
         }
     });
 
-    // --- 4. 下一页 & 末页 ---
-    html += `<button class="page-btn text-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
-    html += `<button class="page-btn text-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${totalPages})">末页</button>`;
-
-    // --- 5. (可选) 显示总条数信息，如果需要像截图1那样显示在左边，可以加在这里或者用 flex 布局放在左侧 ---
-    // 目前根据截图2的样式，这里只放按钮。
-
-    container.innerHTML = html;
+    // 4. 下一页 & 末页
+    container.appendChild(createBtn('下一页', currentPage + 1, currentPage === totalPages, false));
+    container.appendChild(createBtn('末页', totalPages, currentPage === totalPages, false));
 }
 
 // 2. 用户管理
 async function loadUserList(page = 1) {
     const tbody = document.getElementById('userTableBody');
+    // 获取搜索框的值
+    const keyword = document.getElementById('userSearch').value.trim();
+
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">加载中...</td></tr>';
     try {
-        const res = await fetch(`/api/admin/users?page=${page}&size=10`);
+        const res = await fetch(`/api/admin/users?page=${page}&size=10&keyword=${encodeURIComponent(keyword)}`);
         const data = await res.json();
         const users = data.rows || [];
 
@@ -181,8 +188,10 @@ async function toggleUserStatus(id, currentStatus) {
 // 3. 食谱管理
 async function loadRecipeList(page = 1) {
     const tbody = document.getElementById('recipeTableBody');
+    const keyword = document.getElementById('recipeSearch').value.trim();
+
     try {
-        const res = await fetch(`/api/admin/recipes?page=${page}&size=10`);
+        const res = await fetch(`/api/admin/recipes?page=${page}&size=10&keyword=${encodeURIComponent(keyword)}`);
         const data = await res.json();
         const list = data.rows || [];
 
@@ -247,17 +256,33 @@ async function adminDeleteRecipe(id) {
 // 4. 订单管理
 async function loadOrderList(page = 1) {
     const tbody = document.getElementById('orderTableBody');
+    const keyword = document.getElementById('orderSearch').value.trim();
+
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">加载中...</td></tr>';
 
     try {
-        const res = await fetch(`/api/admin/orders?page=${page}&size=10`);
+        // 修改请求 URL，拼接 status 参数
+        let url = `/api/admin/orders?page=${page}&size=10&keyword=${encodeURIComponent(keyword)}`;
+        if (currentOrderStatus) {
+            url += `&status=${currentOrderStatus}`;
+        }
+
+        const res = await fetch(url);
         const data = await handleResponse(res);
         const list = data.rows || [];
         const total = data.total || 0;
 
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无订单数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无相关订单</td></tr>';
         } else {
+            // 定义状态显示映射
+            const statusMap = {
+                'PENDING': '<span class="status-badge status-pending">待发货</span>',
+                'SHIPPED': '<span class="status-badge status-approved" style="background:#e3f2fd;color:#0d47a1;">已发货</span>',
+                'COMPLETED': '<span class="status-badge status-approved">已完成</span>',
+                'CANCELLED': '<span class="status-badge status-rejected" style="background:#eee;color:#999;">已取消</span>'
+            };
+
             tbody.innerHTML = list.map(o => `
                 <tr>
                     <td>${o.orderNo || o.id}</td>
@@ -268,6 +293,7 @@ async function loadOrderList(page = 1) {
                             <option value="PENDING" ${o.status==='PENDING'?'selected':''}>待发货</option>
                             <option value="SHIPPED" ${o.status==='SHIPPED'?'selected':''}>已发货</option>
                             <option value="COMPLETED" ${o.status==='COMPLETED'?'selected':''}>已完成</option>
+                            <option value="CANCELLED" ${o.status==='CANCELLED'?'selected':''}>已取消</option>
                         </select>
                     </td>
                     <td>${o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
@@ -285,19 +311,14 @@ async function updateOrderStatus(id, status) {
     await fetch('/api/admin/order/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status}) });
     loadOrderStats();
 }
-async function loadOrderStats() {
-    const res = await fetch('/api/admin/order/stats');
-    const list = await res.json();
-    const map = {'PENDING':'待发货', 'SHIPPED':'已发货', 'COMPLETED':'已完成'};
-    const el = document.getElementById('orderStatsBar');
-    if(el) el.innerHTML = list.map(s => `<span>${map[s.status]||s.status}: <b style="color:#f7941e; margin-left:5px;">${s.count}</b></span>`).join(' <span style="color:#ddd; margin:0 10px;">|</span> ');
-}
 
 // 5. 菜系 & 食材 & 公告
 async function loadIngredientList(page = 1) {
     const tbody = document.getElementById('ingredientTableBody');
+    const keyword = document.getElementById('ingredientSearch').value.trim();
+
     try {
-        const res = await fetch(`/api/admin/ingredients?page=${page}&size=10`);
+        const res = await fetch(`/api/admin/ingredients?page=${page}&size=10&keyword=${encodeURIComponent(keyword)}`);
         const data = await res.json();
         const list = data.rows || [];
         tbody.innerHTML = list.map(i => `
@@ -319,8 +340,10 @@ async function loadIngredientList(page = 1) {
 
 async function loadCuisineList(page = 1) {
     const tbody = document.getElementById('cuisineTableBody');
+    const keyword = document.getElementById('cuisineSearch').value.trim();
+
     try {
-        const res = await fetch(`/api/admin/cuisines?page=${page}&size=10`);
+        const res = await fetch(`/api/admin/cuisines?page=${page}&size=10&keyword=${encodeURIComponent(keyword)}`);
         const data = await res.json();
         const list = data.rows || [];
         tbody.innerHTML = list.map(c => `
@@ -338,22 +361,16 @@ async function loadCuisineList(page = 1) {
     } catch(e) {}
 }
 
-// 修改 src/main/resources/static/static/js/admin.js 中的 loadAnnouncements 函数
 async function loadAnnouncements() {
     try {
-        // 关键修改：添加时间戳防止浏览器缓存
         const res = await fetch('/api/admin/announcements?t=' + new Date().getTime());
-
         if (!res.ok) throw new Error("加载失败");
-
         const list = await res.json();
         const container = document.getElementById('announcementList');
-
         if (list.length === 0) {
             container.innerHTML = '<li style="padding:10px;text-align:center;color:#999;">暂无公告</li>';
             return;
         }
-
         container.innerHTML = list.map(a => `
             <li style="margin-bottom:10px; padding:10px; background:#fffaf0; border:1px solid #f0e6d8; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
                 <span style="font-weight:bold; color:#664b2e;">${a.title}</span>
@@ -373,6 +390,18 @@ async function loadAnnouncements() {
     }
 }
 
+function filterOrders(status, btn) {
+    // 更新当前状态变量（ALL 转为空字符串）
+    currentOrderStatus = status === 'ALL' ? '' : status;
+
+    // 更新按钮样式
+    document.querySelectorAll('.filter-group .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 重新加载列表（回到第1页）
+    loadOrderList(1);
+}
+
 function openIngredientModal() { document.getElementById('ingredientForm').reset(); document.getElementById('ingId').value = ''; document.getElementById('ingredientModal').style.display = 'flex'; }
 function editIngredient(i) { document.getElementById('ingId').value = i.id; document.getElementById('ingName').value = i.name; document.getElementById('ingCategory').value = i.categoryId; document.getElementById('ingPrice').value = i.price; document.getElementById('ingUnit').value = i.unit; document.getElementById('ingStock').value = i.stock; document.getElementById('ingImage').value = i.image; document.getElementById('ingredientModal').style.display = 'flex'; }
 async function saveIngredient() { const data = { id: document.getElementById('ingId').value || null, name: document.getElementById('ingName').value, categoryId: document.getElementById('ingCategory').value, price: document.getElementById('ingPrice').value, unit: document.getElementById('ingUnit').value, stock: document.getElementById('ingStock').value, image: document.getElementById('ingImage').value }; await fetch('/api/admin/ingredient/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) }); document.getElementById('ingredientModal').style.display = 'none'; loadIngredientList(1); }
@@ -383,34 +412,27 @@ function editCuisine(c) { document.getElementById('cuiId').value=c.id; document.
 async function saveCuisine() { const data = { id: document.getElementById('cuiId').value || null, name: document.getElementById('cuiName').value, code: document.getElementById('cuiCode').value, description: document.getElementById('cuiDesc').value }; await fetch('/api/admin/cuisine/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}); document.getElementById('cuisineModal').style.display = 'none'; loadCuisineList(1); }
 async function deleteCuisine(id) { if(!confirm('删除?')) return; await fetch('/api/admin/cuisine/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); loadCuisineList(1); }
 
-// 修改 src/main/resources/static/static/js/admin.js 中的 publishAnnouncement 函数
 async function publishAnnouncement() {
     const title = document.getElementById('annTitle').value;
     const content = document.getElementById('annContent').value;
-
     if(!title) return alert('标题不能为空');
-
     try {
         const res = await fetch('/api/admin/announcement/publish', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({title, content})
         });
-
-        // 关键修改：检查服务器返回的状态码
         if (res.ok) {
             alert('发布成功');
             document.getElementById('annTitle').value = '';
             document.getElementById('annContent').value = '';
-            loadAnnouncements(); // 重新加载列表
+            loadAnnouncements();
         } else {
-            // 如果失败（如500或403），尝试获取错误信息或直接提示
             alert('发布失败，请检查后台日志或网络');
-            console.error("发布失败，状态码:", res.status);
         }
     } catch (e) {
         console.error(e);
         alert('网络请求出错');
     }
 }
-async function deleteAnn(id) { if(!confirm('删除?')) return; await fetch('/api/admin/announcement/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadAnnouncements(); }
+async function deleteAnnouncement(id) { if(!confirm('删除?')) return; await fetch('/api/admin/announcement/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadAnnouncements(); }

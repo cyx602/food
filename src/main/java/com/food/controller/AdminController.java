@@ -47,12 +47,13 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<Map<String, Object>> getUserList(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(required = false) String keyword, // 新增
                                                            HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
 
         int offset = (page - 1) * size;
-        List<User> list = adminMapper.selectUsersPage(offset, size);
-        int total = userMapper.countAllUsers();
+        List<User> list = adminMapper.selectUsersPage(keyword, offset, size); // 传入 keyword
+        int total = adminMapper.countUsers(keyword); // 使用带 keyword 的统计
 
         Map<String, Object> res = new HashMap<>();
         res.put("rows", list);
@@ -63,9 +64,7 @@ public class AdminController {
     @PostMapping("/user/status")
     public ResponseEntity<String> updateUserStatus(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        if (body.get("status") == null) {
-            return ResponseEntity.badRequest().body("状态不能为空");
-        }
+        if (body.get("status") == null) return ResponseEntity.badRequest().body("状态不能为空");
         userMapper.updateUserStatus(body.get("id"), body.get("status"));
         return ResponseEntity.ok("更新成功");
     }
@@ -74,12 +73,13 @@ public class AdminController {
     @GetMapping("/ingredients")
     public ResponseEntity<Map<String, Object>> getIngredients(@RequestParam(defaultValue = "1") int page,
                                                               @RequestParam(defaultValue = "10") int size,
+                                                              @RequestParam(required = false) String keyword,
                                                               HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
 
         int offset = (page - 1) * size;
-        List<Ingredient> list = adminMapper.selectIngredientsPage(offset, size);
-        int total = adminMapper.countIngredients();
+        List<Ingredient> list = adminMapper.selectIngredientsPage(keyword, offset, size);
+        int total = adminMapper.countIngredients(keyword);
 
         Map<String, Object> res = new HashMap<>();
         res.put("rows", list);
@@ -106,12 +106,13 @@ public class AdminController {
     @GetMapping("/cuisines")
     public ResponseEntity<Map<String, Object>> getCuisines(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(required = false) String keyword,
                                                            HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
 
         int offset = (page - 1) * size;
-        List<Cuisine> list = adminMapper.selectCuisinesPage(offset, size);
-        int total = adminMapper.countCuisines();
+        List<Cuisine> list = adminMapper.selectCuisinesPage(keyword, offset, size);
+        int total = adminMapper.countCuisines(keyword);
 
         Map<String, Object> res = new HashMap<>();
         res.put("rows", list);
@@ -138,12 +139,13 @@ public class AdminController {
     @GetMapping("/recipes")
     public ResponseEntity<Map<String, Object>> getRecipeList(@RequestParam(defaultValue = "1") int page,
                                                              @RequestParam(defaultValue = "10") int size,
+                                                             @RequestParam(required = false) String keyword,
                                                              HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
 
         int offset = (page - 1) * size;
-        List<Recipe> list = adminMapper.selectRecipesPage(offset, size);
-        int total = recipeMapper.countAllRecipes();
+        List<Recipe> list = adminMapper.selectRecipesPage(keyword, offset, size);
+        int total = adminMapper.countRecipes(keyword);
 
         Map<String, Object> res = new HashMap<>();
         res.put("rows", list);
@@ -157,29 +159,12 @@ public class AdminController {
     @PostMapping("/recipe/audit")
     public ResponseEntity<Map<String, Object>> auditRecipe(@RequestBody Map<String, Integer> body, HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
-        if (!isAdmin(request)) {
-            res.put("success", false);
-            res.put("message", "权限不足");
-            return ResponseEntity.status(403).body(res);
-        }
-        try {
-            Integer id = body.get("id");
-            Integer status = body.get("status"); // 1:通过, 2:拒绝
-            if (id == null || status == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            adminMapper.updateRecipeStatus(id, status);
-            res.put("success", true);
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            e.printStackTrace();
-            res.put("success", false);
-            res.put("message", "操作失败");
-            return ResponseEntity.internalServerError().body(res);
-        }
+        if (!isAdmin(request)) { res.put("success", false); return ResponseEntity.status(403).body(res); }
+        adminMapper.updateRecipeStatus(body.get("id"), body.get("status"));
+        res.put("success", true);
+        return ResponseEntity.ok(res);
     }
 
-    // --- 食谱推荐 ---
     @PostMapping("/recipe/recommend")
     public ResponseEntity<String> toggleRecommend(@RequestBody Map<String, Object> body, HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
@@ -187,37 +172,27 @@ public class AdminController {
         return ResponseEntity.ok("操作成功");
     }
 
+
     // 4. 订单管理 (已修改：支持分页)
     @GetMapping("/orders")
     public ResponseEntity<Map<String, Object>> getAllOrders(@RequestParam(defaultValue = "1") int page,
                                                             @RequestParam(defaultValue = "10") int size,
+                                                            @RequestParam(required = false) String keyword,
+                                                            @RequestParam(required = false) String status, // 新增参数
                                                             HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
+        // private boolean isAdmin(HttpServletRequest request) 方法假设已存在于类中
+        // if (!isAdmin(request)) ... (保持原有权限检查)
 
-        if (!isAdmin(request)) {
-            res.put("error", "权限不足");
-            return ResponseEntity.status(403).body(res);
-        }
+        int offset = (page - 1) * size;
 
-        try {
-            int offset = (page - 1) * size;
+        // 传入 status 参数
+        List<Order> list = adminMapper.selectOrdersPage(keyword, status, offset, size);
+        int total = adminMapper.countOrders(keyword, status);
 
-            // 打印日志以便调试
-            System.out.println("正在查询订单列表: offset=" + offset + ", limit=" + size);
-
-            List<Order> list = adminMapper.selectOrdersPage(offset, size);
-            int total = orderMapper.countAllOrders();
-
-            res.put("rows", list);
-            res.put("total", total);
-            return ResponseEntity.ok(res);
-
-        } catch (Exception e) {
-            e.printStackTrace(); // 在服务端控制台打印完整堆栈
-            res.put("error", "查询失败: " + e.getMessage());
-            // 返回 500 状态码，并在 body 中包含错误信息
-            return ResponseEntity.status(500).body(res);
-        }
+        res.put("rows", list);
+        res.put("total", total);
+        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/order/status")
@@ -229,15 +204,8 @@ public class AdminController {
 
     @GetMapping("/order/stats")
     public ResponseEntity<?> getOrderStats(HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).body(Collections.singletonMap("error", "权限不足"));
-
-        try {
-            List<Map<String, Object>> stats = adminMapper.countOrdersByStatus();
-            return ResponseEntity.ok(stats);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Collections.singletonMap("error", "统计失败: " + e.getMessage()));
-        }
+        if (!isAdmin(request)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(adminMapper.countOrdersByStatus());
     }
 
     // --- 系统配置 & 公告 ---

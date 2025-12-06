@@ -17,9 +17,10 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- 管理员表
 CREATE TABLE IF NOT EXISTS admins (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+                                      id INT AUTO_INCREMENT PRIMARY KEY,
+                                      username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
+    email VARCHAR(100), -- 新增邮箱字段
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP
 );

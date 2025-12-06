@@ -180,78 +180,67 @@
         input.value = newQuantity;
     }
 
-    function createProductPagination(totalPages) {
-        const container = document.getElementById('productPagination');
-        if (!container) return;
-        container.innerHTML = '';
+function createProductPagination(totalPages) {
+    const container = document.getElementById('productPagination');
+    if (!container) return;
+    container.innerHTML = '';
 
-        if (totalPages <= 1) return;
+    if (totalPages <= 1) return;
 
-        // 首页
-        const firstPageBtn = document.createElement('button');
-        firstPageBtn.className = 'pagination-btn';
-        firstPageBtn.textContent = '首页';
-        firstPageBtn.disabled = currentPage === 1;
-        firstPageBtn.onclick = () => {
-            currentPage = 1;
-            displayProducts(currentCategory);
-        };
-        container.appendChild(firstPageBtn);
-
-        // 上一页
-        const prevPageBtn = document.createElement('button');
-        prevPageBtn.className = 'pagination-btn';
-        prevPageBtn.textContent = '上一页';
-        prevPageBtn.disabled = currentPage === 1;
-        prevPageBtn.onclick = () => {
-            if (currentPage > 1) {
-                currentPage--;
+    const createBtn = (text, page, disabled, active) => {
+        const btn = document.createElement('button');
+        btn.className = `pagination-btn ${active ? 'active' : ''}`;
+        btn.textContent = text;
+        if (disabled) btn.disabled = true;
+        btn.onclick = () => {
+            if (!disabled && !active) {
+                currentPage = page;
                 displayProducts(currentCategory);
             }
         };
-        container.appendChild(prevPageBtn);
+        return btn;
+    };
 
-        // 页码
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, startPage + 4);
-        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+    container.appendChild(createBtn('首页', 1, currentPage === 1, false));
+    container.appendChild(createBtn('上一页', currentPage - 1, currentPage === 1, false));
 
-        for (let i = startPage; i <= endPage; i++) {
-            const btn = document.createElement('button');
-            btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
-            btn.textContent = i;
-            btn.onclick = () => {
-                currentPage = i;
-                displayProducts(currentCategory);
-            };
-            container.appendChild(btn);
+    const delta = 1;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+            range.push(i);
         }
-
-        // 下一页
-        const nextPageBtn = document.createElement('button');
-        nextPageBtn.className = 'pagination-btn';
-        nextPageBtn.textContent = '下一页';
-        nextPageBtn.disabled = currentPage === totalPages;
-        nextPageBtn.onclick = () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                displayProducts(currentCategory);
-            }
-        };
-        container.appendChild(nextPageBtn);
-
-        // 末页
-        const lastPageBtn = document.createElement('button');
-        lastPageBtn.className = 'pagination-btn';
-        lastPageBtn.textContent = '末页';
-        lastPageBtn.disabled = currentPage === totalPages;
-        lastPageBtn.onclick = () => {
-            currentPage = totalPages;
-            displayProducts(currentCategory);
-        };
-        container.appendChild(lastPageBtn);
     }
 
+    for (let i of range) {
+        if (l) {
+            if (i - l === 2) {
+                rangeWithDots.push(l + 1);
+            } else if (i - l !== 1) {
+                rangeWithDots.push('...');
+            }
+        }
+        rangeWithDots.push(i);
+        l = i;
+    }
+
+    rangeWithDots.forEach(item => {
+        if (item === '...') {
+            const span = document.createElement('span');
+            span.className = 'page-ellipsis';
+            span.innerText = '...';
+            container.appendChild(span);
+        } else {
+            container.appendChild(createBtn(item, item, false, item === currentPage));
+        }
+    });
+
+    container.appendChild(createBtn('下一页', currentPage + 1, currentPage === totalPages, false));
+    container.appendChild(createBtn('末页', totalPages, currentPage === totalPages, false));
+}
 // 购物车逻辑保持不变
     async function addToCart(productId) {
         const qtyInput = document.getElementById(`quantity-${productId}`);

@@ -364,6 +364,48 @@
         .out-of-stock {
             color: #ff6b6b;
         }
+
+        .page-ellipsis {
+            font-weight: bold;
+            color: #f7941e;
+            font-size: 20px;
+            margin: 0 8px;
+            display: inline-block;
+            vertical-align: bottom;
+            line-height: 20px;
+        }
+        /* 这里的 pagination 类名在原 market.html 并没有定义具体样式，可能继承全局，建议明确加上 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 5px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        /* 补充按钮样式，防止未定义 */
+        .pagination button {
+            padding: 8px 16px;
+            background-color: rgba(245, 230, 210, 0.9);
+            border: 1px solid #d9b38c;
+            border-radius: 4px;
+            color: #664b2e;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .pagination button:hover:not(:disabled) {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+            transform: translateY(-2px);
+        }
+        .pagination button.active {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+        }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>

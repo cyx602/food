@@ -251,8 +251,8 @@ public class UserController {
     }
 
     /**
-     * 普通用户注册接口
-     * 逻辑：基本校验 -> 赋予 user 角色 -> 注册
+     * 普通用户注册接口 (修改版)
+     * 逻辑：只验证邮箱是否被注册，用户名不再强制唯一
      */
     @PostMapping(value = "/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -274,29 +274,24 @@ public class UserController {
             @SuppressWarnings("unchecked")
             List<String> styles = (List<String>) body.get("styles");
 
-            // ===== 基本校验 =====
-            if (username == null || username.trim().isEmpty()) {
-                res.put("success", false); res.put("message", "美食昵称不能为空"); return ResponseEntity.badRequest().body(res);
+            // ===== 基本非空校验 =====
+            if (email == null || email.trim().isEmpty()) {
+                res.put("success", false); res.put("message", "邮箱不能为空"); return ResponseEntity.badRequest().body(res);
             }
             if (password == null || password.trim().isEmpty() || password.length() < 6) {
                 res.put("success", false); res.put("message", "密码长度不能少于6位"); return ResponseEntity.badRequest().body(res);
             }
-            if (phone == null || phone.trim().isEmpty()) {
-                res.put("success", false); res.put("message", "手机号不能为空"); return ResponseEntity.badRequest().body(res);
+            if (username == null || username.trim().isEmpty()) {
+                username = "美食家_" + System.currentTimeMillis(); // 如果没填用户名，自动生成一个
             }
-            // ... (可以添加更多校验)
 
             // 默认头像处理
             if (avatarFileName == null || avatarFileName.trim().isEmpty()) {
                 avatarFileName = "default_avatar.jpg";
             }
 
-            // 检查用户名
-            if (userService.countByUsername(username) > 0) {
-                res.put("success", false);
-                res.put("message", "用户名已存在，请选择其他昵称");
-                return ResponseEntity.badRequest().body(res);
-            }
+            // 【删除】原来对 username 的重复检查
+            // if (userService.countByUsername(username) > 0) { ... }
 
             // 组装对象
             User user = new User();
@@ -305,19 +300,15 @@ public class UserController {
             user.setGender(gender);
             user.setStyles(styles);
             user.setPhone(phone);
-            user.setEmail(email);
+            user.setEmail(email.trim()); // 确保去空格
             user.setAddress(address);
             user.setAvatarFileName(avatarFileName);
-
-            // 关键设置：普通用户角色
             user.setRole("user");
 
+            // 调用 Service 进行注册 (Service 中会检查邮箱唯一性)
+            boolean success = userService.register(user);
 
-
-            boolean ok = userService.register(user);
-
-
-            if (userService.register(user)) { // register 方法内部已经改为了 checkByEmail
+            if (success) {
                 res.put("success", true);
                 res.put("message", "注册成功，欢迎加入美食天地！");
                 return ResponseEntity.ok(res);
