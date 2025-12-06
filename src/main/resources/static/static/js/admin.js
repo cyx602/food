@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminAuth();
     setupMenuTabs();
-    loadDashboardStats();
-    updateAdminInfo(); // 新增：显示管理员名字
+    loadUserList(1); // 默认加载用户列表，替代原来的仪表盘
+    updateAdminInfo();
 });
 
 // 权限检查
@@ -18,7 +18,7 @@ function checkAdminAuth() {
         window.location.href = 'index.html';
     }
 }
-// 新增：更新顶部管理员信息
+
 function updateAdminInfo() {
     const userJson = sessionStorage.getItem('currentUser');
     if (userJson) {
@@ -64,7 +64,6 @@ function setupMenuTabs() {
             if (targetId === 'cuisines') loadCuisineList(1);
             if (targetId === 'orders') { loadOrderList(1); loadOrderStats(); }
             if (targetId === 'settings') loadAnnouncements();
-            if (targetId === 'dashboard') loadDashboardStats();
         });
     });
     window.onclick = function(event) {
@@ -83,51 +82,13 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
 
     let html = `<span class="page-info" style="margin-right:15px; color:#664b2e; font-size:14px;">共 ${total} 条，${currentPage}/${totalPages} 页</span>`;
 
-    // 首页
     html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(1)">首页</button>`;
-
-    // 上一页
     html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage - 1})">上一页</button>`;
-
-    // 下一页
     html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
-
-    // 末页
     html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${totalPages})">末页</button>`;
 
     container.innerHTML = html;
 }
-
-// 1. 仪表盘
-async function loadDashboardStats() {
-    try {
-        const res = await fetch('/api/admin/stats');
-        // 如果 handleResponse 处理了跳转，这里可能不需要继续
-        if (res.status === 401 || res.status === 403) return;
-
-        const data = await res.json();
-
-        // 【关键修复】增加 || 0 的默认值保护
-        document.getElementById('statUserCount').innerText = data.userCount || 0;
-        document.getElementById('statRecipeCount').innerText = data.recipeCount || 0;
-        document.getElementById('statOrderCount').innerText = data.orderCount || 0;
-        document.getElementById('statSystem').innerText = data.systemStatus || '正常';
-
-        const hotList = document.getElementById('hotRecipesList');
-        if (hotList) {
-            if (data.hotRecipes && data.hotRecipes.length > 0) {
-                hotList.innerHTML = data.hotRecipes.map((r, i) =>
-                    `<li><span style="font-weight:bold;margin-right:10px;">${i+1}.</span> ${r.title} <span style="float:right;color:#f7941e">${r.favorite_count || 0} 收藏</span></li>`
-                ).join('');
-            } else {
-                hotList.innerHTML = '<li>暂无热门数据</li>';
-            }
-        }
-    } catch(e) {
-        console.error("加载仪表盘失败", e);
-    }
-}
-
 
 // 2. 用户管理
 async function loadUserList(page = 1) {
@@ -165,7 +126,7 @@ async function toggleUserStatus(id, currentStatus) {
     loadUserList(1);
 }
 
-// 3. 食谱管理 (含审核)
+// 3. 食谱管理
 async function loadRecipeList(page = 1) {
     const tbody = document.getElementById('recipeTableBody');
     try {
@@ -174,7 +135,6 @@ async function loadRecipeList(page = 1) {
         const list = data.rows || [];
 
         tbody.innerHTML = list.map(r => {
-            // 状态逻辑
             let statusBadge = '<span class="status-badge status-pending">待审核</span>';
             let auditBtns = `
                 <button onclick="auditRecipe(${r.id}, 1)" style="color:green; border:none; background:none; cursor:pointer; margin-right:5px;">通过</button>
@@ -183,7 +143,7 @@ async function loadRecipeList(page = 1) {
 
             if (r.status === 1) {
                 statusBadge = '<span class="status-badge status-approved">已通过</span>';
-                auditBtns = ''; // 已通过则不显示审核按钮
+                auditBtns = '';
             } else if (r.status === 2) {
                 statusBadge = '<span class="status-badge status-rejected">已拒绝</span>';
                 auditBtns = `<button onclick="auditRecipe(${r.id}, 1)" style="color:green; border:none; background:none; cursor:pointer;">重新通过</button>`;
@@ -206,7 +166,6 @@ async function loadRecipeList(page = 1) {
     } catch(e) {}
 }
 
-// 审核函数
 async function auditRecipe(id, status) {
     const action = status === 1 ? '通过' : '拒绝';
     if(!confirm(`确定${action}该食谱吗？`)) return;
@@ -218,7 +177,7 @@ async function auditRecipe(id, status) {
     });
     if((await res.json()).success) {
         alert('操作成功');
-        loadRecipeList(1); // 刷新列表
+        loadRecipeList(1);
     } else {
         alert('操作失败');
     }
@@ -236,16 +195,13 @@ async function adminDeleteRecipe(id) {
 // 4. 订单管理
 async function loadOrderList(page = 1) {
     const tbody = document.getElementById('orderTableBody');
-    // 显示加载状态
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">加载中...</td></tr>';
 
     try {
         const res = await fetch(`/api/admin/orders?page=${page}&size=10`);
         const data = await handleResponse(res);
-
-        // 【关键修复】确保 rows 和 total 都有默认值
         const list = data.rows || [];
-        const total = data.total || 0; // 防止 undefined 导致 NaN
+        const total = data.total || 0;
 
         if (list.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无订单数据</td></tr>';
@@ -266,8 +222,6 @@ async function loadOrderList(page = 1) {
                 </tr>
             `).join('');
         }
-
-        // 渲染分页
         renderPagination('orderPagination', page, total, 10, loadOrderList);
     } catch(e) {
         console.error(e);
@@ -287,8 +241,7 @@ async function loadOrderStats() {
     if(el) el.innerHTML = list.map(s => `<span>${map[s.status]||s.status}: <b style="color:#f7941e; margin-left:5px;">${s.count}</b></span>`).join(' <span style="color:#ddd; margin:0 10px;">|</span> ');
 }
 
-// 5. 菜系 & 食材 & 公告 (保持分页逻辑)
-// 食材
+// 5. 菜系 & 食材 & 公告
 async function loadIngredientList(page = 1) {
     const tbody = document.getElementById('ingredientTableBody');
     try {
@@ -311,7 +264,7 @@ async function loadIngredientList(page = 1) {
         renderPagination('ingredientPagination', page, data.total, 10, loadIngredientList);
     } catch(e) {}
 }
-// 菜系
+
 async function loadCuisineList(page = 1) {
     const tbody = document.getElementById('cuisineTableBody');
     try {
@@ -332,7 +285,7 @@ async function loadCuisineList(page = 1) {
         renderPagination('cuisinePagination', page, data.total, 10, loadCuisineList);
     } catch(e) {}
 }
-// 公告
+
 async function loadAnnouncements() {
     const res = await fetch('/api/admin/announcements');
     const list = await res.json();
@@ -347,9 +300,6 @@ async function loadAnnouncements() {
     `).join('');
 }
 
-
-
-// 辅助函数 (Edit/Save/Delete) 保持与之前逻辑一致
 function openIngredientModal() { document.getElementById('ingredientForm').reset(); document.getElementById('ingId').value = ''; document.getElementById('ingredientModal').style.display = 'flex'; }
 function editIngredient(i) { document.getElementById('ingId').value = i.id; document.getElementById('ingName').value = i.name; document.getElementById('ingCategory').value = i.categoryId; document.getElementById('ingPrice').value = i.price; document.getElementById('ingUnit').value = i.unit; document.getElementById('ingStock').value = i.stock; document.getElementById('ingImage').value = i.image; document.getElementById('ingredientModal').style.display = 'flex'; }
 async function saveIngredient() { const data = { id: document.getElementById('ingId').value || null, name: document.getElementById('ingName').value, categoryId: document.getElementById('ingCategory').value, price: document.getElementById('ingPrice').value, unit: document.getElementById('ingUnit').value, stock: document.getElementById('ingStock').value, image: document.getElementById('ingImage').value }; await fetch('/api/admin/ingredient/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) }); document.getElementById('ingredientModal').style.display = 'none'; loadIngredientList(1); }

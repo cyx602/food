@@ -148,3 +148,28 @@ document.addEventListener('DOMContentLoaded', function() {
         checkLoginStatus();
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof checkLoginStatus === 'function') {
+        checkLoginStatus();
+    }
+
+    // 密码切换功能
+    function setupPasswordToggle(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if(input && icon) {
+            icon.addEventListener('click', function() {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                // 切换图标样式：fa-eye-slash (闭眼) <-> fa-eye (睁眼)
+                this.classList.toggle('fa-eye-slash');
+                this.classList.toggle('fa-eye');
+            });
+        }
+    }
+
+    // 初始化密码切换
+    setupPasswordToggle('password', 'toggleAdminPassword');
+    setupPasswordToggle('confirmPassword', 'toggleAdminConfirmPassword');
+});

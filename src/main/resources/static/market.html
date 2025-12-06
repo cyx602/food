@@ -19,7 +19,41 @@
             color: #664b2e;
             font-family: "楷体", sans-serif;
             font-size: 36px;
-            margin-bottom: 30px;
+            /* 1. 缩小标题下边距 */
+            margin-bottom: 15px;
+        }
+
+        /* 搜索框容器 */
+        .search-container {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            border: 1px solid #d9b38c;
+            border-radius: 20px 0 0 20px;
+            width: 250px;
+            outline: none;
+            color: #664b2e;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background-color: #f7941e;
+            color: white;
+            border: 1px solid #f7941e;
+            border-radius: 0 20px 20px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background-color: #e67e22;
         }
 
         .categories {
@@ -44,11 +78,10 @@
             color: white;
             border-color: #f7941e;
         }
-        
-        /* 购物车按钮样式 */
+
         .cart-btn {
             padding: 10px 20px;
-            background-color: #e67e22; /* 比category更深的颜色 */
+            background-color: #e67e22;
             border: 1px solid #d35400;
             border-radius: 20px;
             color: white;
@@ -58,12 +91,12 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .cart-btn:hover {
             background-color: #d35400;
             transform: translateY(-2px);
         }
-        
+
         /* 购物车模态框样式 */
         .cart-modal {
             display: none;
@@ -77,7 +110,7 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .cart-modal-content {
             background-color: rgba(245, 230, 210, 0.95);
             border: 1px solid #d9b38c;
@@ -90,7 +123,7 @@
             position: relative;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
         }
-        
+
         .cart-modal-header {
             display: flex;
             justify-content: space-between;
@@ -99,14 +132,14 @@
             padding-bottom: 15px;
             border-bottom: 1px solid #eee;
         }
-        
+
         .cart-modal-title {
             color: #664b2e;
             font-size: 24px;
             font-family: "楷体", sans-serif;
             margin: 0;
         }
-        
+
         .close-cart {
             background: none;
             border: none;
@@ -114,42 +147,42 @@
             cursor: pointer;
             color: #999;
         }
-        
+
         .close-cart:hover {
             color: #666;
         }
-        
+
         .cart-items {
             margin-bottom: 20px;
         }
-        
+
         .cart-item {
             display: flex;
             align-items: center;
             padding: 15px 0;
             border-bottom: 1px solid #f0f0f0;
         }
-        
+
         .cart-item:last-child {
             border-bottom: none;
         }
-        
+
         .cart-item-name {
             flex: 1;
             font-weight: bold;
             color: #664b2e;
         }
-        
+
         .cart-item-quantity {
             margin: 0 20px;
             color: #666;
         }
-        
+
         .cart-item-price {
             font-weight: bold;
             color: #f7941e;
         }
-        
+
         .remove-item {
             background: none;
             border: none;
@@ -158,7 +191,7 @@
             margin-left: 15px;
             font-size: 16px;
         }
-        
+
         .cart-total {
             display: flex;
             justify-content: space-between;
@@ -169,26 +202,26 @@
             font-weight: bold;
             font-size: 18px;
         }
-        
+
         .cart-empty {
             text-align: center;
             padding: 40px 0;
             color: #999;
         }
-        
+
         .cart-empty-icon {
             font-size: 60px;
             margin-bottom: 20px;
             color: #ddd;
         }
-        
+
         .cart-actions {
             display: flex;
             justify-content: flex-end;
             gap: 15px;
             margin-top: 20px;
         }
-        
+
         .checkout-btn,
         .continue-shopping-btn {
             padding: 10px 25px;
@@ -198,26 +231,26 @@
             font-weight: bold;
             transition: background-color 0.3s;
         }
-        
+
         .checkout-btn {
             background-color: #f7941e;
             color: white;
         }
-        
+
         .checkout-btn:hover {
             background-color: #e67e22;
         }
-        
+
         .checkout-btn:disabled {
             background-color: #ccc;
             cursor: not-allowed;
         }
-        
+
         .continue-shopping-btn {
             background-color: #ddd;
             color: #666;
         }
-        
+
         .continue-shopping-btn:hover {
             background-color: #ccc;
         }
@@ -333,7 +366,7 @@
             color: #ff6b6b;
         }
     </style>
-    </head>
+</head>
 <body>
 <nav class="navbar">
     <div class="nav-title">
@@ -357,70 +390,73 @@
 <div class="page-content">
     <h1 class="page-title">新鲜食材商城</h1>
 
+    <div class="search-container">
+        <input type="text" id="productSearchInput" class="search-input" placeholder="搜索食材...">
+        <button onclick="searchProducts()" class="search-btn"><i class="fas fa-search"></i> 搜索</button>
+    </div>
+
     <div class="categories" id="categories">
-        <!-- 分类将通过JavaScript动态生成 -->
     </div>
 
     <div class="products-grid" id="productsGrid">
-        <!-- 商品将通过JavaScript动态生成 -->
     </div>
 
     <div id="productPagination" class="pagination"></div>
 </div>
 
 <div class="cart-modal" id="cartModal">
-            <div class="cart-modal-content">
-                <div class="cart-modal-header">
-                    <h2 class="cart-modal-title">
-                        <i class="fas fa-shopping-cart"></i> 我的购物车
-                    </h2>
-                    <button class="close-cart" onclick="closeCart()">&times;</button>
-                </div>
-                <div class="cart-items" id="cartItems"></div>
-                <div class="cart-total" id="cartTotal">
-                    <span>合计:</span>
-                    <span>¥0.00</span>
-                </div>
-                <div class="cart-actions">
-                    <button class="continue-shopping-btn" onclick="closeCart()">继续购物</button>
-                    <button class="checkout-btn" onclick="checkout()" disabled>去结算</button>
-                </div>
-            </div>
+    <div class="cart-modal-content">
+        <div class="cart-modal-header">
+            <h2 class="cart-modal-title">
+                <i class="fas fa-shopping-cart"></i> 我的购物车
+            </h2>
+            <button class="close-cart" onclick="closeCart()">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-total" id="cartTotal">
+            <span>合计:</span>
+            <span>¥0.00</span>
+        </div>
+        <div class="cart-actions">
+            <button class="continue-shopping-btn" onclick="closeCart()">继续购物</button>
+            <button class="checkout-btn" onclick="checkout()" disabled>去结算</button>
+        </div>
+    </div>
+</div>
+
+<div class="cart-modal" id="listModal">
+    <div class="cart-modal-content">
+        <div class="cart-modal-header">
+            <h2 class="cart-modal-title">
+                <i class="fas fa-clipboard-list"></i> 待买清单
+            </h2>
+            <button class="close-cart" onclick="closeShoppingList()">&times;</button>
         </div>
 
-        <div class="cart-modal" id="listModal">
-            <div class="cart-modal-content">
-                <div class="cart-modal-header">
-                    <h2 class="cart-modal-title">
-                        <i class="fas fa-clipboard-list"></i> 待买清单
-                    </h2>
-                    <button class="close-cart" onclick="closeShoppingList()">&times;</button>
-                </div>
-
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;">
-                    <input type="text" id="listNewItem" placeholder="添加物品 (如: 鸡蛋)"
-                           style="flex: 1; padding: 10px; border: 1px solid #d9b38c; border-radius: 5px;"
-                           onkeypress="if(event.keyCode==13) document.getElementById('listNewQty').focus()">
-                    <input type="text" id="listNewQty" placeholder="用量"
-                           style="width: 80px; padding: 10px; border: 1px solid #d9b38c; border-radius: 5px;"
-                           onkeypress="if(event.keyCode==13) addListItem()">
-                    <button class="btn-primary" onclick="addListItem()" style="padding: 0 15px; border-radius: 5px; border:none;">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-
-                <div class="cart-items" style="max-height: 400px; overflow-y: auto;">
-                    <h4 style="margin: 10px 0; color: #664b2e;">待买</h4>
-                    <div id="todoListItems"></div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px;">
-                        <h4 style="margin: 0; color: #664b2e;">已买</h4>
-                        <button onclick="clearBoughtList()" style="color: #666; background: #f0f0f0; border:none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">清空已买</button>
-                    </div>
-                    <div id="boughtListItems"></div>
-                </div>
-            </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;">
+            <input type="text" id="listNewItem" placeholder="添加物品 (如: 鸡蛋)"
+                   style="flex: 1; padding: 10px; border: 1px solid #d9b38c; border-radius: 5px;"
+                   onkeypress="if(event.keyCode==13) document.getElementById('listNewQty').focus()">
+            <input type="text" id="listNewQty" placeholder="用量"
+                   style="width: 80px; padding: 10px; border: 1px solid #d9b38c; border-radius: 5px;"
+                   onkeypress="if(event.keyCode==13) addListItem()">
+            <button class="btn-primary" onclick="addListItem()" style="padding: 0 15px; border-radius: 5px; border:none;">
+                <i class="fas fa-plus"></i>
+            </button>
         </div>
+
+        <div class="cart-items" style="max-height: 400px; overflow-y: auto;">
+            <h4 style="margin: 10px 0; color: #664b2e;">待买</h4>
+            <div id="todoListItems"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px;">
+                <h4 style="margin: 0; color: #664b2e;">已买</h4>
+                <button onclick="clearBoughtList()" style="color: #666; background: #f0f0f0; border:none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">清空已买</button>
+            </div>
+            <div id="boughtListItems"></div>
+        </div>
+    </div>
+</div>
 
 <footer class="footer">
     <p>美食天地 - 新鲜食材直达 | 客服热线：400-123-4567 | 邮箱：service@foodheaven.com</p>

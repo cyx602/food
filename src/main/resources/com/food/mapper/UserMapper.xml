@@ -68,4 +68,8 @@
             address = #{address}
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteUserById">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
 </mapper>

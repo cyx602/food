@@ -150,7 +150,6 @@
 <div class="admin-container">
     <aside class="admin-sidebar">
         <ul class="sidebar-menu">
-            <li class="menu-item active" data-target="dashboard"><i class="fas fa-tachometer-alt"></i> 仪表盘</li>
             <li class="menu-item" data-target="users"><i class="fas fa-users"></i> 用户管理</li>
             <li class="menu-item" data-target="ingredients"><i class="fas fa-carrot"></i> 食材管理</li>
             <li class="menu-item" data-target="cuisines"><i class="fas fa-list-alt"></i> 菜系管理</li>
@@ -166,19 +165,6 @@
             <div class="user-info">
                 <span style="color: #664b2e; margin-right: 15px;" id="adminUserName">管理员: <b>加载中...</b></span>
                 <button onclick="logout()" class="btn btn-secondary btn-sm" style="background:#998a7b; color: white; border:none; padding: 6px 15px; border-radius: 20px; cursor:pointer;">退出</button>
-            </div>
-        </div>
-
-        <div id="dashboard" class="tab-content active">
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-icon bg-orange"><i class="fas fa-users"></i></div><div><h3 id="statUserCount">0</h3><p>用户总数</p></div></div>
-                <div class="stat-card"><div class="stat-icon bg-green"><i class="fas fa-utensils"></i></div><div><h3 id="statRecipeCount">0</h3><p>食谱数量</p></div></div>
-                <div class="stat-card"><div class="stat-icon bg-blue"><i class="fas fa-shopping-bag"></i></div><div><h3 id="statOrderCount">0</h3><p>订单总数</p></div></div>
-                <div class="stat-card"><div class="stat-icon bg-purple"><i class="fas fa-server"></i></div><div><h3 id="statSystem">正常</h3><p>运行状态</p></div></div>
-            </div>
-            <div style="border-top: 1px solid #eee; padding-top: 20px;">
-                <h3 style="color:#664b2e; margin-bottom: 15px;">热门食谱排行</h3>
-                <ul id="hotRecipesList" style="list-style:none; padding:0; line-height:2.5; color: #666;"></ul>
             </div>
         </div>
 

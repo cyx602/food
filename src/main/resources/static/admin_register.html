@@ -79,14 +79,21 @@
 
         <div class="form-group">
             <label for="password">登录密码：</label>
-            <input type="password" id="password" placeholder="请设置登录密码">
+            <div style="position: relative; flex: 1;">
+                <input type="password" id="password" placeholder="请设置登录密码" style="width: 100%; padding-right: 40px;">
+                <i id="toggleAdminPassword" class="fas fa-eye-slash"
+                   style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999;"></i>
+            </div>
         </div>
 
         <div class="form-group">
             <label for="confirmPassword">确认密码：</label>
-            <input type="password" id="confirmPassword" placeholder="请再次输入密码">
+            <div style="position: relative; flex: 1;">
+                <input type="password" id="confirmPassword" placeholder="请再次输入密码" style="width: 100%; padding-right: 40px;">
+                <i id="toggleAdminConfirmPassword" class="fas fa-eye-slash"
+                   style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999;"></i>
+            </div>
         </div>
-
         <div class="form-group">
             <label for="regCode">注册码：</label>
             <input type="text" id="regCode" placeholder="请输入内部注册码">

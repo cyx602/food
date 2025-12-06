@@ -7,18 +7,10 @@ const productsPerPage = 8;
 let currentCategory = 'all';
 
 // 数据库 category_id 到前端 code 的映射
-// 对应 food_db_ingredient_categories.sql 的数据
 const categoryMap = {
-    1: 'vegetables',
-    2: 'meat',
-    3: 'seafood',
-    4: 'dairy',
-    5: 'seasoning',
-    6: 'fruits',
-    7: 'staple'
+    1: 'vegetables', 2: 'meat', 3: 'seafood', 4: 'dairy', 5: 'seasoning', 6: 'fruits', 7: 'staple'
 };
 
-// 前端显示的分类标签配置
 const categories = [
     { id: "all", name: "全部食材" },
     { id: "vegetables", name: "新鲜蔬菜" },
@@ -30,44 +22,36 @@ const categories = [
     { id: "staple", name: "主食粮油" }
 ];
 
-// 初始化页面
 document.addEventListener('DOMContentLoaded', async function() {
     console.log("Market page loaded");
-
-    // 1. 显示分类标签
     displayCategories();
-
-    // 2. 从数据库加载商品数据
     await loadProductsFromDB();
-
-    // 3. 检查登录状态
     checkLoginStatus();
+
+    // 绑定搜索回车
+    const searchInput = document.getElementById('productSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchProducts();
+        });
+    }
 });
 
-// 从后端获取所有食材数据
 async function loadProductsFromDB() {
     const grid = document.getElementById('productsGrid');
-
     try {
-        // 调用 CommonController 中的接口
         const res = await fetch('/api/common/ingredients');
-
         if (res.ok) {
             const data = await res.json();
-
-            // 映射后端数据到前端格式
             products = data.map(item => ({
                 id: item.id,
                 name: item.name,
-                // 将数据库的 categoryId 转换为前端的 category code
                 category: categoryMap[item.categoryId] || 'other',
                 price: item.price,
                 image: item.image || 'static/image/default_food.jpg',
                 unit: item.unit,
                 stock: item.stock
             }));
-
-            // 数据加载完成后显示第一页
             displayProducts('all');
         } else {
             console.error("获取食材失败:", res.status);
@@ -79,13 +63,11 @@ async function loadProductsFromDB() {
     }
 }
 
-// 显示分类及功能按钮
 function displayCategories() {
     const container = document.getElementById('categories');
     if (!container) return;
     container.innerHTML = '';
 
-    // 1. 【购物清单】按钮
     const listBtn = document.createElement('button');
     listBtn.className = 'cart-btn';
     listBtn.style.backgroundColor = '#f7941e';
@@ -95,14 +77,12 @@ function displayCategories() {
     listBtn.onclick = showShoppingList;
     container.appendChild(listBtn);
 
-    // 2. 【购物车】按钮
     const cartBtn = document.createElement('button');
     cartBtn.className = 'cart-btn';
     cartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> 购物车';
     cartBtn.onclick = showCart;
     container.appendChild(cartBtn);
 
-    // 3. 分类标签
     categories.forEach(category => {
         const categoryElement = document.createElement('div');
         categoryElement.className = `category ${category.id === 'all' ? 'active' : ''}`;
@@ -119,17 +99,25 @@ function displayCategories() {
     });
 }
 
-// 显示商品列表
+function searchProducts() {
+    currentPage = 1;
+    displayProducts(currentCategory);
+}
+
+// 核心修改：增加搜索过滤
 function displayProducts(category) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
 
-    // 筛选
-    const filteredProducts = category === 'all'
-        ? products
-        : products.filter(product => product.category === category);
+    const searchTerm = document.getElementById('productSearchInput') ? document.getElementById('productSearchInput').value.toLowerCase().trim() : '';
 
-    // 分页计算
+    // 双重过滤
+    const filteredProducts = products.filter(product => {
+        const matchCategory = category === 'all' || product.category === category;
+        const matchSearch = product.name.toLowerCase().includes(searchTerm);
+        return matchCategory && matchSearch;
+    });
+
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
     if (currentPage > totalPages && totalPages > 0) {
@@ -182,7 +170,6 @@ function displayProducts(category) {
     }
 }
 
-// 更改数量
 function changeQuantity(productId, delta) {
     const input = document.getElementById(`quantity-${productId}`);
     const product = products.find(p => p.id === productId);
@@ -192,7 +179,6 @@ function changeQuantity(productId, delta) {
     input.value = newQuantity;
 }
 
-// 分页逻辑
 function createProductPagination(totalPages) {
     const container = document.getElementById('productPagination');
     if (!container) return;
@@ -265,7 +251,7 @@ function createProductPagination(totalPages) {
     container.appendChild(lastPageBtn);
 }
 
-// 添加到购物车
+// 购物车逻辑保持不变
 async function addToCart(productId) {
     const qtyInput = document.getElementById(`quantity-${productId}`);
     const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
@@ -295,7 +281,6 @@ async function addToCart(productId) {
     }
 }
 
-// 显示购物车
 async function showCart() {
     const modal = document.getElementById('cartModal');
     const cartItemsDiv = document.getElementById('cartItems');
@@ -361,7 +346,7 @@ function renderCart(cartItems) {
     if(checkoutBtn) checkoutBtn.disabled = false;
 }
 
-// 购物清单相关逻辑
+// 购物清单逻辑
 function showShoppingList() {
     const modal = document.getElementById('listModal');
     if (modal) {

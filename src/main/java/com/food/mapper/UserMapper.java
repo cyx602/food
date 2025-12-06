@@ -36,6 +36,8 @@ public interface UserMapper {
     int updateAvatarByUsername(@Param("username") String username,
                                @Param("avatarFileName") String avatarFileName);
 
+    void deleteUserById(Integer id);
+
     int countAllUsers();
     List<User> selectAllUsers();
     void updateUserStatus(@Param("id") int id, @Param("status") int status);

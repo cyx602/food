@@ -305,6 +305,44 @@ public class UserController {
     }
 
     /**
+     * 退出登录接口
+     */
+    @GetMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        request.getSession().invalidate(); // 销毁 Session
+        return ResponseEntity.ok("退出成功");
+    }
+
+    /**
+     * 注销账号接口 (物理删除)
+     */
+    @PostMapping("/user/delete")
+    public ResponseEntity<Map<String, Object>> deleteAccount(HttpServletRequest request) {
+        Map<String, Object> res = new HashMap<>();
+        User user = (User) request.getSession().getAttribute("currentUser");
+
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "未登录");
+            return ResponseEntity.status(401).body(res);
+        }
+
+        try {
+            userService.deleteUser(user.getId());
+            request.getSession().invalidate(); // 删除后强制退出
+            res.put("success", true);
+            res.put("message", "账号已注销");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "注销失败：" + e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
+    }
+
+
+
+    /**
      * 获取当前登录用户信息
      * 包含 role 字段
      */
