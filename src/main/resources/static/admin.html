@@ -99,28 +99,72 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .pagination-container { display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px; }
-        .page-btn {
-            padding: 8px 16px;
-            background-color: rgba(245, 230, 210, 0.9);
-            border: 1px solid #d9b38c;
-            border-radius: 25px; /* 圆角 */
-            color: #664b2e;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
+        /* --- 分页组件优化样式 --- */
+        .pagination-container {
+            display: flex;
+            justify-content: flex-end; /* 居右显示 */
+            margin-top: 20px;
+            gap: 8px; /* 按钮之间的间距 */
+            align-items: center;
         }
 
-        .page-btn:hover:not(:disabled) {
-            background-color: #f7941e;
-            color: white;
+        .page-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 36px;  /* 数字按钮的最小宽度 */
+            height: 36px;     /* 高度固定，形成正圆 */
+            padding: 0 6px;
+            background-color: #fffaf0; /* 浅米色背景 */
+            border: 1px solid #e8d8c3; /* 浅棕色边框 */
+            border-radius: 50%; /* 默认圆形 */
+            color: #664b2e;    /* 深棕色文字 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        /* 针对"首页"、"上一页"等文字按钮的特殊样式 */
+        .page-btn.text-btn {
+            width: auto;      /* 宽度自适应 */
+            padding: 0 15px;  /* 左右内边距 */
+            border-radius: 20px; /* 胶囊形状 */
+        }
+
+        /* 悬停效果 */
+        .page-btn:hover:not(:disabled):not(.active) {
+            background-color: #fcefdc;
+            color: #f7941e;
             border-color: #f7941e;
             transform: translateY(-2px);
         }
 
+        /* 选中状态 (橙色实心圆) */
+        .page-btn.active {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+            box-shadow: 0 3px 8px rgba(247, 148, 30, 0.4);
+            font-weight: bold;
+        }
+
+        /* 禁用状态 */
         .page-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
+            background-color: #eee;
+            border-color: #ddd;
+            color: #999;
+        }
+
+        /* 省略号样式 */
+        .page-ellipsis {
+            font-weight: bold;
+            color: #d9b38c;
+            margin: 0 5px;
+            font-size: 16px;
         }
         /* 模态框 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }

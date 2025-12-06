@@ -1,6 +1,7 @@
 package com.food.controller;
 
 import com.food.entity.User;
+import com.food.mapper.UserMapper;
 import com.food.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -10,8 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.*;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+
 
 
 @Controller
@@ -20,6 +25,128 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserMapper userMapper; // 注入 Mapper 以便直接查询
+
+    @Autowired(required = false) // 允许为空，防止没配置邮箱时报错
+    private JavaMailSender mailSender;
+
+    /**
+     * 发送邮箱验证码接口
+     */
+    @PostMapping("/send-email-code")
+    @ResponseBody
+    public Map<String, Object> sendEmailCode(@RequestBody Map<String, String> body, HttpSession session) {
+        Map<String, Object> res = new HashMap<>();
+        String email = body.get("email");
+
+        if (email == null || email.isEmpty()) {
+            res.put("success", false);
+            res.put("message", "邮箱不能为空");
+            return res;
+        }
+
+        // 1. 检查邮箱是否注册
+        User user = userMapper.selectByEmail(email);
+        if (user == null) {
+            res.put("success", false);
+            res.put("message", "该邮箱未注册");
+            return res;
+        }
+
+        // 2. 生成6位随机验证码
+        String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
+
+        // 3. 发送邮件 (如果没有配置真实邮箱，可以在控制台打印 code 来测试)
+        try {
+            if (mailSender != null) {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom("your_email@qq.com"); // 发送者，需与配置文件一致
+                message.setTo(email);
+                message.setSubject("【美食天地】找回密码验证码");
+                message.setText("您的验证码是：" + code + "，有效期5分钟。请勿泄露给他人。");
+                mailSender.send(message);
+            } else {
+                // 测试模式：直接打印到控制台
+                System.out.println("测试模式：验证码");
+                System.out.println("邮箱: " + email);
+                System.out.println("验证码: " + code);
+                System.out.println("\n");
+            }
+
+            // 4. 将验证码存入 Session，设置过期时间逻辑（这里简化处理）
+            session.setAttribute("reset_email", email);
+            session.setAttribute("reset_code", code);
+            session.setAttribute("reset_time", System.currentTimeMillis());
+
+            res.put("success", true);
+            res.put("message", "验证码已发送");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "发送失败：" + e.getMessage());
+        }
+        return res;
+    }
+
+    /**
+     * 重置密码接口
+     */
+    @PostMapping("/reset-password")
+    @ResponseBody
+    public Map<String, Object> resetPassword(@RequestBody Map<String, String> body, HttpSession session) {
+        Map<String, Object> res = new HashMap<>();
+        String email = body.get("email");
+        String code = body.get("code");
+        String newPassword = body.get("newPassword");
+
+        // 1. 校验参数
+        if (email == null || code == null || newPassword == null) {
+            res.put("success", false);
+            res.put("message", "信息填写不完整");
+            return res;
+        }
+
+        // 2. 校验验证码
+        String sessionEmail = (String) session.getAttribute("reset_email");
+        String sessionCode = (String) session.getAttribute("reset_code");
+        Long sessionTime = (Long) session.getAttribute("reset_time");
+
+        if (sessionCode == null || !sessionCode.equals(code) || !email.equals(sessionEmail)) {
+            res.put("success", false);
+            res.put("message", "验证码错误或邮箱不匹配");
+            return res;
+        }
+
+        // 校验有效期 (例如5分钟 = 300000毫秒)
+        if (System.currentTimeMillis() - sessionTime > 5 * 60 * 1000) {
+            res.put("success", false);
+            res.put("message", "验证码已过期，请重新获取");
+            return res;
+        }
+
+        // 3. 更新密码
+        try {
+            // 这里直接更新，实际项目中建议对新密码进行加密处理
+            userMapper.updatePasswordByEmail(email, newPassword);
+
+            // 清除 Session
+            session.removeAttribute("reset_code");
+            session.removeAttribute("reset_email");
+            session.removeAttribute("reset_time");
+
+            res.put("success", true);
+            res.put("message", "密码重置成功，请重新登录");
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "系统异常：" + e.getMessage());
+        }
+
+        return res;
+    }
+
 
     /**
      * 头像上传接口
@@ -271,26 +398,29 @@ public class UserController {
             return ResponseEntity.status(401).body(res);
         }
 
-        if (body.containsKey("styles")) {
-            @SuppressWarnings("unchecked")
-            List<String> styles = (List<String>) body.get("styles");
-            currentUser.setStyles(styles);
-        }
-
         try {
+            // 更新各个字段
             currentUser.setUsername((String) body.get("username"));
             currentUser.setPhone((String) body.get("phone"));
             currentUser.setEmail((String) body.get("email"));
             currentUser.setGender((String) body.get("gender"));
 
+            // 接收头像文件名
+            if (body.containsKey("avatarFileName")) {
+                currentUser.setAvatarFileName((String) body.get("avatarFileName"));
+            }
+
+            // 处理偏好设置
             if (body.containsKey("styles")) {
                 @SuppressWarnings("unchecked")
                 List<String> styles = (List<String>) body.get("styles");
                 currentUser.setStyles(styles);
             }
 
+            // 保存到数据库
             userService.updateUserInfo(currentUser);
-            // 更新 Session
+
+            // 更新 Session 中的用户信息，确保页面刷新后也是最新的
             request.getSession().setAttribute("currentUser", currentUser);
 
             res.put("success", true);

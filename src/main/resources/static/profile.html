@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="static/css/style.css">
     <style>
-        /* ... 保留原有的布局样式 ... */
+        /* ... 保留原有样式 ... */
         .page-content { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .page-title { text-align: center; color: #664b2e; font-family: "楷体", sans-serif; font-size: 36px; margin-bottom: 30px; }
         .profile-layout { display: grid; grid-template-columns: 300px 1fr; gap: 30px; margin-bottom: 60px; }
@@ -23,16 +23,18 @@
         .logout-btn-side:hover { background-color: #e67e22; transform: translateY(-2px); }
         .delete-account-btn { width: 100%; background-color: #ff6b6b; color: white; border: none; padding: 12px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 15px; transition: all 0.3s; box-shadow: 0 2px 5px rgba(255, 107, 107, 0.3); }
         .delete-account-btn:hover { background-color: #ff5252; transform: translateY(-2px); }
-        .profile-content { padding: 25px; }
+        .profile-content { padding: 25px; min-height: 600px; }
         .content-section { display: none; }
-        .content-section.active { display: block; }
+        .content-section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .section-title { color: #664b2e; font-size: 24px; margin-bottom: 20px; border-bottom: 2px solid #d9b38c; padding-bottom: 10px; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .info-item .info-label { color: #664b2e; font-weight: bold; margin-bottom: 5px; }
         .info-item .info-value { color: #666; padding: 8px 12px; background-color: rgba(255,255,255,0.5); border: 1px solid #d9b38c; border-radius: 4px; }
         .section-divider { height: 1px; background-color: #e8d8c3; margin: 30px 0; width: 100%; }
 
-        /* 地址列表样式 */
+        /* 地址样式 */
         .address-list { display: grid; gap: 15px; margin-top: 20px; }
         .address-item { background: rgba(255,255,255,0.8); border: 1px solid #d9b38c; padding: 20px; border-radius: 8px; position: relative; transition: transform 0.2s; }
         .address-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -42,15 +44,14 @@
         .address-text-group { color: #664b2e; font-size: 15px; line-height: 1.6; }
         .address-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .address-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
-
-        /* 地址按钮样式 */
         .addr-btn { padding: 5px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; border: 1px solid #d9b38c; background: white; color: #664b2e; transition: all 0.2s; }
         .addr-btn:hover { background-color: #fcefdc; }
         .addr-btn.del { color: #d9534f; border-color: #d9534f; }
         .addr-btn.def { background-color: #f7941e; color: white; border: none; }
-        .addr-btn.edit { color: #2196F3; border-color: #2196F3; } /* 新增：修改按钮样式 */
+        .addr-btn.edit { color: #2196F3; border-color: #2196F3; }
         .addr-btn.edit:hover { background-color: #e3f2fd; }
 
+        /* 美食偏好 & 性别单选框 修复对齐问题 */
         .preferences-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 20px; }
         .preference-card { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; cursor: default; opacity: 0.6; transition: all 0.3s; }
         .preference-card.active { background-color: #f7941e; border-color: #f7941e; color: white; opacity: 1; box-shadow: 0 4px 8px rgba(247, 148, 30, 0.3); }
@@ -58,16 +59,40 @@
         .preference-icon { font-size: 24px; color: #999; margin-bottom: 8px; }
         .preference-name { font-weight: bold; color: #666; font-size: 14px; }
 
+        .preferences-checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 5px; }
+
+        /* 核心修复：性别和偏好的标签对齐 */
+        .radio-group-container { display: flex; gap: 30px; align-items: center; height: 38px; }
+        .radio-label, .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: normal !important;
+            cursor: pointer;
+            color: #555;
+            font-size: 15px;
+        }
+        .radio-label input, .checkbox-label input {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            margin-top: 0;
+            accent-color: #f7941e;
+        }
+
         /* 模态框通用样式 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto; justify-content: center; align-items: center;}
-        .modal-content { background: #fff; margin: 0 auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 8px; position: relative; }
+        .modal-content { background: #fff; margin: 0 auto; padding: 25px; width: 90%; max-width: 500px; border-radius: 8px; position: relative; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .form-actions { text-align: right; margin-top: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label.field-label { display: block; margin-bottom: 8px; font-weight: bold; color: #664b2e; }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #f7941e; outline: none; }
+        .form-actions { text-align: right; margin-top: 25px; }
 
-        /* 订单卡片与详情弹窗样式优化 */
+        /* 订单卡片样式 */
         .order-card { background: #fff; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 20px; border: 1px solid #e0cdb6; cursor: pointer; transition: all 0.3s; overflow: hidden; }
         .order-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(247, 148, 30, 0.2); border-color: #f7941e; }
         .order-header { background: #fffaf0; padding: 15px 20px; border-bottom: 1px solid #f0e6d8; display: flex; justify-content: space-between; align-items: center; }
@@ -77,6 +102,7 @@
         .order-summary { color: #666; font-size: 15px; }
         .order-total { font-size: 22px; color: #f7941e; font-weight: bold; }
 
+        /* 订单弹窗内部 */
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; }
         .modal-footer-actions { margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px; }
         .action-btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
@@ -84,31 +110,12 @@
         .btn-edit:hover { background-color: #1976D2; }
         .btn-delete { background-color: #ff6b6b; color: white; }
         .btn-delete:hover { background-color: #e65252; }
-
         .edit-input { width: 100%; padding: 6px; border: 1px solid #d9b38c; border-radius: 4px; margin-top: 4px; display: none; }
         .display-text { display: block; }
         .detail-item:last-child { border-bottom: none; }
         .detail-name { font-weight: bold; color: #555; font-size: 15px; }
         .detail-meta { font-size: 13px; color: #999; margin-top: 4px; }
         .detail-price { color: #f7941e; font-weight: bold; font-size: 16px; }
-
-        /* 美食偏好 & 性别单选框 对齐优化 */
-        .preferences-checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; }
-        .preferences-checkbox-grid label,
-        .radio-label { /* 新增 .radio-label 用于性别单选框 */
-            display: inline-flex; /* 关键：使用 flex 布局 */
-            align-items: center;  /* 关键：垂直居中 */
-            font-weight: normal !important;
-            cursor: pointer;
-            color: #555;
-            font-size: 14px;
-        }
-        .preferences-checkbox-grid input,
-        .radio-label input {
-            width: auto !important;
-            margin-right: 6px;
-            margin-top: 0; /* 消除默认的 top margin */
-        }
 
         .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; }
         .pagination button { padding: 5px 10px; cursor: pointer; border: 1px solid #ddd; background: white; border-radius: 4px; }
@@ -144,7 +151,6 @@
         <h3 style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; color: #664b2e; font-size: 20px;">
             <i class="fas fa-file-invoice-dollar"></i> 订单详情
         </h3>
-
         <div style="margin-bottom: 20px; background: #fdf6ec; padding: 15px; border-radius: 8px; border: 1px solid #faeccd;">
             <div style="margin-bottom: 8px;">
                 <span style="color:#888; width: 70px; display:inline-block;">订单号：</span>
@@ -172,8 +178,7 @@
         </div>
 
         <h4 style="margin: 15px 0 10px 0; color: #f7941e; font-size: 16px;">商品清单</h4>
-        <div id="modalItemsList" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
-        </div>
+        <div id="modalItemsList" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div>
 
         <div style="text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: flex; justify-content: space-between; align-items: center;">
             <span style="color: #888;">共 <span id="modalTotalCount">0</span> 件商品</span>
@@ -194,27 +199,27 @@
 <div id="addressModal" class="modal">
     <div class="modal-content" style="margin-top: 15vh;">
         <span class="close-modal" onclick="closeAddressModal()">&times;</span>
-        <h3 id="addrModalTitle">新增地址</h3>
+        <h3 id="addrModalTitle" style="color: #664b2e; margin-bottom: 20px;">新增地址</h3>
         <form id="addressForm" onsubmit="saveAddress(event)">
             <input type="hidden" id="addrId">
             <div class="form-group">
-                <label>地址标签</label>
+                <label class="field-label">地址标签</label>
                 <input type="text" id="addrName" placeholder="如：家、公司" required>
             </div>
             <div class="form-group">
-                <label>收货人</label>
+                <label class="field-label">收货人</label>
                 <input type="text" id="addrRecipient" required>
             </div>
             <div class="form-group">
-                <label>联系电话</label>
+                <label class="field-label">联系电话</label>
                 <input type="tel" id="addrPhone" required>
             </div>
             <div class="form-group">
-                <label>详细地址</label>
+                <label class="field-label">详细地址</label>
                 <textarea id="addrDetail" rows="3" required></textarea>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeAddressModal()">取消</button>
+                <button type="button" class="btn btn-secondary" onclick="closeAddressModal()" style="margin-right: 10px;">取消</button>
                 <button type="submit" class="btn btn-primary">保存</button>
             </div>
         </form>
@@ -224,24 +229,35 @@
 <div id="profileEditModal" class="modal">
     <div class="modal-content" style="margin-top: 10vh;">
         <span class="close-modal" onclick="document.getElementById('profileEditModal').style.display='none'">&times;</span>
-        <h3>修改个人信息</h3>
+        <h3 style="color: #664b2e; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 10px;">修改个人信息</h3>
         <form onsubmit="saveProfileChanges(event)">
-            <div class="form-group"><label>用户名</label><input type="text" id="editUsername" required></div>
-            <div class="form-group"><label>手机号</label><input type="text" id="editPhone"></div>
-            <div class="form-group"><label>邮箱</label><input type="email" id="editEmail"></div>
-            <div class="form-group">
-                <label>性别</label>
+            <div class="form-group" style="display: flex; align-items: center; gap: 20px; background: #fffaf0; padding: 15px; border-radius: 8px;">
+                <img id="editAvatarPreview" src="static/image/default_avatar.jpg" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #d9b38c;">
                 <div>
-                    <label class="radio-label"><input type="radio" name="editGender" value="male"> 男</label>
-                    <label class="radio-label" style="margin-left: 15px;"><input type="radio" name="editGender" value="female"> 女</label>
+                    <label for="editAvatarInput" class="btn btn-sm btn-primary" style="cursor: pointer; display: inline-block;">更换头像</label>
+                    <input type="file" id="editAvatarInput" accept="image/*" style="display: none;" onchange="previewEditAvatar(this)">
+                    <div style="font-size: 12px; color: #888; margin-top: 5px;">支持 jpg, png 格式</div>
                 </div>
             </div>
+
+            <div class="form-group"><label class="field-label">用户名</label><input type="text" id="editUsername" required></div>
+            <div class="form-group"><label class="field-label">手机号</label><input type="text" id="editPhone"></div>
+            <div class="form-group"><label class="field-label">邮箱</label><input type="email" id="editEmail"></div>
+
+            <div class="form-group">
+                <label class="field-label">性别</label>
+                <div class="radio-group-container">
+                    <label class="radio-label"><input type="radio" name="editGender" value="male"> 男</label>
+                    <label class="radio-label"><input type="radio" name="editGender" value="female"> 女</label>
+                </div>
+            </div>
+
             <div class="form-group" style="display: block;">
-                <label style="margin-bottom: 8px;">美食偏好</label>
+                <label class="field-label">美食偏好</label>
                 <div id="editPreferencesList" class="preferences-checkbox-grid"></div>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('profileEditModal').style.display='none'">取消</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('profileEditModal').style.display='none'" style="margin-right: 10px;">取消</button>
                 <button type="submit" class="btn btn-primary">保存修改</button>
             </div>
         </form>
@@ -265,6 +281,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         checkLoginStatus();
     });
+
+    function getAddressKey() {
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!user) return null;
+        return 'userAddresses_' + user.username;
+    }
 
     function checkLoginStatus() {
         const user = sessionStorage.getItem('currentUser');
@@ -296,8 +318,9 @@
                         <div style="font-weight:bold; font-size:20px; color:#664b2e;">${user.username}</div>
                     </div>
                     <div class="profile-menu">
-                        <div class="menu-item active" onclick="switchTab('profile')">个人信息</div>
-                        <div class="menu-item" onclick="switchTab('orders')">我的订单</div>
+                        <div class="menu-item active" onclick="switchTab('profile', this)">个人信息</div>
+                        <div class="menu-item" onclick="switchTab('address', this)">收货地址</div>
+                        <div class="menu-item" onclick="switchTab('orders', this)">我的订单</div>
                     </div>
                     <div class="sidebar-actions">
                         <button class="logout-btn-side" onclick="logout()">退出登录</button>
@@ -315,14 +338,17 @@
                         </div>
                         <button class="btn btn-primary" onclick="openEditProfile()">修改资料</button>
                         <div class="section-divider"></div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h2 class="section-title" style="margin:0;">收货地址</h2>
-                            <button class="btn btn-sm btn-primary" onclick="openAddressModal()">+ 新增地址</button>
-                        </div>
-                        <div id="addressList" class="address-list"></div>
-                        <div class="section-divider"></div>
                         <h2 class="section-title">美食偏好</h2>
                         <div class="preferences-grid">${renderPreferences(user.styles || [])}</div>
+                    </div>
+
+                    <div id="addressSection" class="content-section">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h2 class="section-title" style="margin:0;">收货地址管理</h2>
+                            <button class="btn btn-sm btn-primary" onclick="openAddressModal()">+ 新增地址</button>
+                        </div>
+                        <div id="addressList" class="address-list">加载中...</div>
+                        <div id="addressPagination" class="pagination" style="justify-content: center; margin-top: 20px;"></div>
                     </div>
 
                     <div id="ordersSection" class="content-section">
@@ -337,8 +363,20 @@
                 </div>
             </div>
         `;
-        loadAddresses();
+        // 初始化时不加载地址，点击标签才加载
         loadOrders();
+    }
+
+    function switchTab(tabName, element) {
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        if(element) element.classList.add('active');
+
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(tabName + 'Section').classList.add('active');
+
+        if(tabName === 'address') {
+            loadAddresses();
+        }
     }
 
     function renderPreferences(userStyles) {
@@ -349,18 +387,50 @@
         }).join('');
     }
 
-    function loadAddresses() {
-        const list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
-        const container = document.getElementById('addressList');
-        const user = JSON.parse(sessionStorage.getItem('currentUser'));
-        if(list.length === 0 && user.address) {
-            list.push({ id: Date.now(), name: '常用地址', recipient: user.username, phone: user.phone, detail: user.address, isDefault: true });
-            localStorage.setItem('userAddresses', JSON.stringify(list));
-        }
-        if (list.length === 0) { container.innerHTML = '<p style="color:#999;text-align:center;">暂无地址，请添加</p>'; return; }
+    // --- 收货地址相关逻辑 ---
+    let currentAddressPage = 1;
+    const addressPageSize = 3;
 
-        // 【修改点】地址列表渲染中加入“修改”按钮
-        container.innerHTML = list.map(addr => `
+    function loadAddresses() {
+        const key = getAddressKey();
+        if (!key) return;
+
+        let list = JSON.parse(localStorage.getItem(key) || '[]');
+
+        // 3. 修复：如果地址为空，自动同步注册时的地址
+        if (list.length === 0) {
+            const user = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (user && user.address) {
+                const defaultAddr = {
+                    id: Date.now(),
+                    name: '注册地址',
+                    recipient: user.username,
+                    phone: user.phone || '',
+                    detail: user.address,
+                    isDefault: true
+                };
+                list.push(defaultAddr);
+                localStorage.setItem(key, JSON.stringify(list));
+            }
+        }
+
+        const container = document.getElementById('addressList');
+
+        if (list.length === 0) {
+            container.innerHTML = '<p style="color:#999;text-align:center; padding: 30px;">暂无收货地址</p>';
+            document.getElementById('addressPagination').innerHTML = '';
+            return;
+        }
+
+        const total = list.length;
+        const totalPages = Math.ceil(total / addressPageSize);
+        if (currentAddressPage > totalPages) currentAddressPage = 1;
+
+        const start = (currentAddressPage - 1) * addressPageSize;
+        const end = start + addressPageSize;
+        const pageList = list.slice(start, end);
+
+        container.innerHTML = pageList.map(addr => `
             <div class="address-item ${addr.isDefault ? 'default' : ''}">
                 <div class="address-top-row"><span class="address-tag">${addr.name} ${addr.isDefault ? '(默认)' : ''}</span></div>
                 <div class="address-text-group"><div class="address-row"><span>${addr.recipient}</span><span>${addr.phone}</span></div><div>${addr.detail || addr.address || ''}</div></div>
@@ -370,73 +440,87 @@
                     ${!addr.isDefault ? `<button class="addr-btn def" onclick="setDefaultAddress(${addr.id})">设为默认</button>` : ''}
                 </div>
             </div>`).join('');
+
+        renderAddressPagination(totalPages);
     }
 
-    // 【修改点】打开新增地址弹窗：清空表单
+    function renderAddressPagination(totalPages) {
+        const container = document.getElementById('addressPagination');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '上一页';
+        prevBtn.disabled = currentAddressPage === 1;
+        prevBtn.onclick = () => { if(currentAddressPage > 1) { currentAddressPage--; loadAddresses(); } };
+        container.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = i === currentAddressPage ? 'active' : '';
+            btn.textContent = i;
+            btn.onclick = () => { currentAddressPage = i; loadAddresses(); };
+            container.appendChild(btn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '下一页';
+        nextBtn.disabled = currentAddressPage === totalPages;
+        nextBtn.onclick = () => { if(currentAddressPage < totalPages) { currentAddressPage++; loadAddresses(); } };
+        container.appendChild(nextBtn);
+    }
+
+    // 地址增删改查函数 (保持之前逻辑，略)
     function openAddressModal() {
         document.getElementById('addressForm').reset();
         document.getElementById('addrId').value='';
         document.getElementById('addrModalTitle').innerText = '新增地址';
         document.getElementById('addressModal').style.display='flex';
     }
-
-    // 【修改点】打开修改地址弹窗：回显数据
     function editAddress(id) {
-        const list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
+        const key = getAddressKey();
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
         const addr = list.find(a => a.id === id);
         if(!addr) return;
-
         document.getElementById('addrId').value = addr.id;
         document.getElementById('addrName').value = addr.name;
         document.getElementById('addrRecipient').value = addr.recipient;
         document.getElementById('addrPhone').value = addr.phone;
         document.getElementById('addrDetail').value = addr.detail || addr.address || '';
-
         document.getElementById('addrModalTitle').innerText = '修改地址';
         document.getElementById('addressModal').style.display='flex';
     }
-
     function closeAddressModal() { document.getElementById('addressModal').style.display='none'; }
-
-    // 【修改点】保存地址：区分新增和修改
     function saveAddress(e) {
         e.preventDefault();
+        const key = getAddressKey();
+        if (!key) return;
         const idInput = document.getElementById('addrId').value;
-        const list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
-
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
         const newAddrData = {
             name: document.getElementById('addrName').value,
             recipient: document.getElementById('addrRecipient').value,
             phone: document.getElementById('addrPhone').value,
             detail: document.getElementById('addrDetail').value
         };
-
         if (idInput) {
-            // 修改模式
             const index = list.findIndex(a => a.id == idInput);
-            if(index !== -1) {
-                list[index] = { ...list[index], ...newAddrData };
-            }
+            if(index !== -1) list[index] = { ...list[index], ...newAddrData };
         } else {
-            // 新增模式
-            const newAddr = {
-                id: Date.now(),
-                ...newAddrData,
-                isDefault: list.length === 0
-            };
+            const newAddr = { id: Date.now(), ...newAddrData, isDefault: list.length === 0 };
             list.push(newAddr);
         }
-
-        localStorage.setItem('userAddresses', JSON.stringify(list));
+        localStorage.setItem(key, JSON.stringify(list));
         closeAddressModal();
         loadAddresses();
     }
+    function deleteAddress(id) { if(!confirm('删除?')) return; const key = getAddressKey(); let list = JSON.parse(localStorage.getItem(key)||'[]'); list = list.filter(a=>a.id!==id); localStorage.setItem(key, JSON.stringify(list)); loadAddresses(); }
+    function setDefaultAddress(id) { const key = getAddressKey(); let list = JSON.parse(localStorage.getItem(key)||'[]'); list.forEach(a=>a.isDefault=(a.id===id)); localStorage.setItem(key, JSON.stringify(list)); loadAddresses(); }
 
-    function deleteAddress(id) { if(!confirm('删除?')) return; let list=JSON.parse(localStorage.getItem('userAddresses')||'[]'); list=list.filter(a=>a.id!==id); localStorage.setItem('userAddresses', JSON.stringify(list)); loadAddresses(); }
-    function setDefaultAddress(id) { let list=JSON.parse(localStorage.getItem('userAddresses')||'[]'); list.forEach(a=>a.isDefault=(a.id===id)); localStorage.setItem('userAddresses', JSON.stringify(list)); loadAddresses(); }
     async function logout() { if(!confirm('退出?')) return; await fetch('/api/logout'); sessionStorage.clear(); window.location.href='login.html'; }
     async function deleteAccount() { if(!confirm('注销?')) return; await fetch('/api/user/delete', {method:'POST'}); sessionStorage.clear(); window.location.href='index.html'; }
 
+    // --- 修改资料 (含头像上传) ---
     function openEditProfile() {
         const user = JSON.parse(sessionStorage.getItem('currentUser'));
         if (!user) return;
@@ -444,6 +528,10 @@
         document.getElementById('editUsername').value = user.username || '';
         document.getElementById('editPhone').value = user.phone || '';
         document.getElementById('editEmail').value = user.email || '';
+
+        // 头像回显
+        const avatarPath = user.avatarFileName ? 'static/upload/'+user.avatarFileName : 'static/image/default_avatar.jpg';
+        document.getElementById('editAvatarPreview').src = avatarPath;
 
         const genderRadios = document.getElementsByName('editGender');
         for(let r of genderRadios) {
@@ -455,39 +543,61 @@
 
         prefContainer.innerHTML = ALL_CUISINES.map(c => {
             const isChecked = userStyles.includes(c.id) ? 'checked' : '';
-            return `
-                <label>
-                    <input type="checkbox" name="editStyles" value="${c.id}" ${isChecked}>
-                    ${c.name}
-                </label>
-            `;
+            return `<label class="checkbox-label"><input type="checkbox" name="editStyles" value="${c.id}" ${isChecked}>${c.name}</label>`;
         }).join('');
 
         document.getElementById('profileEditModal').style.display='flex';
     }
 
+    // 头像预览
+    function previewEditAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('editAvatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     async function saveProfileChanges(e) {
         e.preventDefault();
 
+        // 1. 获取表单数据
         const username = document.getElementById('editUsername').value.trim();
         const phone = document.getElementById('editPhone').value.trim();
         const email = document.getElementById('editEmail').value.trim();
-
         let gender = '';
         const genderRadios = document.getElementsByName('editGender');
         for(let r of genderRadios) { if(r.checked) gender = r.value; }
-
         const selectedStyles = [];
         const styleBoxes = document.getElementsByName('editStyles');
-        for(let box of styleBoxes) {
-            if(box.checked) selectedStyles.push(box.value);
+        for(let box of styleBoxes) { if(box.checked) selectedStyles.push(box.value); }
+
+        const payload = { username, phone, email, gender, styles: selectedStyles };
+
+        // 2. 如果有新头像，先上传
+        const fileInput = document.getElementById('editAvatarInput');
+        if (fileInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('avatar', fileInput.files[0]);
+            try {
+                const uploadRes = await fetch('/api/upload-avatar', { method: 'POST', body: formData });
+                const uploadData = await uploadRes.json();
+                if (uploadData.success) {
+                    payload.avatarFileName = uploadData.fileName; // 将新文件名加入 payload
+                } else {
+                    alert('头像上传失败: ' + uploadData.message);
+                    return;
+                }
+            } catch (err) {
+                console.error("头像上传异常", err);
+                alert('头像上传网络错误');
+                return;
+            }
         }
 
-        const payload = {
-            username, phone, email, gender,
-            styles: selectedStyles
-        };
-
+        // 3. 提交资料更新
         try {
             const res = await fetch('/api/update-profile', {
                 method: 'POST',
@@ -495,11 +605,10 @@
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-
             if(data.success) {
                 alert('修改成功');
                 document.getElementById('profileEditModal').style.display='none';
-                loadProfile();
+                loadProfile(); // 刷新页面数据
             } else {
                 alert(data.message || '修改失败');
             }
@@ -509,6 +618,7 @@
         }
     }
 
+    // ... 订单相关代码 (保持不变) ...
     let currentOrderPage = 1;
     const orderPageSize = 5;
     let currentOrderKeyword = '';
@@ -564,7 +674,6 @@
                                     <i class="fas ${statusInfo.icon}"></i> ${statusInfo.text}
                                 </span>
                             </div>
-
                             <div class="order-body">
                                 <div>
                                     <div class="order-summary">共 <span style="color:#f7941e;font-weight:bold;">${itemCount}</span> 件商品</div>
@@ -587,20 +696,15 @@
     function showOrderDetail(index) {
         const order = currentOrderData[index];
         if(!order) return;
-
         activeOrderId = order.id;
-
         document.getElementById('modalOrderNo').innerText = order.orderNo;
         document.getElementById('modalOrderTime').innerText = new Date(order.createdAt).toLocaleString();
-
         document.getElementById('modalReceiver').innerText = order.receiverName || '';
         document.getElementById('modalPhone').innerText = order.receiverPhone || '';
         document.getElementById('modalAddress').innerText = order.receiverAddress || '';
-
         document.getElementById('editReceiverName').value = order.receiverName || '';
         document.getElementById('editReceiverPhone').value = order.receiverPhone || '';
         document.getElementById('editReceiverAddress').value = order.receiverAddress || '';
-
         document.getElementById('modalTotalAmount').innerText = '¥' + order.totalAmount.toFixed(2);
         document.getElementById('modalTotalCount').innerText = order.items ? order.items.length : 0;
 
@@ -621,23 +725,19 @@
         } else {
             itemsContainer.innerHTML = '<p style="text-align:center; color:#999;">暂无商品明细</p>';
         }
-
         cancelEditingAddress();
-
         const btnEdit = document.getElementById('btnStartEdit');
         if (order.status === 'PENDING') {
             btnEdit.style.display = 'inline-block';
         } else {
             btnEdit.style.display = 'none';
         }
-
         document.getElementById('orderDetailModal').style.display = 'flex';
     }
 
     function startEditingAddress() {
         document.querySelectorAll('.display-text').forEach(el => el.style.display = 'none');
         document.querySelectorAll('.edit-input').forEach(el => el.style.display = 'inline-block');
-
         document.getElementById('btnStartEdit').style.display = 'none';
         document.getElementById('btnSaveAddress').style.display = 'inline-block';
         document.getElementById('btnCancelEdit').style.display = 'inline-block';
@@ -646,10 +746,8 @@
     function cancelEditingAddress() {
         document.querySelectorAll('.display-text').forEach(el => el.style.display = 'inline');
         document.querySelectorAll('.edit-input').forEach(el => el.style.display = 'none');
-
         document.getElementById('btnSaveAddress').style.display = 'none';
         document.getElementById('btnCancelEdit').style.display = 'none';
-
         const order = currentOrderData.find(o => o.id === activeOrderId);
         if(order && order.status === 'PENDING') {
             document.getElementById('btnStartEdit').style.display = 'inline-block';
@@ -660,9 +758,7 @@
         const name = document.getElementById('editReceiverName').value.trim();
         const phone = document.getElementById('editReceiverPhone').value.trim();
         const addr = document.getElementById('editReceiverAddress').value.trim();
-
         if(!name || !phone || !addr) return alert('收货信息不能为空');
-
         try {
             const res = await fetch('/api/order/update-address', {
                 method: 'POST',
@@ -682,15 +778,11 @@
             } else {
                 alert(data.message);
             }
-        } catch(e) {
-            console.error(e);
-            alert('网络错误');
-        }
+        } catch(e) { console.error(e); alert('网络错误'); }
     }
 
     async function deleteCurrentOrder() {
         if(!confirm('确定要删除该订单吗？删除后不可恢复。')) return;
-
         try {
             const res = await fetch('/api/order/delete', {
                 method: 'POST',
@@ -705,17 +797,13 @@
             } else {
                 alert(data.message || '删除失败');
             }
-        } catch(e) {
-            console.error(e);
-            alert('操作失败');
-        }
+        } catch(e) { console.error(e); alert('操作失败'); }
     }
 
     function closeOrderModal() {
         document.getElementById('orderDetailModal').style.display = 'none';
         activeOrderId = null;
     }
-
     window.onclick = function(event) { if (event.target == document.getElementById('orderDetailModal')) closeOrderModal(); }
 
     function renderOrderPagination(total) {
@@ -723,23 +811,19 @@
         const totalPages = Math.ceil(total / orderPageSize);
         container.innerHTML = '';
         if (totalPages <= 0) return;
-
         const firstBtn = document.createElement('button');
         firstBtn.textContent = '首页';
         firstBtn.disabled = currentOrderPage === 1;
         firstBtn.onclick = () => { currentOrderPage = 1; loadOrders(); };
         container.appendChild(firstBtn);
-
         const prevBtn = document.createElement('button');
         prevBtn.textContent = '上一页';
         prevBtn.disabled = currentOrderPage === 1;
         prevBtn.onclick = () => { if(currentOrderPage > 1) { currentOrderPage--; loadOrders(); } };
         container.appendChild(prevBtn);
-
         let startPage = Math.max(1, currentOrderPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
         for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
             btn.className = i === currentOrderPage ? 'active' : '';
@@ -747,25 +831,16 @@
             btn.onclick = () => { currentOrderPage = i; loadOrders(); };
             container.appendChild(btn);
         }
-
         const nextBtn = document.createElement('button');
         nextBtn.textContent = '下一页';
         nextBtn.disabled = currentOrderPage === totalPages;
         nextBtn.onclick = () => { if(currentOrderPage < totalPages) { currentOrderPage++; loadOrders(); } };
         container.appendChild(nextBtn);
-
         const lastBtn = document.createElement('button');
         lastBtn.textContent = '末页';
         lastBtn.disabled = currentOrderPage === totalPages;
         lastBtn.onclick = () => { currentOrderPage = totalPages; loadOrders(); };
         container.appendChild(lastBtn);
-    }
-
-    function switchTab(tabName) {
-        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-        event.target.classList.add('active');
-        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-        document.getElementById(tabName + 'Section').classList.add('active');
     }
 </script>
 </body>

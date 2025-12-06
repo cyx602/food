@@ -74,6 +74,7 @@ function setupMenuTabs() {
     }
 }
 
+// 通用分页渲染函数 (带省略号算法)
 function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -81,14 +82,62 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     const totalPages = Math.ceil(total / pageSize);
     container.innerHTML = '';
 
+    // 如果没有数据或只有1页，不显示分页（或者你可以选择显示禁用状态）
     if (totalPages <= 0) return;
 
-    let html = `<span class="page-info" style="margin-right:15px; color:#664b2e; font-size:14px;">共 ${total} 条，${currentPage}/${totalPages} 页</span>`;
+    let html = '';
 
-    html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(1)">首页</button>`;
-    html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage - 1})">上一页</button>`;
-    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
-    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${totalPages})">末页</button>`;
+    // --- 1. 首页 & 上一页 ---
+    html += `<button class="page-btn text-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(1)">首页</button>`;
+    html += `<button class="page-btn text-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage - 1})">上一页</button>`;
+
+    // --- 2. 页码生成算法 (核心逻辑) ---
+    // 逻辑：始终显示第1页和最后一页，当前页前后保留 delta 个页码，中间用省略号
+    const delta = 2; // 当前页前后显示的页数
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+        // 满足以下条件之一则显示页码：
+        // 1. 第一页
+        // 2. 最后一页
+        // 3. 当前页范围内的 (currentPage - delta <= i <= currentPage + delta)
+        if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+            range.push(i);
+        }
+    }
+
+    for (let i of range) {
+        if (l) {
+            if (i - l === 2) {
+                // 如果只隔一个数（比如 1, 3），就把中间那个 2 补上，不显示省略号
+                rangeWithDots.push(l + 1);
+            } else if (i - l !== 1) {
+                // 如果隔得远，显示省略号
+                rangeWithDots.push('...');
+            }
+        }
+        rangeWithDots.push(i);
+        l = i;
+    }
+
+    // --- 3. 渲染页码按钮 ---
+    rangeWithDots.forEach(page => {
+        if (page === '...') {
+            html += `<span class="page-ellipsis">...</span>`;
+        } else {
+            const activeClass = page === currentPage ? 'active' : '';
+            html += `<button class="page-btn ${activeClass}" onclick="${loadFunc.name}(${page})">${page}</button>`;
+        }
+    });
+
+    // --- 4. 下一页 & 末页 ---
+    html += `<button class="page-btn text-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${currentPage + 1})">下一页</button>`;
+    html += `<button class="page-btn text-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${loadFunc.name}(${totalPages})">末页</button>`;
+
+    // --- 5. (可选) 显示总条数信息，如果需要像截图1那样显示在左边，可以加在这里或者用 flex 布局放在左侧 ---
+    // 目前根据截图2的样式，这里只放按钮。
 
     container.innerHTML = html;
 }

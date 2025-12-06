@@ -9,48 +9,175 @@
     <style>
         .page-content { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .page-title { text-align: center; color: #664b2e; font-family: "楷体", sans-serif; font-size: 36px; margin-bottom: 30px; }
-        .recipes-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+
+        /* Tab 样式 */
+        .recipes-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .recipes-tab { padding: 12px 25px; background-color: rgba(245, 230, 210, 0.9); border: 1px solid #d9b38c; border-radius: 25px; color: #664b2e; cursor: pointer; transition: all 0.3s; }
         .recipes-tab.active { background-color: #f7941e; color: white; border-color: #f7941e; }
 
-        .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-bottom: 60px; min-height: 200px; }
-
-        .recipe-card { overflow: hidden; cursor: pointer; position: relative; background: rgba(255,255,255,0.8); transition: transform 0.3s; }
-        .recipe-card:hover { transform: translateY(-5px); }
-        .recipe-image { width: 100%; height: 180px; object-fit: cover; }
-        .recipe-info { padding: 15px; }
-        .recipe-title { font-weight: bold; color: #664b2e; margin-bottom: 5px; }
-        .recipe-desc { font-size: 13px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-        /* 移除按钮样式 */
-        .remove-btn {
-            position: absolute; top: 10px; right: 10px;
-            background: rgba(255,255,255,0.9); border: none; width: 30px; height: 30px; border-radius: 50%;
-            color: #ff6b6b; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.3s; z-index: 5;
+        /* 网格布局 */
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+            min-height: 200px; /* 有内容时保持高度，无内容时由JS隐藏 */
         }
-        .remove-btn:hover { background: #ff6b6b; color: white; }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #999; display: none; width: 100%; grid-column: 1 / -1; background: rgba(255,255,255,0.5); border-radius: 10px; }
-        .empty-icon { font-size: 60px; color: #d9b38c; margin-bottom: 20px; }
-
-        /* 模态框复用样式 */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #fffaf0; width: 90%; max-width: 600px; padding: 30px; border-radius: 8px; margin: 20px auto; max-height: 80vh; overflow-y: auto; position: relative; border: 2px solid #d9b38c; }
-
-        /* 登录提示专用样式 */
-        .login-tip {
-            text-align: center;
-            padding: 80px 20px;
-            color: #664b2e;
-            grid-column: 1 / -1; /* 占满整行 */
-        }
-        .login-tip a {
-            color: #f7941e;
-            font-weight: bold;
-            text-decoration: underline;
+        /* 卡片样式 - 统一与 cuisine.html 一致 */
+        .recipe-card {
+            background-color: rgba(245, 230, 210, 0.95);
+            border: 1px solid #d9b38c;
+            border-radius: 8px;
+            overflow: hidden;
             cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #f7941e;
+        }
+        .recipe-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .recipe-info {
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .recipe-content {
+            margin-bottom: 10px;
+            flex: 1;
+        }
+        .recipe-title {
+            font-weight: bold;
+            color: #664b2e;
+            font-size: 18px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .recipe-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* 底部按钮栏 */
+        .recipe-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            border-top: 1px solid rgba(217, 179, 140, 0.3);
+            padding-top: 10px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 6px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: background 0.3s;
+        }
+        .btn-view { background-color: #f7941e; color: white; }
+        .btn-view:hover { background-color: #e67e22; }
+        .btn-delete { background-color: #ff6b6b; color: white; }
+        .btn-delete:hover { background-color: #e65252; }
+
+        /* 发布新菜卡片专用样式 */
+        .add-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #d9b38c;
+            border: 2px dashed #d9b38c;
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+        .add-card:hover {
+            border-color: #f7941e;
+            color: #f7941e;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 2. 空状态框样式调整：增加点击手型，减少间距 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            display: none;
+            width: 100%;
+            grid-column: 1 / -1;
+            background: rgba(255,255,255,0.5);
+            border-radius: 10px;
+            margin-top: 0; /* 贴近上方 */
+            cursor: pointer; /* 鼠标手型 */
+            transition: all 0.3s;
+        }
+        /* 增加悬停效果提示可点击 */
+        .empty-state:hover {
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 4px 15px rgba(247, 148, 30, 0.2);
+            transform: translateY(-2px);
+        }
+        .empty-icon { font-size: 50px; color: #d9b38c; margin-bottom: 15px; }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            background-color: rgba(245, 230, 210, 0.9);
+            border: 1px solid #d9b38c;
+            border-radius: 4px;
+            color: #664b2e;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .pagination button:hover:not(:disabled) {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+            transform: translateY(-2px);
+        }
+        .pagination button.active {
+            background-color: #f7941e;
+            color: white;
+            border-color: #f7941e;
+        }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* 模态框样式 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #fff; width: 90%; max-width: 600px; padding: 25px; border-radius: 12px; max-height: 85vh; overflow-y: auto; position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #664b2e; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .form-control:focus { outline: none; border-color: #f7941e; }
     </style>
 </head>
 <body>
@@ -79,46 +206,89 @@
 
     <div class="recipes-grid" id="recipesGrid"></div>
 
-    <div id="emptyState" class="empty-state">
+    <div id="emptyState" class="empty-state" onclick="window.location.href='cuisine.html'" title="点击去发现美食">
         <div class="empty-icon"><i class="fas fa-folder-open"></i></div>
-        <h2 id="emptyTitle">空空如也</h2>
-        <p>快去发现或创作美食吧！</p>
+        <h2>还没有收藏食谱</h2>
+        <p>快去发现或创作美食吧！(点击前往分类)</p>
     </div>
 
-    <div id="pagination" style="text-align:center; margin-top:20px;"></div>
+    <div id="pagination" class="pagination"></div>
 </div>
 
-<div class="modal" id="recipeModal"><div class="modal-content"><div id="modalContent"></div></div></div>
+<div id="createRecipeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeCreateModal()">&times;</span>
+        <h3 style="color:#664b2e; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:20px;">发布新食谱</h3>
+        <form id="createRecipeForm">
+            <div class="form-group">
+                <label>食谱标题 <span style="color:red">*</span></label>
+                <input type="text" id="newTitle" class="form-control" placeholder="给你的美味起个名字" required>
+            </div>
+            <div class="form-group">
+                <label>所属菜系 <span style="color:red">*</span></label>
+                <select id="newCuisine" class="form-control">
+                    <option value="1">中餐</option>
+                    <option value="2">西餐</option>
+                    <option value="3">日料</option>
+                    <option value="4">韩式</option>
+                    <option value="5">泰式</option>
+                    <option value="6">甜点</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>食谱描述</label>
+                <textarea id="newDesc" class="form-control" rows="2" placeholder="简单介绍一下这道菜..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>所需食材 (每行一个)</label>
+                <textarea id="newIngredients" class="form-control" rows="3" placeholder="例如：&#10;鸡蛋 2个&#10;番茄 1个"></textarea>
+            </div>
+            <div class="form-group">
+                <label>烹饪步骤</label>
+                <textarea id="newSteps" class="form-control" rows="4" placeholder="详细的制作步骤..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>成品图片</label>
+                <input type="file" id="newImageFile" class="form-control" accept="image/*">
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateModal()" style="margin-right: 10px;">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateRecipe()">发布食谱</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <footer class="footer">
     <p>联系我们：<a href="https://www.nchu.edu.cn/" target="_blank">南昌航空大学官网</a></p>
 </footer>
 
-<script src="static/js/cuisine.js"></script>
+<script src="static/js/index.js"></script>
 
 <script>
     let currentTab = 'favorites';
+    let currentPage = 1;
+    const pageSize = 8;
 
     document.addEventListener('DOMContentLoaded', function() {
-        // 先检查登录，如果是未登录，立即渲染提示，避免闪烁
         const user = sessionStorage.getItem('currentUser');
         if (!user) {
+            // 未登录提示
             document.getElementById('recipesGrid').innerHTML = `
-                <div class="login-tip">
+                <div style="text-align: center; padding: 80px; grid-column: 1/-1;">
                     <i class="fas fa-lock" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
-                    <h3>请先 <a href="login.html">登录</a> 以查看您的食谱</h3>
+                    <h3>请先 <a href="login.html" style="color:#f7941e">登录</a> 以查看您的食谱</h3>
                 </div>`;
-            return; // 终止后续数据加载
+            document.getElementById('recipesGrid').style.display = 'grid'; // 确保显示登录提示
+            return;
         }
-
-        // 已登录，正常加载
-        if(typeof checkLoginStatus === 'function') checkLoginStatus();
         loadData();
     });
 
     function switchTab(tab, element) {
-        if(!sessionStorage.getItem('currentUser')) return; // 未登录不响应切换
+        if(!sessionStorage.getItem('currentUser')) return;
         currentTab = tab;
+        currentPage = 1;
         document.querySelectorAll('.recipes-tab').forEach(t => t.classList.remove('active'));
         element.classList.add('active');
         loadData();
@@ -127,64 +297,212 @@
     async function loadData() {
         const grid = document.getElementById('recipesGrid');
         const emptyState = document.getElementById('emptyState');
+        const pagination = document.getElementById('pagination');
 
         grid.innerHTML = '';
-        emptyState.style.display = 'none';
+        pagination.innerHTML = '';
 
         const endpoint = currentTab === 'favorites' ? '/api/recipe/favorites' : '/api/recipe/my-list';
 
         try {
-            const res = await fetch(`${endpoint}?page=1&size=20`);
-            // 双重保险：接口返回401也显示提示
-            if(res.status === 401) {
-                grid.innerHTML = '<div class="login-tip">请先 <a href="login.html">登录</a></div>';
-                return;
-            }
+            const res = await fetch(`${endpoint}?page=${currentPage}&size=${pageSize}`);
+            if(res.status === 401) { window.location.href = 'login.html'; return; }
 
             const data = await res.json();
             const list = data.rows || [];
+            const total = data.total || 0;
 
-            if(list.length === 0) {
-                emptyState.style.display = 'block';
-                document.getElementById('emptyTitle').innerText = currentTab === 'favorites' ? '还没有收藏食谱' : '还没有发布食谱';
-                if(currentTab === 'created') {
-                    // 创作页即使为空也显示一个“添加”按钮
-                    grid.innerHTML = `
-                        <div class="recipe-card common-card-style" onclick="window.location.href='cuisine.html'" style="display:flex;align-items:center;justify-content:center;color:#d9b38c;flex-direction:column; height: 250px;">
-                            <i class="fas fa-plus-circle" style="font-size:40px;margin-bottom:10px;"></i>
-                            <div>去发布新菜</div>
-                        </div>`;
-                }
-            } else {
-                // 渲染列表
+            if(currentTab === 'created') {
+                // 1. 我的创作模式：显示网格，隐藏空状态框
+                grid.style.display = 'grid';
+                emptyState.style.display = 'none';
+
+                // 2. 无论是否有数据，第一张卡片永远是“去发布新菜”
+                const addCard = document.createElement('div');
+                addCard.className = 'recipe-card common-card-style add-card';
+                addCard.innerHTML = `
+                    <i class="fas fa-plus-circle" style="font-size:40px;margin-bottom:15px;"></i>
+                    <div style="font-size:18px; font-weight:bold;">去发布新菜</div>
+                `;
+                addCard.onclick = openCreateModal;
+                grid.appendChild(addCard);
+
+                // 3. 渲染数据卡片
                 list.forEach(r => {
-                    const card = document.createElement('div');
-                    card.className = 'recipe-card common-card-style';
-
-                    let btnHtml = '';
-                    if(currentTab === 'favorites') {
-                        btnHtml = `<button class="remove-btn" title="取消收藏" onclick="event.stopPropagation(); removeFavorite(${r.id})"><i class="fas fa-times"></i></button>`;
-                    } else {
-                        btnHtml = `<button class="remove-btn" title="删除" onclick="event.stopPropagation(); deleteRecipe(${r.id})"><i class="fas fa-trash"></i></button>`;
-                    }
-
-                    card.innerHTML = `
-                        ${btnHtml}
-                        <img src="${r.image || 'static/image/default_food.jpg'}" class="recipe-image" onerror="this.src='static/image/default_food.jpg'">
-                        <div class="recipe-info">
-                            <div class="recipe-title">${r.title}</div>
-                            <div class="recipe-desc">${r.description || '暂无简介'}</div>
-                        </div>
-                    `;
-                    card.onclick = (e) => {
-                        if(!e.target.closest('.remove-btn')) window.location.href = `recipe_detail.html?id=${r.id}`;
-                    };
+                    const card = createRecipeCard(r, 'delete');
                     grid.appendChild(card);
                 });
+
+            } else {
+                // 收藏模式
+                if(list.length === 0) {
+                    // 1. 列表为空：隐藏网格（消除空白占位），显示空状态
+                    grid.style.display = 'none';
+                    emptyState.style.display = 'block';
+                } else {
+                    // 2. 列表不为空：显示网格，隐藏空状态
+                    grid.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                    list.forEach(r => {
+                        const card = createRecipeCard(r, 'favorite');
+                        grid.appendChild(card);
+                    });
+                }
+            }
+
+            renderPagination(total);
+
+        } catch(e) {
+            console.error(e);
+            grid.style.display = 'block'; // 恢复显示以便展示错误信息
+            grid.innerHTML = '<p style="text-align:center; color:red; grid-column:1/-1;">加载失败，请稍后重试</p>';
+        }
+    }
+
+    // 创建通用卡片 HTML
+    function createRecipeCard(r, type) {
+        const card = document.createElement('div');
+        card.className = 'recipe-card common-card-style';
+
+        let actionBtnHtml = '';
+        if (type === 'delete') {
+            actionBtnHtml = `
+                <button class="action-btn btn-view" onclick="event.stopPropagation(); window.location.href='recipe_detail.html?id=${r.id}'">
+                    <i class="fas fa-eye"></i> 查看
+                </button>
+                <button class="action-btn btn-delete" onclick="event.stopPropagation(); deleteRecipe(${r.id})">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+            `;
+        } else {
+            actionBtnHtml = `
+                <button class="action-btn btn-view" onclick="event.stopPropagation(); window.location.href='recipe_detail.html?id=${r.id}'">
+                    <i class="fas fa-eye"></i> 查看
+                </button>
+                <button class="action-btn btn-delete" style="background-color:#ccc;" onclick="event.stopPropagation(); removeFavorite(${r.id})">
+                    <i class="fas fa-times"></i> 取消收藏
+                </button>
+            `;
+        }
+
+        card.innerHTML = `
+            <img src="${r.image || 'static/image/default_food.jpg'}" class="recipe-image" onerror="this.src='static/image/default_food.jpg'">
+            <div class="recipe-info">
+                <div class="recipe-content">
+                    <div class="recipe-title">${r.title}</div>
+                    <div class="recipe-desc">${r.description || '暂无简介'}</div>
+                </div>
+                <div class="recipe-actions">
+                    ${actionBtnHtml}
+                </div>
+            </div>
+        `;
+
+        card.onclick = (e) => {
+            if (!e.target.closest('button')) {
+                window.location.href = `recipe_detail.html?id=${r.id}`;
+            }
+        };
+
+        return card;
+    }
+
+    function renderPagination(total) {
+        const container = document.getElementById('pagination');
+        const totalPages = Math.ceil(total / pageSize);
+
+        if (totalPages <= 1) return;
+
+        const createBtn = (text, page, disabled, active) => {
+            const btn = document.createElement('button');
+            btn.textContent = text;
+            if(disabled) btn.disabled = true;
+            if(active) btn.className = 'active';
+            btn.onclick = () => {
+                if(!disabled && !active) {
+                    currentPage = page;
+                    loadData();
+                }
+            };
+            return btn;
+        };
+
+        container.appendChild(createBtn('首页', 1, currentPage === 1, false));
+        container.appendChild(createBtn('上一页', currentPage - 1, currentPage === 1, false));
+
+        let start = Math.max(1, currentPage - 1);
+        let end = Math.min(totalPages, currentPage + 1);
+        if(start > 1) container.appendChild(document.createTextNode('... '));
+
+        for(let i=start; i<=end; i++) {
+            container.appendChild(createBtn(i, i, false, i === currentPage));
+        }
+
+        if(end < totalPages) container.appendChild(document.createTextNode(' ...'));
+
+        container.appendChild(createBtn('下一页', currentPage + 1, currentPage === totalPages, false));
+        container.appendChild(createBtn('末页', totalPages, currentPage === totalPages, false));
+    }
+
+    // --- 模态框逻辑 ---
+    function openCreateModal() {
+        document.getElementById('createRecipeForm').reset();
+        document.getElementById('createRecipeModal').style.display = 'flex';
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createRecipeModal').style.display = 'none';
+    }
+
+    // --- 业务逻辑 ---
+    async function submitCreateRecipe() {
+        const title = document.getElementById('newTitle').value.trim();
+        const cuisineId = document.getElementById('newCuisine').value;
+        const desc = document.getElementById('newDesc').value;
+        const ingredients = document.getElementById('newIngredients').value;
+        const steps = document.getElementById('newSteps').value;
+        const fileInput = document.getElementById('newImageFile');
+
+        if(!title) return alert('请填写食谱标题');
+
+        let imagePath = 'static/image/default_food.jpg';
+
+        if(fileInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('avatar', fileInput.files[0]);
+            try {
+                const uploadRes = await fetch('/api/upload-avatar', {method:'POST', body:formData});
+                const upData = await uploadRes.json();
+                if(upData.success) {
+                    imagePath = 'static/upload/' + upData.fileName;
+                } else {
+                    alert('图片上传失败，将使用默认图');
+                }
+            } catch(e) { console.error('Upload error', e); }
+        }
+
+        const recipeData = {
+            title, cuisineId: parseInt(cuisineId), description: desc,
+            ingredients, steps, image: imagePath
+        };
+
+        try {
+            const res = await fetch('/api/recipe/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(recipeData)
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert('发布成功！');
+                closeCreateModal();
+                loadData();
+            } else {
+                alert('发布失败: ' + data.message);
             }
         } catch(e) {
             console.error(e);
-            grid.innerHTML = '<p style="text-align:center;">加载失败</p>';
+            alert('网络错误');
         }
     }
 
@@ -203,7 +521,10 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({id: id})
-        }).then(() => loadData());
+        }).then(res => res.json()).then(data => {
+            if(data.success) loadData();
+            else alert(data.message);
+        });
     }
 </script>
 </body>

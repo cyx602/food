@@ -21,6 +21,19 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+mail:
+  host: smtp.qq.com
+  username: 3135829696@qq.com # 你的邮箱地址
+  password: ysilpsvyfzqzdfic  # 邮箱授权码（不是登录密码）
+  default-encoding: UTF-8
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+          required: true
+
 mybatis:
   mapper-locations: classpath:com/food/mapper/*.xml
   type-aliases-package: com.food.entity
