@@ -162,10 +162,10 @@ CREATE TABLE IF NOT EXISTS orders (
                                       user_id INT NOT NULL,
                                       order_no VARCHAR(50) UNIQUE NOT NULL, -- 订单号
     total_amount DECIMAL(10,2) NOT NULL,  -- 总金额
-    status VARCHAR(20) DEFAULT 'PENDING', -- 状态：PENDING(待发货), SHIPPED(已发货), COMPLETED(已完成)
-    receiver_name VARCHAR(50),
-    receiver_phone VARCHAR(20),
-    receiver_address VARCHAR(200),
+    status VARCHAR(20) DEFAULT 'PENDING', -- 状态
+    receiver_name VARCHAR(50),            -- 收货人 (预留字段)
+    receiver_phone VARCHAR(20),           -- 电话 (预留字段)
+    receiver_address VARCHAR(200),        -- 地址 (预留字段)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
     );

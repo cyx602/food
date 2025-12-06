@@ -21,7 +21,6 @@ public class AdminController {
     // 权限检查辅助方法
     private boolean isAdmin(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute("currentUser");
-        // 允许用户名为 admin 的账号，或者角色为 admin 的账号
         return user != null && ("admin".equals(user.getUsername()) || "admin".equals(user.getRole()));
     }
 
@@ -193,16 +192,32 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> getAllOrders(@RequestParam(defaultValue = "1") int page,
                                                             @RequestParam(defaultValue = "10") int size,
                                                             HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-
-        int offset = (page - 1) * size;
-        List<Order> list = adminMapper.selectOrdersPage(offset, size);
-        int total = orderMapper.countAllOrders();
-
         Map<String, Object> res = new HashMap<>();
-        res.put("rows", list);
-        res.put("total", total);
-        return ResponseEntity.ok(res);
+
+        if (!isAdmin(request)) {
+            res.put("error", "权限不足");
+            return ResponseEntity.status(403).body(res);
+        }
+
+        try {
+            int offset = (page - 1) * size;
+
+            // 打印日志以便调试
+            System.out.println("正在查询订单列表: offset=" + offset + ", limit=" + size);
+
+            List<Order> list = adminMapper.selectOrdersPage(offset, size);
+            int total = orderMapper.countAllOrders();
+
+            res.put("rows", list);
+            res.put("total", total);
+            return ResponseEntity.ok(res);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // 在服务端控制台打印完整堆栈
+            res.put("error", "查询失败: " + e.getMessage());
+            // 返回 500 状态码，并在 body 中包含错误信息
+            return ResponseEntity.status(500).body(res);
+        }
     }
 
     @PostMapping("/order/status")
@@ -213,9 +228,16 @@ public class AdminController {
     }
 
     @GetMapping("/order/stats")
-    public ResponseEntity<List<Map<String, Object>>> getOrderStats(HttpServletRequest request) {
-        if (!isAdmin(request)) return ResponseEntity.status(403).build();
-        return ResponseEntity.ok(adminMapper.countOrdersByStatus());
+    public ResponseEntity<?> getOrderStats(HttpServletRequest request) {
+        if (!isAdmin(request)) return ResponseEntity.status(403).body(Collections.singletonMap("error", "权限不足"));
+
+        try {
+            List<Map<String, Object>> stats = adminMapper.countOrdersByStatus();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.singletonMap("error", "统计失败: " + e.getMessage()));
+        }
     }
 
     // --- 系统配置 & 公告 ---

@@ -12,6 +12,10 @@ public class Order {
 
     private List<OrderItem> items; // 订单包含的商品列表
 
+    private String receiverName;
+    private String receiverPhone;
+    private String receiverAddress;
+
     // --- 新增字段：用于后台显示下单用户名 ---
     private String userName;
 
@@ -34,4 +38,10 @@ public class Order {
     // 新增字段的 Getter/Setter
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
+    public String getReceiverName() { return receiverName; }
+    public void setReceiverName(String receiverName) { this.receiverName = receiverName; }
+    public String getReceiverPhone() { return receiverPhone; }
+    public void setReceiverPhone(String receiverPhone) { this.receiverPhone = receiverPhone; }
+    public String getReceiverAddress() { return receiverAddress; }
+    public void setReceiverAddress(String receiverAddress) { this.receiverAddress = receiverAddress; }
 }

@@ -286,18 +286,39 @@ async function loadCuisineList(page = 1) {
     } catch(e) {}
 }
 
+// 修改 src/main/resources/static/static/js/admin.js 中的 loadAnnouncements 函数
 async function loadAnnouncements() {
-    const res = await fetch('/api/admin/announcements');
-    const list = await res.json();
-    document.getElementById('announcementList').innerHTML = list.map(a => `
-        <li style="margin-bottom:10px; padding:10px; background:#fffaf0; border:1px solid #f0e6d8; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:bold; color:#664b2e;">${a.title}</span>
-            <span>
-                <span style="font-size:12px; color:#999; margin-right:15px;">${new Date(a.createdAt).toLocaleDateString()}</span>
-                <button onclick="deleteAnn(${a.id})" style="color:#ff6b6b; border:none; background:none; cursor:pointer; font-size:16px;"><i class="fas fa-trash-alt"></i></button>
-            </span>
-        </li>
-    `).join('');
+    try {
+        // 关键修改：添加时间戳防止浏览器缓存
+        const res = await fetch('/api/admin/announcements?t=' + new Date().getTime());
+
+        if (!res.ok) throw new Error("加载失败");
+
+        const list = await res.json();
+        const container = document.getElementById('announcementList');
+
+        if (list.length === 0) {
+            container.innerHTML = '<li style="padding:10px;text-align:center;color:#999;">暂无公告</li>';
+            return;
+        }
+
+        container.innerHTML = list.map(a => `
+            <li style="margin-bottom:10px; padding:10px; background:#fffaf0; border:1px solid #f0e6d8; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold; color:#664b2e;">${a.title}</span>
+                <span>
+                    <span style="font-size:12px; color:#999; margin-right:15px;">
+                        ${new Date(a.createdAt).toLocaleDateString()}
+                    </span>
+                    <button onclick="deleteAnnouncement(${a.id})" style="color:#ff6b6b; border:none; background:none; cursor:pointer; font-size:16px;">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </span>
+            </li>
+        `).join('');
+    } catch (e) {
+        console.error("加载公告出错:", e);
+        document.getElementById('announcementList').innerHTML = '<li style="color:red;text-align:center;">加载失败</li>';
+    }
 }
 
 function openIngredientModal() { document.getElementById('ingredientForm').reset(); document.getElementById('ingId').value = ''; document.getElementById('ingredientModal').style.display = 'flex'; }
@@ -310,5 +331,34 @@ function editCuisine(c) { document.getElementById('cuiId').value=c.id; document.
 async function saveCuisine() { const data = { id: document.getElementById('cuiId').value || null, name: document.getElementById('cuiName').value, code: document.getElementById('cuiCode').value, description: document.getElementById('cuiDesc').value }; await fetch('/api/admin/cuisine/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}); document.getElementById('cuisineModal').style.display = 'none'; loadCuisineList(1); }
 async function deleteCuisine(id) { if(!confirm('删除?')) return; await fetch('/api/admin/cuisine/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); loadCuisineList(1); }
 
-async function publishAnnouncement() { const title = document.getElementById('annTitle').value; const content = document.getElementById('annContent').value; if(!title) return alert('标题不能为空'); await fetch('/api/admin/announcement/publish', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title, content}) }); alert('发布成功'); document.getElementById('annTitle').value=''; document.getElementById('annContent').value=''; loadAnnouncements(); }
+// 修改 src/main/resources/static/static/js/admin.js 中的 publishAnnouncement 函数
+async function publishAnnouncement() {
+    const title = document.getElementById('annTitle').value;
+    const content = document.getElementById('annContent').value;
+
+    if(!title) return alert('标题不能为空');
+
+    try {
+        const res = await fetch('/api/admin/announcement/publish', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, content})
+        });
+
+        // 关键修改：检查服务器返回的状态码
+        if (res.ok) {
+            alert('发布成功');
+            document.getElementById('annTitle').value = '';
+            document.getElementById('annContent').value = '';
+            loadAnnouncements(); // 重新加载列表
+        } else {
+            // 如果失败（如500或403），尝试获取错误信息或直接提示
+            alert('发布失败，请检查后台日志或网络');
+            console.error("发布失败，状态码:", res.status);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('网络请求出错');
+    }
+}
 async function deleteAnn(id) { if(!confirm('删除?')) return; await fetch('/api/admin/announcement/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadAnnouncements(); }

@@ -830,3 +830,76 @@ input::-ms-reveal,
 input::-ms-clear {
     display: none;
 }
+
+/* --- 订单卡片新样式 --- */
+.order-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 15px;
+    border: 1px solid #e0cdb6;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #f7941e;
+}
+
+.order-header {
+    background: #fffaf0;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0e6d8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 订单号样式优化 */
+.order-no {
+    font-size: 18px; /* 字号增加 */
+    font-weight: bold;
+    color: #3e2c1c; /* 颜色加深 */
+    margin-right: 15px;
+    font-family: Arial, sans-serif;
+}
+
+.order-time {
+    font-size: 12px;
+    color: #888;
+}
+
+.order-body {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-summary {
+    color: #666;
+    font-size: 14px;
+}
+
+.order-total {
+    font-size: 20px;
+    color: #f7941e;
+    font-weight: bold;
+}
+
+/* 详情模态框样式 */
+.detail-modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px dashed #eee;
+}
+.detail-item:last-child { border-bottom: none; }

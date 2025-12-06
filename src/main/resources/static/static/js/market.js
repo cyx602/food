@@ -468,19 +468,143 @@ async function removeFromCart(cartId) {
     } catch(e) { alert('删除失败'); }
 }
 
-async function checkout() {
-    if (!confirm('确认下单结算吗？')) return;
+// --- 结算流程逻辑 ---
+
+let selectedAddressData = null; // 暂存选中的地址
+
+// 1. 点击“去结算”按钮
+function checkout() {
+    // 关闭购物车
+    closeCart();
+
+    // 打开地址选择框
+    const addrModal = document.getElementById('addressSelectionModal');
+    if(addrModal) {
+        addrModal.style.display = 'flex';
+        loadSelectableAddresses();
+    } else {
+        alert('页面组件加载失败');
+    }
+}
+
+function closeAddressModal() {
+    document.getElementById('addressSelectionModal').style.display = 'none';
+    // 重新打开购物车，方便用户反悔
+    showCart();
+}
+
+// 加载本地存储的地址
+function loadSelectableAddresses() {
+    const listContainer = document.getElementById('selectableAddressList');
+    const addresses = JSON.parse(localStorage.getItem('userAddresses') || '[]');
+
+    listContainer.innerHTML = '';
+
+    if (addresses.length === 0) {
+        listContainer.innerHTML = '<p style="color:#999; font-size:14px;">暂无常用地址，请在下方填写</p>';
+        return;
+    }
+
+    addresses.forEach((addr, index) => {
+        // 默认选中第一个或默认地址
+        const isChecked = addr.isDefault || index === 0 ? 'checked' : '';
+        const addressText = addr.detail || addr.address || '地址信息不全';
+
+        const div = document.createElement('div');
+        div.style.marginBottom = '10px';
+        div.style.padding = '8px';
+        div.style.border = '1px solid #e0cdb6';
+        div.style.borderRadius = '4px';
+        div.style.backgroundColor = '#fffaf0';
+
+        div.innerHTML = `
+            <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                <input type="radio" name="selectedAddr" value="${index}" ${isChecked} style="margin-top: 5px;">
+                <div style="margin-left: 10px;">
+                    <div style="font-weight: bold; color: #664b2e;">${addr.recipient} <span style="font-weight:normal; color:#666;">(${addr.phone})</span></div>
+                    <div style="font-size: 13px; color: #555;">${addressText}</div>
+                </div>
+            </label>
+        `;
+        listContainer.appendChild(div);
+    });
+}
+
+// 2. 点击“下一步：支付”
+function proceedToPayment() {
+    const addresses = JSON.parse(localStorage.getItem('userAddresses') || '[]');
+    const selectedRadio = document.querySelector('input[name="selectedAddr"]:checked');
+
+    // 优先使用新填写的地址
+    const newName = document.getElementById('newReceiver').value.trim();
+    const newPhone = document.getElementById('newPhone').value.trim();
+    const newAddr = document.getElementById('newAddress').value.trim();
+
+    if (newName && newPhone && newAddr) {
+        selectedAddressData = {
+            receiverName: newName,
+            receiverPhone: newPhone,
+            receiverAddress: newAddr
+        };
+    } else if (selectedRadio) {
+        const index = selectedRadio.value;
+        const addr = addresses[index];
+        selectedAddressData = {
+            receiverName: addr.recipient,
+            receiverPhone: addr.phone,
+            receiverAddress: addr.detail || addr.address
+        };
+    } else {
+        alert('请选择一个地址或填写新收货信息');
+        return;
+    }
+
+    // 关闭地址框，打开支付框
+    document.getElementById('addressSelectionModal').style.display = 'none';
+    document.getElementById('paymentModal').style.display = 'flex';
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    document.getElementById('addressSelectionModal').style.display = 'flex'; // 返回上一步
+}
+
+// 3. 点击“确认支付并下单”
+async function finalSubmitOrder() {
+    if (!selectedAddressData) return alert('地址信息丢失');
+
+    // 模拟支付过程
+    const payMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const btn = document.querySelector('#paymentModal .checkout-btn');
+    btn.disabled = true;
+    btn.innerText = '正在支付...';
+
+    // 模拟延迟
+    await new Promise(r => setTimeout(r, 1000));
+
     try {
-        const res = await fetch('/api/order/checkout', { method: 'POST' });
+        const res = await fetch('/api/order/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(selectedAddressData) // 发送地址信息
+        });
+
         const data = await res.json();
         if (data.success) {
-            alert('下单成功！');
-            closeCart();
-            window.location.href = 'profile.html';
+            alert(`✅ 支付成功！(${payMethod === 'wechat' ? '微信支付' : '支付宝'})\n订单已生成。`);
+            document.getElementById('paymentModal').style.display = 'none';
+            window.location.href = 'profile.html'; // 跳转到订单页
         } else {
             alert(data.message || '结算失败');
+            btn.disabled = false;
+            btn.innerText = '确认支付并下单';
         }
-    } catch (e) { alert('网络错误'); }
+    } catch (e) {
+        console.error(e);
+        alert('网络错误: ' + e.message);
+        btn.disabled = false;
+        btn.innerText = '确认支付并下单';
+    }
 }
 
 function checkLoginStatus() {
