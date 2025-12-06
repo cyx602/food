@@ -29,4 +29,8 @@
         DELETE FROM shopping_list WHERE user_id = #{userId} AND is_bought = TRUE
     </delete>
 
+    <delete id="deleteTodoItems">
+        DELETE FROM shopping_list WHERE user_id = #{userId} AND is_bought = FALSE
+    </delete>
+
 </mapper>

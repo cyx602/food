@@ -37,6 +37,8 @@ public interface AdminMapper {
     void updateOrderStatus(@Param("id") int id, @Param("status") String status);
     List<Map<String, Object>> countOrdersByStatus();
 
+    Announcement selectLatestAnnouncement();
+
     // --- 公告管理 ---
     List<Announcement> selectAllAnnouncements();
     void insertAnnouncement(Announcement announcement);

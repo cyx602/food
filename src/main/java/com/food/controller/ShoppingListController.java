@@ -87,6 +87,15 @@ public class ShoppingListController {
         return ResponseEntity.ok("success");
     }
 
+    @PostMapping("/clear-todo")
+    public ResponseEntity<String> clearTodo(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute("currentUser");
+        if (user == null) return ResponseEntity.status(401).build();
+
+        shoppingListMapper.deleteTodoItems(user.getId());
+        return ResponseEntity.ok("success");
+    }
+
     // 清理已买
     @PostMapping("/clear-bought")
     public ResponseEntity<String> clearBought(HttpServletRequest request) {

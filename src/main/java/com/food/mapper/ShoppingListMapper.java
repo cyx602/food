@@ -22,4 +22,7 @@ public interface ShoppingListMapper {
 
     // 清理已买
     void deleteBoughtItems(int userId);
+
+    // 新增：清理待买
+    void deleteTodoItems(int userId);
 }

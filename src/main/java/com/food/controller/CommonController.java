@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 通用公共接口，供前台页面获取数据
@@ -40,8 +42,29 @@ public class CommonController {
         return ResponseEntity.ok(recipeMapper.selectAllRecipes());
     }
 
+
     @GetMapping("/featured-recipes")
     public ResponseEntity<List<Recipe>> getFeaturedRecipes() {
         return ResponseEntity.ok(recipeMapper.selectRecommendedRecipes());
+    }
+
+
+    @GetMapping("/latest-announcement")
+    public ResponseEntity<Map<String, Object>> getLatestAnnouncement() {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            // 复用 AdminMapper 中的查询
+            com.food.entity.Announcement announcement = adminMapper.selectLatestAnnouncement();
+            if (announcement != null) {
+                res.put("success", true);
+                res.put("data", announcement);
+            } else {
+                res.put("success", false);
+            }
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 }

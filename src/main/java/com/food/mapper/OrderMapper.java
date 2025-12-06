@@ -27,5 +27,8 @@ public interface OrderMapper {
     // 【新增】删除订单
     int deleteOrder(@Param("id") int id, @Param("userId") int userId);
 
-    int updateReceiverInfo(Integer orderId, Integer id, String name, String phone, String address);
-}
+    int updateReceiverInfo(@Param("id") Integer orderId,
+                           @Param("userId") Integer userId,
+                           @Param("name") String name,
+                           @Param("phone") String phone,
+                           @Param("address") String address);}

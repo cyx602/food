@@ -49,6 +49,33 @@ function checkLoginStatus() {
     }
 }
 
+// ... 原有的 checkLoginStatus 等代码 ...
+
+// 页面加载完成后获取公告
+document.addEventListener('DOMContentLoaded', function() {
+    checkLoginStatus(); // 原有逻辑
+    loadLatestAnnouncement(); // 新增逻辑
+});
+
+async function loadLatestAnnouncement() {
+    try {
+        // 使用时间戳防止缓存
+        const res = await fetch('/api/common/latest-announcement?t=' + new Date().getTime());
+        const json = await res.json();
+
+        if (json.success && json.data) {
+            const ann = json.data;
+            document.getElementById('announcementTitle').innerText = ann.title;
+            document.getElementById('announcementContent').innerText = ann.content;
+
+            // 显示弹窗 (flex布局以居中)
+            document.getElementById('announcementModal').style.display = 'flex';
+        }
+    } catch (e) {
+        console.error("获取公告失败", e);
+    }
+}
+
 function showNotLoggedIn(authSection, registerButton) {
     // 恢复默认的登录/注册链接
     authSection.innerHTML = '<a href="register.html">登录/注册</a>';

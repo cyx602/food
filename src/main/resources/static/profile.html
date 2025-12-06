@@ -31,6 +31,8 @@
         .info-item .info-label { color: #664b2e; font-weight: bold; margin-bottom: 5px; }
         .info-item .info-value { color: #666; padding: 8px 12px; background-color: rgba(255,255,255,0.5); border: 1px solid #d9b38c; border-radius: 4px; }
         .section-divider { height: 1px; background-color: #e8d8c3; margin: 30px 0; width: 100%; }
+
+        /* 地址列表样式 */
         .address-list { display: grid; gap: 15px; margin-top: 20px; }
         .address-item { background: rgba(255,255,255,0.8); border: 1px solid #d9b38c; padding: 20px; border-radius: 8px; position: relative; transition: transform 0.2s; }
         .address-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -40,10 +42,15 @@
         .address-text-group { color: #664b2e; font-size: 15px; line-height: 1.6; }
         .address-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
         .address-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
+
+        /* 地址按钮样式 */
         .addr-btn { padding: 5px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; border: 1px solid #d9b38c; background: white; color: #664b2e; transition: all 0.2s; }
         .addr-btn:hover { background-color: #fcefdc; }
         .addr-btn.del { color: #d9534f; border-color: #d9534f; }
         .addr-btn.def { background-color: #f7941e; color: white; border: none; }
+        .addr-btn.edit { color: #2196F3; border-color: #2196F3; } /* 新增：修改按钮样式 */
+        .addr-btn.edit:hover { background-color: #e3f2fd; }
+
         .preferences-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 20px; }
         .preference-card { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; cursor: default; opacity: 0.6; transition: all 0.3s; }
         .preference-card.active { background-color: #f7941e; border-color: #f7941e; color: white; opacity: 1; box-shadow: 0 4px 8px rgba(247, 148, 30, 0.3); }
@@ -60,104 +67,53 @@
         .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         .form-actions { text-align: right; margin-top: 20px; }
 
-        /* --- 【修改点1】订单卡片与详情弹窗样式优化 --- */
-        .order-card {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-            border: 1px solid #e0cdb6;
-            cursor: pointer;
-            transition: all 0.3s;
-            overflow: hidden;
-        }
-        .order-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(247, 148, 30, 0.2);
-            border-color: #f7941e;
-        }
-        .order-header {
-            background: #fffaf0;
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0e6d8;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* 订单号样式：加深、加粗、加大 */
-        .order-no {
-            font-size: 18px;
-            font-weight: 800;
-            color: #3e2c1c;
-            font-family: Arial, sans-serif;
-            display: block; /* 独占一行 */
-            margin-bottom: 5px;
-        }
-
-        /* 时间样式：灰色、变小 */
-        .order-time {
-            font-size: 13px;
-            color: #888;
-            display: block;
-        }
-
-        .order-body {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        /* 订单卡片与详情弹窗样式优化 */
+        .order-card { background: #fff; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); margin-bottom: 20px; border: 1px solid #e0cdb6; cursor: pointer; transition: all 0.3s; overflow: hidden; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(247, 148, 30, 0.2); border-color: #f7941e; }
+        .order-header { background: #fffaf0; padding: 15px 20px; border-bottom: 1px solid #f0e6d8; display: flex; justify-content: space-between; align-items: center; }
+        .order-no { font-size: 18px; font-weight: 800; color: #3e2c1c; font-family: Arial, sans-serif; display: block; margin-bottom: 5px; }
+        .order-time { font-size: 13px; color: #888; display: block; }
+        .order-body { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .order-summary { color: #666; font-size: 15px; }
         .order-total { font-size: 22px; color: #f7941e; font-weight: bold; }
 
-        /* 详情模态框列表样式 */
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px dashed #eee;
-        }
-
-        .modal-footer-actions {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-
-        .action-btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; }
+        .modal-footer-actions { margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px; }
+        .action-btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-edit { background-color: #2196F3; color: white; }
         .btn-edit:hover { background-color: #1976D2; }
-
         .btn-delete { background-color: #ff6b6b; color: white; }
         .btn-delete:hover { background-color: #e65252; }
 
-        /* 模态框内的输入框样式 (修改地址时用) */
-        .edit-input {
-            width: 100%;
-            padding: 6px;
-            border: 1px solid #d9b38c;
-            border-radius: 4px;
-            margin-top: 4px;
-            display: none; /* 默认隐藏 */
-        }
+        .edit-input { width: 100%; padding: 6px; border: 1px solid #d9b38c; border-radius: 4px; margin-top: 4px; display: none; }
         .display-text { display: block; }
         .detail-item:last-child { border-bottom: none; }
         .detail-name { font-weight: bold; color: #555; font-size: 15px; }
         .detail-meta { font-size: 13px; color: #999; margin-top: 4px; }
         .detail-price { color: #f7941e; font-weight: bold; font-size: 16px; }
+
+        /* 美食偏好 & 性别单选框 对齐优化 */
+        .preferences-checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; }
+        .preferences-checkbox-grid label,
+        .radio-label { /* 新增 .radio-label 用于性别单选框 */
+            display: inline-flex; /* 关键：使用 flex 布局 */
+            align-items: center;  /* 关键：垂直居中 */
+            font-weight: normal !important;
+            cursor: pointer;
+            color: #555;
+            font-size: 14px;
+        }
+        .preferences-checkbox-grid input,
+        .radio-label input {
+            width: auto !important;
+            margin-right: 6px;
+            margin-top: 0; /* 消除默认的 top margin */
+        }
+
+        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; }
+        .pagination button { padding: 5px 10px; cursor: pointer; border: 1px solid #ddd; background: white; border-radius: 4px; }
+        .pagination button.active { background: #f7941e; color: white; border-color: #f7941e; }
+        .pagination button:disabled { color: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -200,11 +156,18 @@
             </div>
             <div style="margin-bottom: 8px;">
                 <span style="color:#888; width: 70px; display:inline-block;">收货人：</span>
-                <span id="modalReceiver" style="color:#555;"></span>
+                <span id="modalReceiver" class="display-text" style="color:#555; display:inline;"></span>
+                <input id="editReceiverName" class="edit-input" type="text" placeholder="收货人姓名">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span style="color:#888; width: 70px; display:inline-block;">电话：</span>
+                <span id="modalPhone" class="display-text" style="color:#555; display:inline;"></span>
+                <input id="editReceiverPhone" class="edit-input" type="text" placeholder="联系电话">
             </div>
             <div>
                 <span style="color:#888; width: 70px; display:inline-block;">地址：</span>
-                <span id="modalAddress" style="color:#555;"></span>
+                <span id="modalAddress" class="display-text" style="color:#555; display:inline;"></span>
+                <textarea id="editReceiverAddress" class="edit-input" rows="2" placeholder="详细地址"></textarea>
             </div>
         </div>
 
@@ -217,6 +180,13 @@
             <div>
                 实付总额：<span id="modalTotalAmount" style="font-size: 26px; color: #f7941e; font-weight: bold;"></span>
             </div>
+        </div>
+
+        <div class="modal-footer-actions">
+            <button id="btnStartEdit" class="action-btn btn-edit" onclick="startEditingAddress()">修改地址</button>
+            <button id="btnSaveAddress" class="action-btn btn-edit" onclick="saveOrderAddress()" style="display:none; background-color:#8cc63f;">保存</button>
+            <button id="btnCancelEdit" class="action-btn btn-secondary" onclick="cancelEditingAddress()" style="display:none;">取消</button>
+            <button class="action-btn btn-delete" onclick="deleteCurrentOrder()">删除订单</button>
         </div>
     </div>
 </div>
@@ -262,11 +232,14 @@
             <div class="form-group">
                 <label>性别</label>
                 <div>
-                    <label style="display:inline;"><input type="radio" name="editGender" value="male"> 男</label>
-                    <label style="display:inline;margin-left:10px;"><input type="radio" name="editGender" value="female"> 女</label>
+                    <label class="radio-label"><input type="radio" name="editGender" value="male"> 男</label>
+                    <label class="radio-label" style="margin-left: 15px;"><input type="radio" name="editGender" value="female"> 女</label>
                 </div>
             </div>
-            <div class="form-group"><label>美食偏好</label><div id="editPreferencesList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div></div>
+            <div class="form-group" style="display: block;">
+                <label style="margin-bottom: 8px;">美食偏好</label>
+                <div id="editPreferencesList" class="preferences-checkbox-grid"></div>
+            </div>
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('profileEditModal').style.display='none'">取消</button>
                 <button type="submit" class="btn btn-primary">保存修改</button>
@@ -293,7 +266,6 @@
         checkLoginStatus();
     });
 
-    // ... 保持 checkLoginStatus, loadProfile, renderProfile, renderPreferences ...
     function checkLoginStatus() {
         const user = sessionStorage.getItem('currentUser');
         const authSection = document.getElementById('authSection');
@@ -315,7 +287,6 @@
     }
 
     function renderProfile(user) {
-        // ... 原有 renderProfile 内容，不做逻辑修改，只渲染 HTML ...
         const container = document.getElementById('profileContent');
         container.innerHTML = `
             <div class="profile-layout">
@@ -371,13 +342,13 @@
     }
 
     function renderPreferences(userStyles) {
+        if(!userStyles || userStyles.length === 0) return '<p style="color:#999; grid-column:1/-1; text-align:center;">暂无偏好</p>';
         return ALL_CUISINES.map(c => {
             const isActive = userStyles.includes(c.id);
             return `<div class="preference-card ${isActive ? 'active' : ''}"><div class="preference-icon"><i class="${c.icon}"></i></div><div class="preference-name">${c.name}</div></div>`;
         }).join('');
     }
 
-    // ... 地址管理相关函数 (loadAddresses, openAddressModal, saveAddress 等) 保持不变 ...
     function loadAddresses() {
         const list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
         const container = document.getElementById('addressList');
@@ -387,35 +358,162 @@
             localStorage.setItem('userAddresses', JSON.stringify(list));
         }
         if (list.length === 0) { container.innerHTML = '<p style="color:#999;text-align:center;">暂无地址，请添加</p>'; return; }
+
+        // 【修改点】地址列表渲染中加入“修改”按钮
         container.innerHTML = list.map(addr => `
             <div class="address-item ${addr.isDefault ? 'default' : ''}">
                 <div class="address-top-row"><span class="address-tag">${addr.name} ${addr.isDefault ? '(默认)' : ''}</span></div>
                 <div class="address-text-group"><div class="address-row"><span>${addr.recipient}</span><span>${addr.phone}</span></div><div>${addr.detail || addr.address || ''}</div></div>
-                <div class="address-actions"><button class="addr-btn del" onclick="deleteAddress(${addr.id})">删除</button>${!addr.isDefault ? `<button class="addr-btn def" onclick="setDefaultAddress(${addr.id})">设为默认</button>` : ''}</div>
+                <div class="address-actions">
+                    <button class="addr-btn edit" onclick="editAddress(${addr.id})">修改</button>
+                    <button class="addr-btn del" onclick="deleteAddress(${addr.id})">删除</button>
+                    ${!addr.isDefault ? `<button class="addr-btn def" onclick="setDefaultAddress(${addr.id})">设为默认</button>` : ''}
+                </div>
             </div>`).join('');
     }
-    function openAddressModal() { document.getElementById('addressForm').reset(); document.getElementById('addrId').value=''; document.getElementById('addressModal').style.display='flex'; }
+
+    // 【修改点】打开新增地址弹窗：清空表单
+    function openAddressModal() {
+        document.getElementById('addressForm').reset();
+        document.getElementById('addrId').value='';
+        document.getElementById('addrModalTitle').innerText = '新增地址';
+        document.getElementById('addressModal').style.display='flex';
+    }
+
+    // 【修改点】打开修改地址弹窗：回显数据
+    function editAddress(id) {
+        const list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
+        const addr = list.find(a => a.id === id);
+        if(!addr) return;
+
+        document.getElementById('addrId').value = addr.id;
+        document.getElementById('addrName').value = addr.name;
+        document.getElementById('addrRecipient').value = addr.recipient;
+        document.getElementById('addrPhone').value = addr.phone;
+        document.getElementById('addrDetail').value = addr.detail || addr.address || '';
+
+        document.getElementById('addrModalTitle').innerText = '修改地址';
+        document.getElementById('addressModal').style.display='flex';
+    }
+
     function closeAddressModal() { document.getElementById('addressModal').style.display='none'; }
+
+    // 【修改点】保存地址：区分新增和修改
     function saveAddress(e) {
         e.preventDefault();
-        const newAddr = { id: Date.now(), name: document.getElementById('addrName').value, recipient: document.getElementById('addrRecipient').value, phone: document.getElementById('addrPhone').value, detail: document.getElementById('addrDetail').value, isDefault: false };
-        let list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
-        if(list.length===0) newAddr.isDefault=true;
-        list.push(newAddr); localStorage.setItem('userAddresses', JSON.stringify(list));
-        closeAddressModal(); loadAddresses();
+        const idInput = document.getElementById('addrId').value;
+        const list = JSON.parse(localStorage.getItem('userAddresses') || '[]');
+
+        const newAddrData = {
+            name: document.getElementById('addrName').value,
+            recipient: document.getElementById('addrRecipient').value,
+            phone: document.getElementById('addrPhone').value,
+            detail: document.getElementById('addrDetail').value
+        };
+
+        if (idInput) {
+            // 修改模式
+            const index = list.findIndex(a => a.id == idInput);
+            if(index !== -1) {
+                list[index] = { ...list[index], ...newAddrData };
+            }
+        } else {
+            // 新增模式
+            const newAddr = {
+                id: Date.now(),
+                ...newAddrData,
+                isDefault: list.length === 0
+            };
+            list.push(newAddr);
+        }
+
+        localStorage.setItem('userAddresses', JSON.stringify(list));
+        closeAddressModal();
+        loadAddresses();
     }
+
     function deleteAddress(id) { if(!confirm('删除?')) return; let list=JSON.parse(localStorage.getItem('userAddresses')||'[]'); list=list.filter(a=>a.id!==id); localStorage.setItem('userAddresses', JSON.stringify(list)); loadAddresses(); }
     function setDefaultAddress(id) { let list=JSON.parse(localStorage.getItem('userAddresses')||'[]'); list.forEach(a=>a.isDefault=(a.id===id)); localStorage.setItem('userAddresses', JSON.stringify(list)); loadAddresses(); }
     async function logout() { if(!confirm('退出?')) return; await fetch('/api/logout'); sessionStorage.clear(); window.location.href='login.html'; }
     async function deleteAccount() { if(!confirm('注销?')) return; await fetch('/api/user/delete', {method:'POST'}); sessionStorage.clear(); window.location.href='index.html'; }
-    function openEditProfile() { document.getElementById('profileEditModal').style.display='flex'; }
-    async function saveProfileChanges(e) { e.preventDefault(); /* ... 简化 ... */ alert('功能演示'); document.getElementById('profileEditModal').style.display='none'; }
 
-    // --- 订单管理变量 ---
+    function openEditProfile() {
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!user) return;
+
+        document.getElementById('editUsername').value = user.username || '';
+        document.getElementById('editPhone').value = user.phone || '';
+        document.getElementById('editEmail').value = user.email || '';
+
+        const genderRadios = document.getElementsByName('editGender');
+        for(let r of genderRadios) {
+            r.checked = (r.value === user.gender);
+        }
+
+        const prefContainer = document.getElementById('editPreferencesList');
+        const userStyles = user.styles || [];
+
+        prefContainer.innerHTML = ALL_CUISINES.map(c => {
+            const isChecked = userStyles.includes(c.id) ? 'checked' : '';
+            return `
+                <label>
+                    <input type="checkbox" name="editStyles" value="${c.id}" ${isChecked}>
+                    ${c.name}
+                </label>
+            `;
+        }).join('');
+
+        document.getElementById('profileEditModal').style.display='flex';
+    }
+
+    async function saveProfileChanges(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('editUsername').value.trim();
+        const phone = document.getElementById('editPhone').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+
+        let gender = '';
+        const genderRadios = document.getElementsByName('editGender');
+        for(let r of genderRadios) { if(r.checked) gender = r.value; }
+
+        const selectedStyles = [];
+        const styleBoxes = document.getElementsByName('editStyles');
+        for(let box of styleBoxes) {
+            if(box.checked) selectedStyles.push(box.value);
+        }
+
+        const payload = {
+            username, phone, email, gender,
+            styles: selectedStyles
+        };
+
+        try {
+            const res = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if(data.success) {
+                alert('修改成功');
+                document.getElementById('profileEditModal').style.display='none';
+                loadProfile();
+            } else {
+                alert(data.message || '修改失败');
+            }
+        } catch(err) {
+            console.error(err);
+            alert('网络错误');
+        }
+    }
+
     let currentOrderPage = 1;
     const orderPageSize = 5;
     let currentOrderKeyword = '';
     let currentOrderData = [];
+    let activeOrderId = null;
 
     function searchOrders() {
         currentOrderKeyword = document.getElementById('orderSearchInput').value.trim();
@@ -425,7 +523,6 @@
 
     function loadOrders() {
         const container = document.getElementById('ordersList');
-        const paginationContainer = document.getElementById('orderPagination');
         container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">正在获取订单信息...</p>';
 
         let url = `/api/order/list?page=${currentOrderPage}&size=${orderPageSize}`;
@@ -440,7 +537,7 @@
 
                 if (list.length === 0) {
                     container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">暂无订单</div>`;
-                    paginationContainer.innerHTML = '';
+                    document.getElementById('orderPagination').innerHTML = '';
                     return;
                 }
 
@@ -451,7 +548,6 @@
                     'CANCELLED': { text: '已取消', color: '#999', icon: 'fa-times-circle' }
                 };
 
-                // 【修改点3】更新卡片 HTML，调整顺序和样式
                 container.innerHTML = list.map((o, index) => {
                     const statusInfo = statusMap[o.status] || { text: o.status, color: '#666', icon: 'fa-info-circle' };
                     const dateStr = new Date(o.createdAt).toLocaleString();
@@ -488,31 +584,26 @@
             });
     }
 
-    // 【修改点4】弹窗逻辑完善
     function showOrderDetail(index) {
         const order = currentOrderData[index];
         if(!order) return;
 
         activeOrderId = order.id;
 
-        // 填充基础信息
         document.getElementById('modalOrderNo').innerText = order.orderNo;
         document.getElementById('modalOrderTime').innerText = new Date(order.createdAt).toLocaleString();
 
-        // 填充收货信息 (显示态)
         document.getElementById('modalReceiver').innerText = order.receiverName || '';
         document.getElementById('modalPhone').innerText = order.receiverPhone || '';
         document.getElementById('modalAddress').innerText = order.receiverAddress || '';
 
-        // 填充收货信息 (编辑态预填)
         document.getElementById('editReceiverName').value = order.receiverName || '';
         document.getElementById('editReceiverPhone').value = order.receiverPhone || '';
         document.getElementById('editReceiverAddress').value = order.receiverAddress || '';
 
-        // 金额
         document.getElementById('modalTotalAmount').innerText = '¥' + order.totalAmount.toFixed(2);
+        document.getElementById('modalTotalCount').innerText = order.items ? order.items.length : 0;
 
-        // 渲染商品
         const itemsContainer = document.getElementById('modalItemsList');
         if (order.items && order.items.length > 0) {
             itemsContainer.innerHTML = order.items.map(item => `
@@ -531,27 +622,21 @@
             itemsContainer.innerHTML = '<p style="text-align:center; color:#999;">暂无商品明细</p>';
         }
 
-        // --- 按钮状态控制 ---
-        // 重置为非编辑状态
         cancelEditingAddress();
 
         const btnEdit = document.getElementById('btnStartEdit');
-
-        // 只有 "PENDING" (待发货) 状态允许修改地址
         if (order.status === 'PENDING') {
             btnEdit.style.display = 'inline-block';
         } else {
             btnEdit.style.display = 'none';
         }
 
-        // 显示模态框
         document.getElementById('orderDetailModal').style.display = 'flex';
     }
 
-    // --- 地址修改逻辑 ---
     function startEditingAddress() {
         document.querySelectorAll('.display-text').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.edit-input').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.edit-input').forEach(el => el.style.display = 'inline-block');
 
         document.getElementById('btnStartEdit').style.display = 'none';
         document.getElementById('btnSaveAddress').style.display = 'inline-block';
@@ -559,17 +644,16 @@
     }
 
     function cancelEditingAddress() {
-        document.querySelectorAll('.display-text').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.display-text').forEach(el => el.style.display = 'inline');
         document.querySelectorAll('.edit-input').forEach(el => el.style.display = 'none');
 
-        // 恢复按钮显示逻辑（需要重新检查状态，但在详情页内部可以直接重置）
         document.getElementById('btnSaveAddress').style.display = 'none';
         document.getElementById('btnCancelEdit').style.display = 'none';
-        // 重新显示修改按钮（如果当前订单是 PENDING）- 这里简单处理，依赖 showOrderDetail 的重置
-        const btnEdit = document.getElementById('btnStartEdit');
-        // 检查当前缓存数据的状态
+
         const order = currentOrderData.find(o => o.id === activeOrderId);
-        if(order && order.status === 'PENDING') btnEdit.style.display = 'inline-block';
+        if(order && order.status === 'PENDING') {
+            document.getElementById('btnStartEdit').style.display = 'inline-block';
+        }
     }
 
     async function saveOrderAddress() {
@@ -594,7 +678,7 @@
             if(data.success) {
                 alert('地址修改成功');
                 closeOrderModal();
-                loadOrders(); // 刷新列表
+                loadOrders();
             } else {
                 alert(data.message);
             }
@@ -617,7 +701,7 @@
             if(data.success) {
                 alert('订单已删除');
                 closeOrderModal();
-                loadOrders(); // 刷新列表以移除已删除项
+                loadOrders();
             } else {
                 alert(data.message || '删除失败');
             }
@@ -632,62 +716,48 @@
         activeOrderId = null;
     }
 
-    function closeOrderModal() { document.getElementById('orderDetailModal').style.display = 'none'; }
     window.onclick = function(event) { if (event.target == document.getElementById('orderDetailModal')) closeOrderModal(); }
 
     function renderOrderPagination(total) {
         const container = document.getElementById('orderPagination');
         const totalPages = Math.ceil(total / orderPageSize);
         container.innerHTML = '';
-        if (totalPages <= 1) return;
-
-        const createBtn = (text, page, disabled = false) => {
-            const btn = document.createElement('button');
-            btn.textContent = text;
-            btn.className = page === currentOrderPage ? 'active' : '';
-            btn.disabled = disabled;
-            btn.onclick = () => { currentOrderPage = page; loadOrders(); document.getElementById('ordersSection').scrollIntoView({ behavior: 'smooth' }); };
-            return btn;
-        };
+        if (totalPages <= 0) return;
 
         const firstBtn = document.createElement('button');
         firstBtn.textContent = '首页';
-        firstBtn.disabled = currentPage === 1;
-        firstBtn.onclick = () => { currentPage = 1; updateView(); };
+        firstBtn.disabled = currentOrderPage === 1;
+        firstBtn.onclick = () => { currentOrderPage = 1; loadOrders(); };
         container.appendChild(firstBtn);
 
-        // 上一页
         const prevBtn = document.createElement('button');
         prevBtn.textContent = '上一页';
-        prevBtn.disabled = currentPage === 1;
-        prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; updateView(); } };
+        prevBtn.disabled = currentOrderPage === 1;
+        prevBtn.onclick = () => { if(currentOrderPage > 1) { currentOrderPage--; loadOrders(); } };
         container.appendChild(prevBtn);
 
-        // 页码
-        let startPage = Math.max(1, currentPage - 2);
+        let startPage = Math.max(1, currentOrderPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
         for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
-            btn.className = i === currentPage ? 'active' : '';
+            btn.className = i === currentOrderPage ? 'active' : '';
             btn.textContent = i;
-            btn.onclick = () => { currentPage = i; updateView(); };
+            btn.onclick = () => { currentOrderPage = i; loadOrders(); };
             container.appendChild(btn);
         }
 
-        // 下一页
         const nextBtn = document.createElement('button');
         nextBtn.textContent = '下一页';
-        nextBtn.disabled = currentPage === totalPages;
-        nextBtn.onclick = () => { if(currentPage < totalPages) { currentPage++; updateView(); } };
+        nextBtn.disabled = currentOrderPage === totalPages;
+        nextBtn.onclick = () => { if(currentOrderPage < totalPages) { currentOrderPage++; loadOrders(); } };
         container.appendChild(nextBtn);
 
-        // 末页
         const lastBtn = document.createElement('button');
         lastBtn.textContent = '末页';
-        lastBtn.disabled = currentPage === totalPages;
-        lastBtn.onclick = () => { currentPage = totalPages; updateView(); };
+        lastBtn.disabled = currentOrderPage === totalPages;
+        lastBtn.onclick = () => { currentOrderPage = totalPages; loadOrders(); };
         container.appendChild(lastBtn);
     }
 

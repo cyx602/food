@@ -19,7 +19,6 @@
             color: #664b2e;
             font-family: "楷体", sans-serif;
             font-size: 36px;
-            /* 1. 缩小标题下边距 */
             margin-bottom: 15px;
         }
 
@@ -446,7 +445,10 @@
         </div>
 
         <div class="cart-items" style="max-height: 400px; overflow-y: auto;">
-            <h4 style="margin: 10px 0; color: #664b2e;">待买</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
+                <h4 style="margin: 0; color: #664b2e;">待买</h4>
+                <button onclick="clearTodoList()" style="color: #666; background: #f0f0f0; border:none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">清空待买</button>
+            </div>
             <div id="todoListItems"></div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px;">

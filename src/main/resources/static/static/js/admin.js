@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminAuth();
     setupMenuTabs();
-    loadUserList(1); // 默认加载用户列表，替代原来的仪表盘
     updateAdminInfo();
+    const userMenuBtn = document.querySelector('.menu-item[data-target="users"]');
+    if (userMenuBtn) {
+          userMenuBtn.click();
+    }
 });
 
 // 权限检查
