@@ -35,11 +35,17 @@ function renderDetail(recipe) {
     const authorAvatar = recipe.authorAvatar ? `static/upload/${recipe.authorAvatar}` : 'static/image/default_avatar.jpg';
     const mainImg = recipe.image || 'static/image/default_food.jpg';
 
+    // 处理食材字符串，防止引号破坏 onclick 属性
+    const safeTitle = (recipe.title || '').replace(/'/g, "\\'");
+    const safeIngredients = (recipe.ingredients || '').replace(/`/g, "\\`").replace(/\$/g, "\\$");
+
     container.innerHTML = `
         <div class="recipe-header">
             <img src="${authorAvatar}" class="author-avatar">
             <div>
-                <div style="font-size: 18px; font-weight: bold; color: #664b2e;">${recipe.authorName || '美食达人'}</div>
+                <div style="font-size: 18px; font-weight: bold; color: #664b2e; display: flex; align-items: center; gap: 10px;">
+                    ${recipe.authorName || '美食达人'}
+                </div>
                 <div style="font-size: 14px; color: #888;">发布于 ${new Date(recipe.createdAt).toLocaleDateString()}</div>
             </div>
         </div>
@@ -62,24 +68,32 @@ function renderDetail(recipe) {
         <h3 class="section-title"><i class="fas fa-list-ol"></i> 烹饪步骤</h3>
         <div class="text-content">${recipe.steps || '暂无详细步骤'}</div>
 
-        <button class="view-comment-btn" onclick="openCommentModal()">
+        <div style="display: flex; gap: 15px; margin: 40px auto 20px; max-width: 500px;">
+            <button class="view-comment-btn" style="margin: 0; flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="addToFavorites(${recipe.id})">
+                <i class="fas fa-heart"></i> 收藏食谱
+            </button>
+            <button class="view-comment-btn" style="margin: 0; flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="addRecipeToShoppingList('${safeTitle}', \`${safeIngredients}\`)">
+                <i class="fas fa-clipboard-list"></i> 加入清单
+            </button>
+        </div>
+
+        <button class="view-comment-btn" onclick="openCommentModal()" style="background-color: #8cc63f; max-width: 500px;">
             <i class="fas fa-comments"></i> 查看 / 发表评论
         </button>
     `;
 }
 
-// 模态框控制
+// ... (模态框控制代码保持不变，省略) ...
 function openCommentModal() {
     const modal = document.getElementById('commentModal');
     modal.style.display = 'flex';
-    loadComments(currentRecipeId); // 打开时加载
+    loadComments(currentRecipeId);
 }
 
 function closeCommentModal() {
     document.getElementById('commentModal').style.display = 'none';
 }
 
-// 点击外部关闭
 window.onclick = function(event) {
     const modal = document.getElementById('commentModal');
     if (event.target == modal) {
@@ -100,7 +114,9 @@ function previewImage(input) {
     }
 }
 
+// ... (submitComment 和 loadComments 代码保持不变，省略) ...
 async function submitComment() {
+    // ... 原有逻辑 ...
     const user = sessionStorage.getItem('currentUser');
     if (!user) {
         alert('请先登录');
@@ -153,6 +169,7 @@ async function submitComment() {
 }
 
 async function loadComments(recipeId) {
+    // ... 原有逻辑 ...
     const container = document.getElementById('commentList');
     container.innerHTML = '<p style="text-align:center;color:#999;">加载中...</p>';
 
@@ -188,6 +205,7 @@ async function loadComments(recipeId) {
 }
 
 function checkLoginStatus() {
+    // ... 原有逻辑 ...
     const user = JSON.parse(sessionStorage.getItem('currentUser'));
     const authSection = document.getElementById('authSection');
     if (user && authSection) {
@@ -201,5 +219,78 @@ function checkLoginStatus() {
             </a>
         `;
         authSection.style.background = 'transparent';
+    }
+}
+
+// --- 新增：业务功能函数 ---
+
+function addToFavorites(recipeId) {
+    const isLoggedIn = sessionStorage.getItem('currentUser');
+    if (!isLoggedIn) {
+        alert('请先登录后再收藏食谱！');
+        window.location.href = 'login.html';
+        return;
+    }
+    fetch('/api/recipe/favorite/toggle', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({recipeId: recipeId})
+    }).then(res => res.json())
+        .then(data => alert(data.message || '操作成功'));
+}
+
+async function addRecipeToShoppingList(title, ingredientsStr) {
+    if(!sessionStorage.getItem('currentUser')) {
+        alert('请先登录');
+        window.location.href = 'login.html';
+        return;
+    }
+    if (!ingredientsStr || ingredientsStr.trim() === '') {
+        alert("该食谱暂无详细食材信息，无法自动添加");
+        return;
+    }
+
+    if(!confirm(`确定将《${title}》的食材加入购物清单吗？`)) return;
+
+    const items = ingredientsStr.split(/[\n,，]/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+        .map(s => {
+            const firstSpace = s.indexOf(' ');
+            if (firstSpace > 0) {
+                return { name: s.substring(0, firstSpace), quantity: s.substring(firstSpace + 1).trim() };
+            } else {
+                return { name: s, quantity: '适量' };
+            }
+        });
+
+    if (items.length === 0) return alert('未解析到有效食材');
+
+    try {
+        const res = await fetch('/api/shopping-list/batch-add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(items)
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            try {
+                const json = JSON.parse(text);
+                throw new Error(json.message || "服务器错误");
+            } catch(e) { throw new Error("服务器响应异常 (" + res.status + ")"); }
+        }
+
+        const data = await res.json();
+        if (data.success) {
+            if (confirm('添加成功！是否前往查看清单？')) {
+                window.location.href = 'market.html';
+            }
+        } else {
+            alert(data.message || '添加失败');
+        }
+    } catch(e) {
+        console.error(e);
+        alert('请求失败: ' + e.message);
     }
 }

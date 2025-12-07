@@ -19,6 +19,9 @@
             min-height: 100vh;
             background: transparent !important;
             box-shadow: none !important;
+            /* 新增以下两行，去除背后的模糊框和边框 */
+            backdrop-filter: none !important;
+            border: none !important;
         }
         .admin-sidebar {
             width: 260px;
@@ -285,7 +288,7 @@
         </div>
 
         <div id="settings" class="tab-content">
-            <h3 style="color:#664b2e;">发布新公告</h3>
+            <h3 style="color:#664b2e; margin-bottom: 30px;">发布新公告</h3>
             <div class="form-group"><input type="text" id="annTitle" class="form-input" placeholder="公告标题"></div>
             <div class="form-group"><textarea id="annContent" class="form-input" placeholder="公告内容" rows="3"></textarea></div>
             <div style="text-align: right;">
@@ -333,7 +336,7 @@
         </form>
     </div>
 </div>
-
+<script src="static/js/common_modal.js"></script>
 <script src="static/js/admin.js"></script>
 <script src="static/js/index.js"></script>
 </body>

@@ -261,7 +261,7 @@ function createProductPagination(totalPages) {
 
             const data = await res.json();
             if (data.success) {
-                alert('✅ 已添加到购物车！');
+                showToast('已添加到购物车！');
             } else {
                 alert('添加失败: ' + data.message);
             }

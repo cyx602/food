@@ -58,8 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadLatestAnnouncement() {
+    // 修改点：检查 sessionStorage，如果本次会话已经看过公告，就不再显示
+    if (sessionStorage.getItem('hasSeenAnnouncement')) {
+        return;
+    }
+
     try {
-        // 使用时间戳防止缓存
         const res = await fetch('/api/common/latest-announcement?t=' + new Date().getTime());
         const json = await res.json();
 
@@ -68,8 +72,11 @@ async function loadLatestAnnouncement() {
             document.getElementById('announcementTitle').innerText = ann.title;
             document.getElementById('announcementContent').innerText = ann.content;
 
-            // 显示弹窗 (flex布局以居中)
+            // 显示弹窗
             document.getElementById('announcementModal').style.display = 'flex';
+
+            // 修改点：标记为已读，下次返回首页不再显示
+            sessionStorage.setItem('hasSeenAnnouncement', 'true');
         }
     } catch (e) {
         console.error("获取公告失败", e);

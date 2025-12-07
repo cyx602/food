@@ -540,7 +540,12 @@
     function deleteAddress(id) { if(!confirm('删除?')) return; const key = getAddressKey(); let list = JSON.parse(localStorage.getItem(key)||'[]'); list = list.filter(a=>a.id!==id); localStorage.setItem(key, JSON.stringify(list)); loadAddresses(); }
     function setDefaultAddress(id) { const key = getAddressKey(); let list = JSON.parse(localStorage.getItem(key)||'[]'); list.forEach(a=>a.isDefault=(a.id===id)); localStorage.setItem(key, JSON.stringify(list)); loadAddresses(); }
 
-    async function logout() { if(!confirm('退出?')) return; await fetch('/api/logout'); sessionStorage.clear(); window.location.href='login.html'; }
+    async function logout() { showConfirm('确定要退出登录吗？', async function() {
+        await fetch('/api/logout');
+        sessionStorage.clear();
+        window.location.href='login.html';
+    });
+        await fetch('/api/logout'); sessionStorage.clear(); window.location.href='login.html'; }
     async function deleteAccount() { if(!confirm('注销?')) return; await fetch('/api/user/delete', {method:'POST'}); sessionStorage.clear(); window.location.href='index.html'; }
 
     // --- 修改资料 (含头像上传) ---
@@ -708,7 +713,7 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert('修改成功');
+                showToast('个人信息修改成功');
                 document.getElementById('profileEditModal').style.display='none';
                 loadProfile(); // 刷新页面数据
             } else {
@@ -964,5 +969,6 @@
         container.appendChild(lastBtn);
     }
 </script>
+<script src="static/js/common_modal.js"></script>
 </body>
 </html>

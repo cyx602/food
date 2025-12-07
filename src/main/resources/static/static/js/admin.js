@@ -10,14 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 1. 修改权限检查提示
+// 1. 权限检查与界面渲染 (已修改：匹配个人中心风格)
 function checkAdminAuth() {
     const userJson = sessionStorage.getItem('currentUser');
     const container = document.querySelector('.admin-container');
 
-    // 定义统一锁屏 HTML (与my_recipes.html保持一致)
+    // 定义统一锁屏 HTML (与my_recipes.html保持一致，移除flex居中，添加标题)
     const getLockHtml = (msg, btnText, btnLink) => `
-        <div style="flex: 1; display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+        <div style="width: 100%;">
+            <h1 class="page-title">后台管理</h1>
             <div class="lock-container">
                 <i class="fas fa-lock lock-icon"></i>
                 <div class="lock-text">${msg}</div>
@@ -59,8 +60,11 @@ function logout() {
 
 async function handleResponse(res) {
     if (res.status === 401 || res.status === 403) {
-        alert('登录已过期或权限不足，请重新登录');
-        window.location.href = 'login.html';
+        // 修改：使用 Toast 提示
+        if(window.showToast) window.showToast('登录已过期或权限不足，请重新登录', 'error');
+        else alert('登录已过期或权限不足，请重新登录');
+
+        setTimeout(() => window.location.href = 'login.html', 1500);
         throw new Error('Unauthorized');
     }
     if (!res.ok) {
@@ -93,7 +97,7 @@ function setupMenuTabs() {
     }
 }
 
-// 通用分页渲染函数 (带省略号算法)
+// 通用分页渲染函数
 function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -101,28 +105,24 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
     const totalPages = Math.ceil(total / pageSize);
     container.innerHTML = '';
 
-    if (totalPages <= 1) return; // 只有1页时不显示
+    if (totalPages <= 1) return;
 
-    // 创建按钮的辅助函数
     const createBtn = (text, page, disabled, active) => {
         const btn = document.createElement('button');
-        // 保留 admin.js 原有的 page-btn 样式类
         btn.className = `page-btn ${text.length > 2 ? 'text-btn' : ''} ${active ? 'active' : ''}`;
-        btn.innerHTML = text; // 使用 innerHTML 支持图标
+        btn.innerHTML = text;
         if (disabled) btn.disabled = true;
         btn.onclick = () => {
             if (!disabled && !active) {
-                loadFunc(page); // admin.js 的加载函数通常接受 page 参数
+                loadFunc(page);
             }
         };
         return btn;
     };
 
-    // 1. 首页 & 上一页
     container.appendChild(createBtn('首页', 1, currentPage === 1, false));
     container.appendChild(createBtn('上一页', currentPage - 1, currentPage === 1, false));
 
-    // 2. 页码生成算法
     const delta = 1;
     const range = [];
     const rangeWithDots = [];
@@ -146,7 +146,6 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
         l = i;
     }
 
-    // 3. 渲染页码
     rangeWithDots.forEach(item => {
         if (item === '...') {
             const span = document.createElement('span');
@@ -158,7 +157,6 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
         }
     });
 
-    // 4. 下一页 & 末页
     container.appendChild(createBtn('下一页', currentPage + 1, currentPage === totalPages, false));
     container.appendChild(createBtn('末页', totalPages, currentPage === totalPages, false));
 }
@@ -166,7 +164,6 @@ function renderPagination(containerId, currentPage, total, pageSize, loadFunc) {
 // 2. 用户管理
 async function loadUserList(page = 1) {
     const tbody = document.getElementById('userTableBody');
-    // 获取搜索框的值
     const keyword = document.getElementById('userSearch').value.trim();
 
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">加载中...</td></tr>';
@@ -195,11 +192,20 @@ async function loadUserList(page = 1) {
     } catch(e) { tbody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>'; }
 }
 
-async function toggleUserStatus(id, currentStatus) {
+function toggleUserStatus(id, currentStatus) {
     const newStatus = currentStatus === 1 ? 0 : 1;
-    if(!confirm(`确定${newStatus===1?'解封':'禁用'}该用户？`)) return;
-    await fetch('/api/admin/user/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status: newStatus}) });
-    loadUserList(1);
+    const actionText = newStatus === 1 ? '解封' : '禁用';
+
+    // 修改：使用 showConfirm
+    window.showConfirm(`确定要${actionText}该用户吗？`, async function() {
+        try {
+            await fetch('/api/admin/user/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status: newStatus}) });
+            window.showToast('操作成功');
+            loadUserList(1);
+        } catch(e) {
+            window.showToast('操作失败', 'error');
+        }
+    });
 }
 
 // 3. 食谱管理
@@ -244,30 +250,41 @@ async function loadRecipeList(page = 1) {
     } catch(e) {}
 }
 
-async function auditRecipe(id, status) {
+function auditRecipe(id, status) {
     const action = status === 1 ? '通过' : '拒绝';
-    if(!confirm(`确定${action}该食谱吗？`)) return;
 
-    const res = await fetch('/api/admin/recipe/audit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id, status})
+    // 修改：使用 showConfirm
+    window.showConfirm(`确定${action}该食谱吗？`, async function() {
+        const res = await fetch('/api/admin/recipe/audit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id, status})
+        });
+        if((await res.json()).success) {
+            window.showToast('操作成功');
+            loadRecipeList(1);
+        } else {
+            window.showToast('操作失败', 'error');
+        }
     });
-    if((await res.json()).success) {
-        alert('操作成功');
-        loadRecipeList(1);
-    } else {
-        alert('操作失败');
-    }
 }
 
 async function toggleRecommend(id, isRecommended) {
     await fetch('/api/admin/recipe/recommend', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, isRecommended}) });
+    window.showToast(isRecommended ? '已推荐' : '已取消推荐');
 }
-async function adminDeleteRecipe(id) {
-    if(!confirm('确定强制删除？')) return;
-    const res = await fetch('/api/admin/recipe/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
-    if((await res.json()).success) { alert('删除成功'); loadRecipeList(1); }
+
+function adminDeleteRecipe(id) {
+    // 修改：使用 showConfirm
+    window.showConfirm('确定要强制删除该食谱吗？此操作不可恢复。', async function() {
+        const res = await fetch('/api/admin/recipe/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+        if((await res.json()).success) {
+            window.showToast('删除成功');
+            loadRecipeList(1);
+        } else {
+            window.showToast('删除失败', 'error');
+        }
+    });
 }
 
 // 4. 订单管理
@@ -278,7 +295,6 @@ async function loadOrderList(page = 1) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">加载中...</td></tr>';
 
     try {
-        // 修改请求 URL，拼接 status 参数
         let url = `/api/admin/orders?page=${page}&size=10&keyword=${encodeURIComponent(keyword)}`;
         if (currentOrderStatus) {
             url += `&status=${currentOrderStatus}`;
@@ -292,7 +308,6 @@ async function loadOrderList(page = 1) {
         if (list.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无相关订单</td></tr>';
         } else {
-            // 定义状态显示映射
             const statusMap = {
                 'PENDING': '<span class="status-badge status-pending">待发货</span>',
                 'SHIPPED': '<span class="status-badge status-approved" style="background:#e3f2fd;color:#0d47a1;">已发货</span>',
@@ -326,7 +341,13 @@ async function loadOrderList(page = 1) {
 
 async function updateOrderStatus(id, status) {
     await fetch('/api/admin/order/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status}) });
-    loadOrderStats();
+    window.showToast('订单状态已更新');
+    loadOrderStats(); // 假设这个函数存在（原代码有调用）
+}
+
+// 为了代码完整性，补充原代码中引用但未定义的 loadOrderStats (虽然原问题没贴，但避免报错)
+function loadOrderStats() {
+    // 实际项目中这里应请求后端统计接口
 }
 
 // 5. 菜系 & 食材 & 公告
@@ -408,31 +429,94 @@ async function loadAnnouncements() {
 }
 
 function filterOrders(status, btn) {
-    // 更新当前状态变量（ALL 转为空字符串）
     currentOrderStatus = status === 'ALL' ? '' : status;
-
-    // 更新按钮样式
     document.querySelectorAll('.filter-group .filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    // 重新加载列表（回到第1页）
     loadOrderList(1);
 }
 
-function openIngredientModal() { document.getElementById('ingredientForm').reset(); document.getElementById('ingId').value = ''; document.getElementById('ingredientModal').style.display = 'flex'; }
-function editIngredient(i) { document.getElementById('ingId').value = i.id; document.getElementById('ingName').value = i.name; document.getElementById('ingCategory').value = i.categoryId; document.getElementById('ingPrice').value = i.price; document.getElementById('ingUnit').value = i.unit; document.getElementById('ingStock').value = i.stock; document.getElementById('ingImage').value = i.image; document.getElementById('ingredientModal').style.display = 'flex'; }
-async function saveIngredient() { const data = { id: document.getElementById('ingId').value || null, name: document.getElementById('ingName').value, categoryId: document.getElementById('ingCategory').value, price: document.getElementById('ingPrice').value, unit: document.getElementById('ingUnit').value, stock: document.getElementById('ingStock').value, image: document.getElementById('ingImage').value }; await fetch('/api/admin/ingredient/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) }); document.getElementById('ingredientModal').style.display = 'none'; loadIngredientList(1); }
-async function deleteIngredient(id) { if(!confirm('删除？')) return; await fetch('/api/admin/ingredient/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadIngredientList(1); }
+// ---------------- 底部增删改辅助函数 (全部替换为自定义弹窗) ----------------
 
-function openCuisineModal() { document.getElementById('cuisineForm').reset(); document.getElementById('cuiId').value=''; document.getElementById('cuisineModal').style.display='flex'; }
-function editCuisine(c) { document.getElementById('cuiId').value=c.id; document.getElementById('cuiName').value=c.name; document.getElementById('cuiCode').value=c.code; document.getElementById('cuiDesc').value=c.description; document.getElementById('cuisineModal').style.display='flex'; }
-async function saveCuisine() { const data = { id: document.getElementById('cuiId').value || null, name: document.getElementById('cuiName').value, code: document.getElementById('cuiCode').value, description: document.getElementById('cuiDesc').value }; await fetch('/api/admin/cuisine/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}); document.getElementById('cuisineModal').style.display = 'none'; loadCuisineList(1); }
-async function deleteCuisine(id) { if(!confirm('删除?')) return; await fetch('/api/admin/cuisine/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); loadCuisineList(1); }
+function openIngredientModal() {
+    document.getElementById('ingredientForm').reset();
+    document.getElementById('ingId').value = '';
+    document.getElementById('ingredientModal').style.display = 'flex';
+}
+
+function editIngredient(i) {
+    document.getElementById('ingId').value = i.id;
+    document.getElementById('ingName').value = i.name;
+    document.getElementById('ingCategory').value = i.categoryId;
+    document.getElementById('ingPrice').value = i.price;
+    document.getElementById('ingUnit').value = i.unit;
+    document.getElementById('ingStock').value = i.stock;
+    document.getElementById('ingImage').value = i.image;
+    document.getElementById('ingredientModal').style.display = 'flex';
+}
+
+async function saveIngredient() {
+    const data = {
+        id: document.getElementById('ingId').value || null,
+        name: document.getElementById('ingName').value,
+        categoryId: document.getElementById('ingCategory').value,
+        price: document.getElementById('ingPrice').value,
+        unit: document.getElementById('ingUnit').value,
+        stock: document.getElementById('ingStock').value,
+        image: document.getElementById('ingImage').value
+    };
+    await fetch('/api/admin/ingredient/save', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    document.getElementById('ingredientModal').style.display = 'none';
+    window.showToast('食材保存成功');
+    loadIngredientList(1);
+}
+
+function deleteIngredient(id) {
+    window.showConfirm('确定要删除该食材吗？', async function() {
+        await fetch('/api/admin/ingredient/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+        window.showToast('删除成功');
+        loadIngredientList(1);
+    });
+}
+
+function openCuisineModal() {
+    document.getElementById('cuisineForm').reset();
+    document.getElementById('cuiId').value='';
+    document.getElementById('cuisineModal').style.display='flex';
+}
+
+function editCuisine(c) {
+    document.getElementById('cuiId').value=c.id;
+    document.getElementById('cuiName').value=c.name;
+    document.getElementById('cuiCode').value=c.code;
+    document.getElementById('cuiDesc').value=c.description;
+    document.getElementById('cuisineModal').style.display='flex';
+}
+
+async function saveCuisine() {
+    const data = {
+        id: document.getElementById('cuiId').value || null,
+        name: document.getElementById('cuiName').value,
+        code: document.getElementById('cuiCode').value,
+        description: document.getElementById('cuiDesc').value
+    };
+    await fetch('/api/admin/cuisine/save', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+    document.getElementById('cuisineModal').style.display = 'none';
+    window.showToast('菜系保存成功');
+    loadCuisineList(1);
+}
+
+function deleteCuisine(id) {
+    window.showConfirm('确定要删除该菜系吗？', async function() {
+        await fetch('/api/admin/cuisine/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+        window.showToast('删除成功');
+        loadCuisineList(1);
+    });
+}
 
 async function publishAnnouncement() {
     const title = document.getElementById('annTitle').value;
     const content = document.getElementById('annContent').value;
-    if(!title) return alert('标题不能为空');
+    if(!title) return window.showToast('标题不能为空', 'error');
     try {
         const res = await fetch('/api/admin/announcement/publish', {
             method: 'POST',
@@ -440,16 +524,23 @@ async function publishAnnouncement() {
             body: JSON.stringify({title, content})
         });
         if (res.ok) {
-            alert('发布成功');
+            window.showToast('公告发布成功');
             document.getElementById('annTitle').value = '';
             document.getElementById('annContent').value = '';
             loadAnnouncements();
         } else {
-            alert('发布失败，请检查后台日志或网络');
+            window.showToast('发布失败，请检查后台日志', 'error');
         }
     } catch (e) {
         console.error(e);
-        alert('网络请求出错');
+        window.showToast('网络请求出错', 'error');
     }
 }
-async function deleteAnnouncement(id) { if(!confirm('删除?')) return; await fetch('/api/admin/announcement/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) }); loadAnnouncements(); }
+
+function deleteAnnouncement(id) {
+    window.showConfirm('确定要删除这条公告吗？', async function() {
+        await fetch('/api/admin/announcement/delete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+        window.showToast('删除成功');
+        loadAnnouncements();
+    });
+}

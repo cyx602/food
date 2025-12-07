@@ -57,6 +57,7 @@ body {
     border-radius: 25px !important; /* 圆角按钮 */
     font-weight: bold;
     transition: all 0.3s ease;
+    outline: none; /* 新增：移除点击时的默认黑色轮廓线 */
 }
 
 .btn-primary, #submitBtn, #loginBtn, .add-to-cart {
@@ -293,18 +294,30 @@ body {
     margin-top: 15px;
 }
 
+/* 修改：颜色改为主题橙色 */
 .register-link {
-    color: #ff6b6b;
+    color: #f7941e;
     text-decoration: none;
     font-size: 14px;
     transition: color 0.3s ease;
 }
 
 .register-link:hover {
-    color: #ff4949;
+    color: #e67e22;
     text-decoration: underline;
 }
 
+/* 新增：协议链接样式 */
+.agreement-link {
+    color: #f7941e;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.agreement-link:hover {
+    color: #e67e22;
+    text-decoration: underline;
+}
 .btn {
     padding: 10px 20px;
     border: none;
@@ -950,3 +963,151 @@ input::-ms-clear {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(247, 148, 30, 0.4);
 }
+
+/* --- 模态框通用样式修改 --- */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 遮罩层半透明黑 */
+    z-index: 2000;
+
+    /* 核心：使用 Flexbox 实现完全居中 */
+    display: none; /* 默认隐藏，由 JS 切换为 flex */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    /* 修改：背景色与登录卡片(.common-card-style)一致 */
+    background-color: rgba(245, 230, 210, 0.95);
+
+    /* 边框和圆角也保持一致风格 */
+    border: 1px solid #d9b38c;
+    border-radius: 12px;
+
+    /* 保持原有的内边距和布局 */
+    margin: 0 auto; /* 在 flex 布局下其实不需要这个，但也无妨 */
+    padding: 25px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    /* 确保文字颜色清晰 */
+    color: #333;
+}
+
+/* 确保协议弹窗内部的标题分割线颜色协调 */
+.modal-content h3 {
+    border-bottom: 1px solid #d9b38c !important;
+}
+
+/* --- 1. 自动消失的提示框 (Toast) --- */
+.custom-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.75); /* 深色背景，对比度高 */
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.custom-toast.show {
+    opacity: 1;
+    visibility: visible;
+    top: 45%; /* 轻微上浮动画 */
+}
+
+/* 成功和失败的图标颜色 */
+.toast-icon-success { color: #8cc63f; font-size: 20px; }
+.toast-icon-error { color: #ff6b6b; font-size: 20px; }
+
+/* --- 2. 通用确认框 (Confirm Modal) --- */
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 9998;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-confirm-box {
+    background-color: rgba(245, 230, 210, 0.98); /* 统一的主题米色 */
+    border: 1px solid #d9b38c;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.confirm-title {
+    color: #664b2e;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.confirm-text {
+    color: #666;
+    font-size: 15px;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.confirm-btn {
+    padding: 8px 25px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.confirm-btn-cancel {
+    background-color: #e0e0e0;
+    color: #666;
+}
+.confirm-btn-cancel:hover { background-color: #d0d0d0; }
+
+.confirm-btn-ok {
+    background-color: #f7941e;
+    color: white;
+    box-shadow: 0 2px 8px rgba(247, 148, 30, 0.3);
+}
+.confirm-btn-ok:hover { background-color: #e67e22; transform: translateY(-2px); }
