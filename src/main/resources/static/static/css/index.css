@@ -1,0 +1,58 @@
+/* 首页专属样式：仅补充首页内容区样式，不修改原有色调 */
+.home-banner {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 40px 20px;
+    text-align: center;
+    background-color: rgba(245, 230, 210, 0.9);
+    border-radius: 10px;
+    border: 1px solid #d9b38c;
+}
+.home-banner h1 {
+    color: #664b2e;
+    font-family: "楷体", sans-serif;
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+.home-banner p {
+    color: #664b2e;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+/* 功能卡片区：网格布局，展示核心功能 */
+.home-cards {
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+.home-card {
+    background-color: rgba(245, 230, 210, 0.95);
+    border: 1px solid #d9b38c;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    transition: all 0.3s;
+}
+.home-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: #f7941e;
+}
+.home-card i {
+    font-size: 40px;
+    color: #f7941e;
+    margin-bottom: 15px;
+}
+.home-card h3 {
+    color: #664b2e;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+.home-card p {
+    color: #664b2e;
+    font-size: 14px;
+    line-height: 1.5;
+}

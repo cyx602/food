@@ -42,6 +42,8 @@ body {
     backdrop-filter: blur(5px); /* 毛玻璃效果 */
     margin-top: 30px !important;
     padding: 30px;
+    max-width: 1400px;
+    min-height: 100vh;
 }
 
 /* 针对特定页面的微调 */
@@ -573,47 +575,58 @@ body {
     color: white;
 }
 
+.page-ellipsis {
+    font-weight: bold;
+    color: #f7941e;
+    font-size: 20px;
+    margin: 0 8px;
+    display: inline-block;
+    vertical-align: bottom;
+    line-height: 20px;
+}
 
 /* 分页组件样式 */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    margin: 30px 0;
-}
 
-.pagination button {
-    padding: 8px 15px;
-    border: 1px solid #d9b38c;
-    background-color: white;
-    color: #664b2e;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.3s;
-    font-size: 14px;
-}
-
-.pagination button:hover:not(:disabled) {
-    background-color: rgba(247, 148, 30, 0.1);
-    border-color: #f7941e;
-}
-
-.pagination button.active {
-    background-color: #f7941e;
-    color: white;
-    border-color: #f7941e;
-}
-
-.pagination button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 
 .pagination .ellipsis {
     padding: 8px 10px;
     color: #664b2e;
     font-size: 14px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 5px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+/* 补充按钮样式，防止未定义 */
+.pagination button {
+    padding: 8px 16px;
+    background-color: rgba(245, 230, 210, 0.9);
+    border: 1px solid #d9b38c;
+    border-radius: 4px;
+    color: #664b2e;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+.pagination button:hover:not(:disabled) {
+    background-color: #f7941e;
+    color: white;
+    border-color: #f7941e;
+    transform: translateY(-2px);
+}
+.pagination button.active {
+    background-color: #f7941e;
+    color: white;
+    border-color: #f7941e;
+}
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* 表单样式扩展 */
@@ -1111,3 +1124,29 @@ input::-ms-clear {
     box-shadow: 0 2px 8px rgba(247, 148, 30, 0.3);
 }
 .confirm-btn-ok:hover { background-color: #e67e22; transform: translateY(-2px); }
+
+.page-content {
+    max-width: 1200px;       /* 限制最大宽度，防止在大屏上太宽 */
+    margin: 30px auto;       /* 上下30px间距，左右自动居中(auto) */
+    padding: 30px 20px;      /* 内部留白：上下30px，左右20px */
+
+
+}
+
+/* 统一的页面主标题样式 */
+.page-title {
+    text-align: center;
+    color: #664b2e;
+    font-family: "楷体", sans-serif;
+    font-size: 36px;
+    margin-bottom: 30px;
+}
+
+/* 统一的区块标题样式 */
+.section-title {
+    color: #f7941e;
+    font-size: 20px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #d9b38c;
+    padding-bottom: 5px;
+}

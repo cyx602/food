@@ -1,11 +1,5 @@
 // 确保脚本加载成功的调试日志
 console.log('✅ register.js 加载成功');
-// 在文件顶部添加
-const contextPath = window.location.pathname.split('/')[1] || '';
-const baseUrl = contextPath ? `/${contextPath}` : '';
-
-// 修改默认头像路径
-const defaultAvatar = baseUrl + '/static/image/default_avatar.jpg';
 
 document.addEventListener('DOMContentLoaded', function() {
     // 1. 获取基础路径，兼容不同的部署上下文

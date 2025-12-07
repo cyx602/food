@@ -214,22 +214,6 @@ function showRecipeDetails(recipeId) {
     window.location.href = `recipe_detail.html?id=${recipeId}`;
 }
 
-function checkLoginStatus() {
-    const user = JSON.parse(sessionStorage.getItem('currentUser'));
-    const authSection = document.getElementById('authSection');
-
-    if (user && authSection) {
-        const avatarPath = user.avatarFileName ? 'static/upload/' + user.avatarFileName : 'static/image/default_avatar.jpg';
-        authSection.innerHTML = `
-            <a href="profile.html" style="display: flex; align-items: center; height: 100%; padding: 0 15px;">
-                <img src="${avatarPath}" alt="${user.username}" 
-                     style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);"
-                     onerror="this.src='static/image/default_avatar.jpg'">
-            </a>
-        `;
-        authSection.style.background = 'transparent';
-    }
-}
 
 function addToFavorites(id) {
     if(!sessionStorage.getItem('currentUser')) {

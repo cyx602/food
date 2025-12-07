@@ -1,0 +1,160 @@
+
+
+/* 搜索框容器：左对齐 */
+.search-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.search-input {
+    padding: 10px 15px;
+    border: 1px solid #d9b38c;
+    border-radius: 20px 0 0 20px;
+    width: 250px;
+    outline: none;
+    color: #664b2e;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background-color: #f7941e;
+    color: white;
+    border: 1px solid #f7941e;
+    border-radius: 0 20px 20px 0;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-btn:hover {
+    background-color: #e67e22;
+}
+
+.cuisine-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.cuisine-tab {
+    padding: 12px 25px;
+    background-color: rgba(245, 230, 210, 0.9);
+    border: 1px solid #d9b38c;
+    border-radius: 25px;
+    color: #664b2e;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cuisine-tab.active {
+    background-color: #f7941e;
+    color: white;
+    border-color: #f7941e;
+}
+
+.cuisine-tab:hover {
+    transform: translateY(-2px);
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(320px, 1fr));
+    gap: 25px;
+    margin-bottom: 60px;
+}
+
+@media (max-width: 960px) {
+    .recipes-grid {
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .recipes-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+}
+
+/* 3. 卡片按钮固定底部 CSS 优化 */
+.recipe-card {
+    overflow: hidden;
+    cursor: pointer;
+    display: flex; /* 使用 Flex */
+    flex-direction: column; /* 垂直排列 */
+    height: 100%; /* 占满 Grid 单元格高度 */
+    background-color: rgba(245, 230, 210, 0.95); /* 确保背景色 */
+}
+
+.recipe-image {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px 8px 0 0; /* 仅上边圆角 */
+}
+
+.recipe-info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* 撑开剩余空间 */
+}
+
+.recipe-content {
+    margin-bottom: 15px;
+    flex: 1; /* 内容区撑开，将按钮挤到底部 */
+}
+
+.recipe-title {
+    color: #664b2e;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.recipe-desc {
+    color: #664b2e;
+    font-size: 14px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto; /* 关键：固定到底部 */
+}
+
+.favorite-btn, .add-list-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    flex: 1;
+    justify-content: center;
+    background-color: #f7941e;
+    color: white;
+}
+
+.favorite-btn:hover, .add-list-btn:hover {
+    background-color: #e67e22;
+}
+
+

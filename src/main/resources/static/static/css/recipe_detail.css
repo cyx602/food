@@ -1,0 +1,31 @@
+.detail-container { max-width: 1200px; margin: 40px auto; background: rgba(245, 230, 210, 0.95); padding: 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid #d9b38c; }
+.recipe-header { display: flex; align-items: center; border-bottom: 1px solid #e0cdb6; padding-bottom: 20px; margin-bottom: 30px; }
+.author-avatar { width: 60px; height: 60px; border-radius: 50%; border: 3px solid #fff; margin-right: 15px; object-fit: cover; }
+.recipe-main-img { width: 100%; height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.recipe-title { font-size: 32px; color: #664b2e; font-family: "楷体"; text-align: center; margin-bottom: 10px; }
+.recipe-meta { text-align: center; margin-bottom: 30px; color: #888; }
+.cuisine-tag { background: #f7941e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-left: 10px; }
+.section-title { font-size: 22px; color: #f7941e; margin: 40px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #e0cdb6; }
+.text-content { line-height: 1.8; color: #555; white-space: pre-wrap; font-size: 16px; }
+
+/* 评论模态框样式 */
+.comment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+.comment-modal-content { background: #fff; width: 90%; max-width: 700px; max-height: 85vh; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+.comment-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fffaf0; }
+.comment-body { padding: 20px; overflow-y: auto; flex: 1; }
+.comment-footer { padding: 15px 20px; border-top: 1px solid #eee; background: #fff; }
+
+.comment-item { display: flex; gap: 15px; border-bottom: 1px solid #f0f0f0; padding: 15px 0; }
+.comment-avatar-small { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+.view-comment-btn {
+    display: block; width: 100%; max-width: 300px; margin: 40px auto 0;
+    padding: 12px; background: #f7941e; color: white; border: none; border-radius: 25px;
+    font-size: 16px; cursor: pointer; transition: 0.3s;
+}
+.view-comment-btn:hover { background: #e67e22; transform: translateY(-2px); }
+
+.rating-group { display: flex; flex-direction: row-reverse; justify-content: flex-end; margin-bottom: 10px; }
+.rating-group input { display: none; }
+.rating-group label { color: #ddd; font-size: 24px; cursor: pointer; padding: 0 2px; }
+.rating-group input:checked ~ label, .rating-group label:hover, .rating-group label:hover ~ label { color: #f7941e; }
