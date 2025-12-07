@@ -24,7 +24,7 @@ spring:
   # --- 修正点：将 mail 移到 spring 下面 ---
   mail:
     host: smtp.qq.com
-    username: @qq.com # 你的qq邮箱地址
+    username:  # 你的qq邮箱地址
     password:   # 邮箱授权码
     default-encoding: UTF-8
     properties:

@@ -1,7 +1,7 @@
 // src/main/resources/static/static/js/recipe_detail.js
 
 let currentRecipeId = null;
-
+let myFavoriteIds = [];
 document.addEventListener('DOMContentLoaded', async function () {
     checkLoginStatus();
     const urlParams = new URLSearchParams(window.location.search);
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     if (recipeId) {
         currentRecipeId = parseInt(recipeId);
-        // 并行加载：先获取收藏列表，再渲染详情，确保按钮状态正确
+        // 并行加载：先获取收藏列表，再渲染详情
         await fetchFavoriteIds();
         loadRecipeDetail(recipeId);
     } else {
