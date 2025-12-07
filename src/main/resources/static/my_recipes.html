@@ -281,16 +281,24 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const user = sessionStorage.getItem('currentUser');
+
+        // --- 修改开始：未登录状态处理 ---
         if (!user) {
-            // 未登录提示
+            // 1. 隐藏 Tab 栏和分页
+            document.querySelector('.recipes-tabs').style.display = 'none';
+
+            // 2. 渲染锁屏卡片 (使用统一的样式)
+            document.getElementById('recipesGrid').style.display = 'block'; // 设为 block 以便居中
             document.getElementById('recipesGrid').innerHTML = `
-                <div style="text-align: center; padding: 80px; grid-column: 1/-1;">
-                    <i class="fas fa-lock" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
-                    <h3>请先 <a href="login.html" style="color:#f7941e">登录</a> 以查看您的食谱</h3>
-                </div>`;
-            document.getElementById('recipesGrid').style.display = 'grid'; // 确保显示登录提示
+                <div class="lock-container">
+                    <i class="fas fa-lock lock-icon"></i>
+                    <div class="lock-text">请先登录以查看您的食谱</div>
+                    <a href="login.html" class="lock-btn">立即登录</a>
+                </div>
+            `;
             return;
         }
+
         loadData();
     });
 

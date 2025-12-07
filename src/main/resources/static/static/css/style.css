@@ -903,3 +903,50 @@ input::-ms-clear {
     border-bottom: 1px dashed #eee;
 }
 .detail-item:last-child { border-bottom: none; }
+
+/* --- 统一的未登录锁屏样式 --- */
+.lock-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 60px 20px;
+    background-color: rgba(255, 255, 255, 0.6); /* 半透明背景 */
+    border: 2px dashed #d9b38c; /* 虚线边框 */
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(5px); /* 毛玻璃模糊效果 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.lock-icon {
+    font-size: 60px;
+    color: #8c7b6e; /* 锁图标颜色 */
+    margin-bottom: 25px;
+    display: block;
+}
+
+.lock-text {
+    font-size: 22px;
+    color: #664b2e;
+    font-family: "楷体", "STKaiti", serif; /* 匹配图片字体 */
+    font-weight: bold;
+    margin-bottom: 35px;
+    letter-spacing: 1px;
+}
+
+.lock-btn {
+    display: inline-block;
+    padding: 12px 50px;
+    background: linear-gradient(135deg, #f7941e 0%, #e67e22 100%);
+    color: white;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(247, 148, 30, 0.3);
+    transition: all 0.3s ease;
+}
+
+.lock-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(247, 148, 30, 0.4);
+}

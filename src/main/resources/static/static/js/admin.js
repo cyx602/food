@@ -13,14 +13,31 @@ document.addEventListener('DOMContentLoaded', function() {
 // 1. 修改权限检查提示
 function checkAdminAuth() {
     const userJson = sessionStorage.getItem('currentUser');
+    const container = document.querySelector('.admin-container');
+
+    // 定义统一锁屏 HTML (与my_recipes.html保持一致)
+    const getLockHtml = (msg, btnText, btnLink) => `
+        <div style="flex: 1; display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+            <div class="lock-container">
+                <i class="fas fa-lock lock-icon"></i>
+                <div class="lock-text">${msg}</div>
+                <a href="${btnLink}" class="lock-btn">${btnText}</a>
+            </div>
+        </div>
+    `;
+
+    // 情况 A: 未登录
     if (!userJson) {
-        window.location.href = 'login.html';
+        if(container) container.innerHTML = getLockHtml('请登录管理员账号以访问后台', '立即登录', 'login.html');
         return;
     }
+
+    // 情况 B: 权限不足
     const user = JSON.parse(userJson);
     if (user.username !== 'admin' && user.role !== 'admin') {
-        alert('你没有权限'); // 修改提示语
-        window.location.href = 'index.html';
+        if(container) {
+            container.innerHTML = getLockHtml('当前账号无权访问后台', '切换账号', 'login.html');
+        }
     }
 }
 
