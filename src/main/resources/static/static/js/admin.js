@@ -361,7 +361,7 @@ async function loadIngredientList(page = 1) {
         const list = data.rows || [];
         tbody.innerHTML = list.map(i => `
             <tr>
-                <td><img src="${i.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.src='static/image/default_food.jpg'"></td>
+                <td><img src="${i.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.src='static/image/default_avatar.jpg'"></td>
                 <td>${i.name}</td>
                 <td>${i.categoryId}</td>
                 <td>¥${i.price} / ${i.unit}</td>
