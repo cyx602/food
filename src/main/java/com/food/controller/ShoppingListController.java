@@ -38,7 +38,6 @@ public class ShoppingListController {
         return ResponseEntity.ok("success");
     }
 
-    // 将原来的 batchAdd 方法替换为：
     @PostMapping("/batch-add")
     public ResponseEntity<Map<String, Object>> batchAdd(@RequestBody List<ShoppingItem> items, HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
@@ -53,7 +52,6 @@ public class ShoppingListController {
             if (items != null && !items.isEmpty()) {
                 for (ShoppingItem item : items) {
                     item.setUserId(user.getId());
-                    // 关键修复：防止字段为 null 导致数据库报错
                     if (item.getName() == null) item.setName("未知食材");
                     if (item.getQuantity() == null) item.setQuantity("适量");
                 }
@@ -66,7 +64,7 @@ public class ShoppingListController {
             e.printStackTrace();
             res.put("success", false);
             res.put("message", "添加失败: " + e.getMessage());
-            // 关键修复：返回 JSON 错误而非 500 页面
+            
             return ResponseEntity.status(500).body(res);
         }
     }

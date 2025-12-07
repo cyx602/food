@@ -29,12 +29,10 @@ if (avatarInput) {
 function validateForm() {
     const errorMessages = [];
 
-    // 验证注册码（必填，模拟校验，实际应后端校验）
     if (!regCodeInput.value.trim()) {
         errorMessages.push('注册码不能为空');
-    } else if (regCodeInput.value.trim() !== '88888888') { // 模拟：假设注册码是8个8
-        // 这里仅做前端格式提示，实际由后端校验
-        // errorMessages.push('注册码无效');
+    } else if (regCodeInput.value.trim() !== '88888888') { 
+        
     }
 
     // 验证密码
@@ -76,7 +74,7 @@ function validateForm() {
 
     // 如果有错误，显示错误信息
     if (errorMessages.length > 0) {
-        showToast(errorMessages[0], 'error'); // 只显示第一条错误，避免弹窗刷屏
+        showToast(errorMessages[0], 'error');
         return false;
     }
     return true;

@@ -43,12 +43,13 @@ public class AdminController {
         }
     }
 
-    // 2. 用户管理 (已修改：支持分页)
+    // 2. 用户管理 
     @GetMapping("/users")
-    public ResponseEntity<Map<String, Object>> getUserList(@RequestParam(defaultValue = "1") int page,
-                                                           @RequestParam(defaultValue = "10") int size,
-                                                           @RequestParam(required = false) String keyword, // 新增
-                                                           HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getUserList(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String keyword, 
+         HttpServletRequest request) {
         if (!isAdmin(request)) return ResponseEntity.status(403).build();
 
         int offset = (page - 1) * size;
@@ -69,7 +70,7 @@ public class AdminController {
         return ResponseEntity.ok("更新成功");
     }
 
-    // --- 食材管理 (已修改：支持分页) ---
+    // --- 食材管理 ---
     @GetMapping("/ingredients")
     public ResponseEntity<Map<String, Object>> getIngredients(@RequestParam(defaultValue = "1") int page,
                                                               @RequestParam(defaultValue = "10") int size,
@@ -102,7 +103,7 @@ public class AdminController {
         return ResponseEntity.ok("删除成功");
     }
 
-    // --- 菜系管理 (已修改：支持分页) ---
+    // --- 菜系管理---
     @GetMapping("/cuisines")
     public ResponseEntity<Map<String, Object>> getCuisines(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size,
@@ -135,7 +136,7 @@ public class AdminController {
         return ResponseEntity.ok("删除成功");
     }
 
-    // 3. 食谱管理 (已修改：支持分页)
+    // 3. 食谱管理 
     @GetMapping("/recipes")
     public ResponseEntity<Map<String, Object>> getRecipeList(@RequestParam(defaultValue = "1") int page,
                                                              @RequestParam(defaultValue = "10") int size,
@@ -153,7 +154,6 @@ public class AdminController {
         return ResponseEntity.ok(res);
     }
 
-    // 在 AdminController 类中添加以下方法
 
     // 审核食谱接口
     @PostMapping("/recipe/audit")
@@ -173,7 +173,7 @@ public class AdminController {
     }
 
 
-    // 4. 订单管理 (已修改：支持分页)
+    // 4. 订单管理
     @GetMapping("/orders")
     public ResponseEntity<Map<String, Object>> getAllOrders(@RequestParam(defaultValue = "1") int page,
                                                             @RequestParam(defaultValue = "10") int size,
@@ -181,8 +181,7 @@ public class AdminController {
                                                             @RequestParam(required = false) String status, // 新增参数
                                                             HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
-        // private boolean isAdmin(HttpServletRequest request) 方法假设已存在于类中
-        // if (!isAdmin(request)) ... (保持原有权限检查)
+
 
         int offset = (page - 1) * size;
 
@@ -249,7 +248,6 @@ public class AdminController {
                 return ResponseEntity.badRequest().body(res);
             }
 
-            // 调用无需校验 userId 的删除方法
             recipeMapper.adminDeleteRecipe(recipeId);
 
             res.put("success", true);

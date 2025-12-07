@@ -19,11 +19,6 @@ public class CommentController {
     @Autowired
     private CommentMapper commentMapper;
 
-    /**
-     * 发布评论接口
-     * POST /api/comment/add
-     * Body: { "recipeId": 1, "content": "很好吃！", "rating": 5 }
-     */
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addComment(@RequestBody Comment comment,
                                                           HttpServletRequest request) {
@@ -73,10 +68,6 @@ public class CommentController {
         }
     }
 
-    /**
-     * 获取评论列表接口
-     * GET /api/comment/list?recipeId=1
-     */
     @GetMapping("/list")
     public ResponseEntity<List<Comment>> getComments(@RequestParam("recipeId") Integer recipeId) {
         // 直接返回列表，前端可以通过 status 判断是否成功

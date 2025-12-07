@@ -1,11 +1,9 @@
-// src/main/resources/static/static/js/cuisine.js
 
-// 全局变量
 let recipes = [];
 let currentPage = 1;
 const recipesPerPage = 6;
 let currentCuisine = 'all';
-let myFavoriteIds = []; // 新增：存储已收藏的ID
+let myFavoriteIds = []; 
 
 const cuisineMap = {
     1: 'chinese', 2: 'western', 3: 'japanese', 4: 'korean', 5: 'thai', 6: 'dessert'
@@ -15,13 +13,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     checkLoginStatus();
 
     if (document.querySelector('.cuisine-tabs')) {
-        await fetchFavoriteIds(); // 新增：先获取收藏列表
+        await fetchFavoriteIds(); 
         await loadRecipesFromDB();
         displayRecipes(currentPage);
         generatePagination();
         setupCuisineTabs();
 
-        // 绑定搜索回车
         const searchInput = document.getElementById('recipeSearchInput');
         if (searchInput) {
             searchInput.addEventListener('keypress', function(e) {
@@ -38,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// 新增：获取收藏ID列表
 async function fetchFavoriteIds() {
     const user = sessionStorage.getItem('currentUser');
     if(!user) return;
@@ -108,7 +104,7 @@ function displayRecipes(page) {
         // 判断是否已收藏
         const isFav = myFavoriteIds.includes(r.id);
         const btnText = isFav ? '取消收藏' : '收藏';
-        const btnStyle = isFav ? 'background-color:#999;' : ''; // 可选：已收藏变灰，或保持原样
+        const btnStyle = isFav ? 'background-color:#999;' : ''; 
 
         const div = document.createElement('div');
         div.className = 'recipe-card common-card-style';
@@ -135,7 +131,7 @@ function displayRecipes(page) {
 }
 
 function generatePagination() {
-    // ... (分页代码与之前保持一致，为节省篇幅略去，直接保留原文件逻辑即可) ...
+    
     const container = document.getElementById('paginationContainer');
     if (!container) return;
     container.innerHTML = '';

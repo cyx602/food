@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!email) return showToast('邮箱不能为空！', 'error');
             if (!password) return showToast('密码不能为空！', 'error');
 
-            // --- 记住我逻辑核心部分 ---
             if (rememberMe.checked) {
                 localStorage.setItem('saved_email', email);
                 localStorage.setItem('saved_password', password);
@@ -110,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- 新增：协议弹窗逻辑 ---
+ 
 
     // 打开弹窗并加载文件内容
     function openAgreement(type) {
@@ -133,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
         agreementModal.style.display = 'flex';
 
         // 使用 fetch 请求静态文件内容
-        // 这里假设 docs 文件夹位于 static/docs/ 下，浏览器访问路径为 /docs/xxx.txt
+
         fetch(`docs/${fileName}?t=${new Date().getTime()}`)
             .then(response => {
                 if (!response.ok) {

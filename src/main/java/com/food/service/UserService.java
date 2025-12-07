@@ -1,7 +1,7 @@
 package com.food.service;
 
 import com.food.entity.User;
-import com.food.mapper.UserMapper;
+import com.food.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class UserService {
-
+    @Autowired private CartMapper cartMapper;
+    @Autowired private RecipeMapper recipeMapper;
+    @Autowired private OrderMapper orderMapper;
+    @Autowired private ShoppingListMapper shoppingListMapper;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
@@ -73,6 +76,9 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Integer id) {
+        cartMapper.deleteCartByUserId(id);
+        shoppingListMapper.deleteTodoItems(id);
+        shoppingListMapper.deleteBoughtItems(id);
         userMapper.deleteUserById(id);
     }
 

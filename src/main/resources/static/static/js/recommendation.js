@@ -1,4 +1,4 @@
-// src/main/resources/static/static/js/recommendation.js
+
 
 let myFavoriteIds = []; // 存储收藏ID
 
@@ -78,7 +78,6 @@ function displayFeaturedRecipes(recipes) {
         // 已收藏显示灰色，未收藏显示橙色
         const favStyle = isFav ? 'background-color:#999;' : 'background-color:#f7941e;';
 
-        // 【关键修改】：给收藏按钮添加唯一 ID (id="fav-btn-${recipe.id}")，方便后续局部更新
         let actionButtonsHtml = `
             <button id="fav-btn-${recipe.id}" class="favorite-btn" onclick="event.stopPropagation(); addToFavorites(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; ${favStyle} display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-heart"></i> <span>${favText}</span>
@@ -87,12 +86,6 @@ function displayFeaturedRecipes(recipes) {
                 <i class="fas fa-clipboard-list"></i> 加入清单
             </button>`;
 
-        if (isAdmin) {
-            actionButtonsHtml += `
-                <button class="delete-btn" onclick="event.stopPropagation(); deleteRecipe(${recipe.id})" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; background-color: #dc3545; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-trash"></i> 删除 (管理员)
-                </button>`;
-        }
 
         recipeElement.innerHTML = `
             <img src="${recipe.image}" alt="${recipe.title}" class="recipe-image" onerror="this.src='static/image/default_food.jpg'">
@@ -139,7 +132,6 @@ function getCuisineName(idOrCode) {
     return names[idOrCode] || '特色美食';
 }
 
-// 【核心修改】：局部更新 DOM，绝不调用 loadFeaturedRecipes()
 function addToFavorites(recipeId) {
     const isLoggedIn = sessionStorage.getItem('currentUser');
     if (!isLoggedIn) {
@@ -166,10 +158,10 @@ function addToFavorites(recipeId) {
                 // 2. 直接找到该按钮元素并修改样式和文字，避免页面刷新跳动
                 const btn = document.getElementById(`fav-btn-${recipeId}`);
                 if (btn) {
-                    const span = btn.querySelector('span'); // 获取按钮内的 span 文字标签
+                    const span = btn.querySelector('span'); 
 
                     if (data.status === 'added') {
-                        // 收藏成功 -> 变为“取消收藏”
+                      
                         if(span) span.innerText = '取消收藏';
                         btn.style.backgroundColor = '#999'; // 变灰
                     } else {
@@ -243,21 +235,3 @@ async function addRecipeToShoppingList(title, ingredientsStr) {
 }
 
 
-
-function deleteRecipe(recipeId) {
-    showConfirm('确定要删除这个推荐吗？', function() {
-        fetch('/api/admin/recipe/delete', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id: recipeId})
-        }).then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    loadFeaturedRecipes();
-                    showToast('删除成功');
-                } else {
-                    showToast(data.message || '删除失败', 'error');
-                }
-            });
-    });
-}

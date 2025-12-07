@@ -4,7 +4,6 @@ console.log('✅ register.js 加载成功');
 document.addEventListener('DOMContentLoaded', function() {
     // 1. 获取基础路径，兼容不同的部署上下文
     const pathName = window.location.pathname;
-    // 如果项目部署在根目录，contextPath 为空；如果在子目录（如 /food），则提取之
     const contextPath = pathName.substring(0, pathName.indexOf('/', 1));
     const baseUrl = contextPath === '/static' || contextPath.endsWith('.html') ? '' : contextPath;
 
@@ -51,8 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('avatar', file);
 
             try {
-                // 显示上传中状态（可选）
-                // elements.avatarPreview.style.opacity = 0.5;
 
                 const res = await fetch(uploadUrl, {
                     method: 'POST',
@@ -68,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('✅ 头像上传成功:', currentAvatarFileName);
                 } else {
                     alert('头像上传失败: ' + (data.message || '未知错误'));
-                    // 回退到默认
+                   
                     currentAvatarFileName = 'default_avatar.jpg';
                 }
             } catch (error) {
@@ -94,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 核心需求：两次密码必须一样
+            
             if (pwd !== confirmPwd) {
                 alert('❌ 两次输入的密码不一致，请重新输入！');
                 // 清空确认密码框并聚焦
@@ -110,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return alert('请输入有效的邮箱地址');
             }
 
-            // --- 表单验证 ---
+           
             if (!elements.username.value.trim()) return alert('请输入昵称');
             if (!elements.password.value) return alert('请输入密码');
             if (elements.password.value !== elements.confirmPassword.value) return alert('两次密码不一致');
@@ -129,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (styles.length === 0) return alert('请至少选择一项美食偏好');
 
-            // --- 提交数据 ---
+            
             const userData = {
                 username: elements.username.value.trim(),
                 password: elements.password.value,

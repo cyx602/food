@@ -1,8 +1,25 @@
 
 /* Tab 样式 */
-.recipes-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-.recipes-tab { padding: 12px 25px; background-color: rgba(245, 230, 210, 0.9); border: 1px solid #d9b38c; border-radius: 25px; color: #664b2e; cursor: pointer; transition: all 0.3s; }
-.recipes-tab.active { background-color: #f7941e; color: white; border-color: #f7941e; }
+.recipes-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.recipes-tab {
+    padding: 12px 25px;
+    background-color: rgba(245, 230, 210, 0.9);
+    border: 1px solid #d9b38c;
+    border-radius: 25px;
+    color: #664b2e;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.recipes-tab.active {
+    background-color: #f7941e;
+    color: white;
+    border-color: #f7941e;
+}
 
 /* 网格布局 */
 .recipes-grid {
@@ -10,10 +27,9 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 25px;
     margin-bottom: 40px;
-    min-height: 200px; /* 有内容时保持高度，无内容时由JS隐藏 */
+    min-height: 200px; 
 }
 
-/* 卡片样式 - 统一与 cuisine.html 一致 */
 .recipe-card {
     background-color: rgba(245, 230, 210, 0.95);
     border: 1px solid #d9b38c;
@@ -84,10 +100,20 @@
     gap: 5px;
     transition: background 0.3s;
 }
-.btn-view { background-color: #f7941e; color: white; }
-.btn-view:hover { background-color: #e67e22; }
-.btn-delete { background-color: #ff6b6b; color: white; }
-.btn-delete:hover { background-color: #e65252; }
+.btn-view {
+    background-color: #f7941e;
+    color: white;
+}
+.btn-view:hover {
+    background-color: #e67e22;
+}
+.btn-delete {
+    background-color: #ff6b6b;
+    color: white;
+}
+.btn-delete:hover {
+    background-color: #e65252;
+}
 
 /* 发布新菜卡片专用样式 */
 .add-card {
@@ -115,8 +141,8 @@
     grid-column: 1 / -1;
     background: rgba(255,255,255,0.5);
     border-radius: 10px;
-    margin-top: 0; /* 贴近上方 */
-    cursor: pointer; /* 鼠标手型 */
+    margin-top: 0; 
+    cursor: pointer;
     transition: all 0.3s;
 }
 /* 增加悬停效果提示可点击 */
@@ -127,14 +153,57 @@
 }
 .empty-icon { font-size: 50px; color: #d9b38c; margin-bottom: 15px; }
 
-/* 分页样式 */
+
 
 
 /* 模态框样式 */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
-.modal-content { background: #fff; width: 90%; max-width: 600px; padding: 25px; border-radius: 12px; max-height: 85vh; overflow-y: auto; position: relative; }
-.close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #664b2e; }
-.form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-.form-control:focus { outline: none; border-color: #f7941e; }
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 600px;
+    padding: 25px;
+    border-radius: 12px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+}
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #664b2e;
+}
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.form-control:focus {
+    outline: none;
+    border-color: #f7941e;
+}

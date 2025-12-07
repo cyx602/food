@@ -6,40 +6,37 @@
     font-family: "微软雅黑", "Microsoft YaHei", sans-serif;
 }
 
-/* 全局背景统一设置 - 核心修改 */
 body {
-    /* 使用首页的高清背景图 */
     background-image: url('../image/pexels-goumbik-616401.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
-    background-color: #f5e6d2; /* 图片加载前的背景色 */
+    background-color: #f5e6d2;
     min-height: 100vh;
-    padding-bottom: 70px; /* 底部 footer 留白 */
+    padding-bottom: 70px; 
 }
 
 /* 统一导航栏样式 */
 .navbar {
-    background-color: #c36b1e !important; /* 加深一点，增加对比度 */
+    background-color: #c36b1e !important; 
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
-    position: sticky; /* 导航栏吸顶 */
+    position: sticky;
     top: 0;
     z-index: 1000;
     white-space: nowrap;
-    padding: 10px 30px; /* 增加上下内边距，调整左右内边距 */
-    height: auto; /* 自动高度，由内容决定 */
-    min-height: 55px; /* 设置最小高度，确保足够的宽度 */
+    padding: 10px 30px; 
+    height: auto; 
+    min-height: 55px; 
 }
 
-/* 统一页面容器样式（给所有页面加一个半透明背景，防止文字看不清） */
 .page-container, .admin-container {
-    background-color: rgba(245, 230, 210, 0.95); /* 统一与卡片相同的背景色 */
+    background-color: rgba(245, 230, 210, 0.95);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px); /* 毛玻璃效果 */
+    backdrop-filter: blur(5px);
     margin-top: 30px !important;
     padding: 30px;
     max-width: 1400px;
@@ -59,7 +56,7 @@ body {
     border-radius: 25px !important; /* 圆角按钮 */
     font-weight: bold;
     transition: all 0.3s ease;
-    outline: none; /* 新增：移除点击时的默认黑色轮廓线 */
+    outline: none; 
 }
 
 .btn-primary, #submitBtn, #loginBtn, .add-to-cart {
@@ -113,24 +110,22 @@ body {
 .nav-links a {
     color: white;
     text-decoration: none;
-    padding: 12px 15px; /* 增加上下内边距，让文字离导航栏上下有合适距离 */
+    padding: 12px 15px;
     font-size: 16px;
     transition: all 0.3s;
     border-radius: 4px;
     display: inline-block;
-    line-height: 1.2; /* 确保文字垂直居中 */
+    line-height: 1.2; 
 }
 
 .nav-links a:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* 表单容器样式（关键：加大底部内边距，确保不与footer重叠） */
 .form-container {
     max-width: 600px;
     margin: 50px auto;
     padding: 30px;
-    /* 核心修改：底部内边距设为100px（大于footer高度，预留足够间距） */
     padding-bottom: 100px;
     position: relative;
 }
@@ -142,7 +137,6 @@ body {
     font-weight: 600;
 }
 
-/* 头像样式（带悬停效果） */
 .avatar-group {
     align-items: flex-start;
     padding-top: 10px;
@@ -159,8 +153,8 @@ body {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    overflow: hidden;         /* 让内部 img 被圆形裁剪 */
-    border: 3px solid #d9c0a3;/* 你的主题色可自定 */
+    overflow: hidden;         
+    border: 3px solid #d9c0a3;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -176,7 +170,7 @@ body {
 .avatar-preview img {
     width: 100%;
     height: 100%;
-    object-fit: cover;        /* 关键：铺满且不变形 */
+    object-fit: cover;    
     display: block;
 }
 
@@ -239,49 +233,42 @@ body {
 }
 
 
-/* 水平布局容器：复选框居左，忘记密码居右 */
 .form-row {
   display: flex;
-  align-items: center;   /* 垂直居中 */
-  justify-content: space-between; /* 两端对齐 */
-  margin: 12px 0;        /* 与上下元素的间距 */
+  align-items: center;  
+  justify-content: space-between; 
+  margin: 12px 0;       
 }
 
-/* 复选框与文字的包裹容器 */
 .remember-wrap {
   display: flex;
-  align-items: center;   /* 复选框和文字垂直对齐 */
+  align-items: center;
 }
 
-/* 复选框样式优化（可选：如需更精致效果可自定义，此处保证基础对齐） */
 #rememberMe {
-  margin-right: 6px;     /* 与文字的间距 */
-  vertical-align: middle;/* 防止错位 */
-  cursor: pointer;       /* 鼠标悬浮变手型 */
+  margin-right: 6px;   
+  vertical-align: middle;
+  cursor: pointer;       
 }
 
-/* 忘记密码链接样式：蓝色+下划线，与参考图一致 */
 .forgot-link {
-  color: #007aff;        /* 浅蓝色，贴近设计 */
-  text-decoration: underline; /* 下划线 */
-  font-size: 14px;       /* 稍小字体，突出辅助功能 */
+  color: #007aff;       
+  text-decoration: underline;
+  font-size: 14px;       
 }
 
-/* 协议文字优化（可选：让文字更柔和） */
 .agree-text {
-  font-size: 12px;       /* 小字体 */
-  color: #666;           /* 灰色，降低视觉权重 */
-  margin: 15px 0;        /* 与上下元素的间距 */
+  font-size: 12px;      
+  color: #666;        
+  margin: 15px 0;      
 }
 
-/* 登录按钮优化（可选：全宽按钮，贴近参考图的红色块） */
 .login-btn {
-  width: 100%;           /* 按钮占满容器宽度 */
-  padding: 12px 0;       /* 垂直内边距，让按钮更饱满 */
-  font-size: 16px;       /* 字号适中 */
+  width: 100%;       
+  padding: 12px 0;
+  font-size: 16px;    
 }
 
-/* 按钮区域（对称分布，原始大小） */
 .form-actions {
     display: flex;
     justify-content: center;
@@ -296,7 +283,6 @@ body {
     margin-top: 15px;
 }
 
-/* 修改：颜色改为主题橙色 */
 .register-link {
     color: #f7941e;
     text-decoration: none;
@@ -309,7 +295,6 @@ body {
     text-decoration: underline;
 }
 
-/* 新增：协议链接样式 */
 .agreement-link {
     color: #f7941e;
     cursor: pointer;
@@ -737,7 +722,6 @@ body {
     color: white;
 }
 
-/* --- 评论区美化 --- */
 .comment-form-container {
     background: #fff;
     padding: 20px;
@@ -760,7 +744,7 @@ body {
 /* 星级评分组件 */
 .rating-group {
     display: flex;
-    flex-direction: row-reverse; /* 反向排列以便实现悬停效果 */
+    flex-direction: row-reverse; 
     justify-content: flex-end;
     margin-bottom: 15px;
     gap: 5px;
@@ -885,9 +869,9 @@ input::-ms-clear {
 
 /* 订单号样式优化 */
 .order-no {
-    font-size: 18px; /* 字号增加 */
+    font-size: 18px; 
     font-weight: bold;
-    color: #3e2c1c; /* 颜色加深 */
+    color: #3e2c1c; 
     margin-right: 15px;
     font-family: Arial, sans-serif;
 }
@@ -935,17 +919,17 @@ input::-ms-clear {
     max-width: 600px;
     margin: 60px auto;
     padding: 60px 20px;
-    background-color: rgba(255, 255, 255, 0.6); /* 半透明背景 */
-    border: 2px dashed #d9b38c; /* 虚线边框 */
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px dashed #d9b38c; 
     border-radius: 12px;
     text-align: center;
-    backdrop-filter: blur(5px); /* 毛玻璃模糊效果 */
+    backdrop-filter: blur(5px); 
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .lock-icon {
     font-size: 60px;
-    color: #8c7b6e; /* 锁图标颜色 */
+    color: #8c7b6e; 
     margin-bottom: 25px;
     display: block;
 }
@@ -953,7 +937,7 @@ input::-ms-clear {
 .lock-text {
     font-size: 22px;
     color: #664b2e;
-    font-family: "楷体", "STKaiti", serif; /* 匹配图片字体 */
+    font-family: "楷体", "STKaiti", serif; 
     font-weight: bold;
     margin-bottom: 35px;
     letter-spacing: 1px;
@@ -977,7 +961,6 @@ input::-ms-clear {
     box-shadow: 0 6px 20px rgba(247, 148, 30, 0.4);
 }
 
-/* --- 模态框通用样式修改 --- */
 
 .modal {
     display: none;
@@ -986,25 +969,21 @@ input::-ms-clear {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* 遮罩层半透明黑 */
+    background-color: rgba(0, 0, 0, 0.5); 
     z-index: 2000;
 
-    /* 核心：使用 Flexbox 实现完全居中 */
-    display: none; /* 默认隐藏，由 JS 切换为 flex */
+    display: none;
     justify-content: center;
     align-items: center;
 }
 
 .modal-content {
-    /* 修改：背景色与登录卡片(.common-card-style)一致 */
     background-color: rgba(245, 230, 210, 0.95);
 
-    /* 边框和圆角也保持一致风格 */
     border: 1px solid #d9b38c;
     border-radius: 12px;
 
-    /* 保持原有的内边距和布局 */
-    margin: 0 auto; /* 在 flex 布局下其实不需要这个，但也无妨 */
+    margin: 0 auto;
     padding: 25px;
     width: 90%;
     max-width: 600px;
@@ -1015,18 +994,16 @@ input::-ms-clear {
     color: #333;
 }
 
-/* 确保协议弹窗内部的标题分割线颜色协调 */
 .modal-content h3 {
     border-bottom: 1px solid #d9b38c !important;
 }
 
-/* --- 1. 自动消失的提示框 (Toast) --- */
 .custom-toast {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.75); /* 深色背景，对比度高 */
+    background-color: rgba(0, 0, 0, 0.75);
     color: white;
     padding: 15px 30px;
     border-radius: 8px;
@@ -1044,14 +1021,14 @@ input::-ms-clear {
 .custom-toast.show {
     opacity: 1;
     visibility: visible;
-    top: 45%; /* 轻微上浮动画 */
+    top: 45%; 
 }
 
 /* 成功和失败的图标颜色 */
 .toast-icon-success { color: #8cc63f; font-size: 20px; }
 .toast-icon-error { color: #ff6b6b; font-size: 20px; }
 
-/* --- 2. 通用确认框 (Confirm Modal) --- */
+
 .custom-confirm-overlay {
     position: fixed;
     top: 0;
@@ -1126,10 +1103,9 @@ input::-ms-clear {
 .confirm-btn-ok:hover { background-color: #e67e22; transform: translateY(-2px); }
 
 .page-content {
-    max-width: 1200px;       /* 限制最大宽度，防止在大屏上太宽 */
-    margin: 30px auto;       /* 上下30px间距，左右自动居中(auto) */
-    padding: 30px 20px;      /* 内部留白：上下30px，左右20px */
-
+    max-width: 1200px;     
+    margin: 30px auto;      
+    padding: 30px 20px;    
 
 }
 

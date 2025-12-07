@@ -1,14 +1,7 @@
-/**
- * common.js - 全局通用逻辑
- * 包含：工具函数、导航栏生成、全局弹窗(Toast/Confirm)
- */
 
-// ================= 1. 工具函数 (Utils) =================
-
-// 获取当前页面文件名 (用于导航栏高亮)
 function getCurrentPageName() {
     const path = window.location.pathname;
-    // 如果是根路径，默认认为是 index.html
+    
     if (path === '/' || path === '') return 'index.html';
     return path.substring(path.lastIndexOf('/') + 1);
 }
@@ -19,7 +12,6 @@ function checkLoginStatus() {
     const authSection = document.getElementById('authSection');
     const registerButton = document.getElementById('registerButton'); // 首页 Banner 上的按钮
 
-    // 如果页面还没加载完导航栏，authSection 可能不存在，稍后重试或忽略
     if (!authSection) return;
 
     if (userJson) {
@@ -55,10 +47,8 @@ function checkLoginStatus() {
     }
 }
 
-// ================= 2. 导航栏生成 (Header) =================
 
 function renderNavbar() {
-    // 如果页面已经有导航栏了，就不重复添加
     if (document.querySelector('.navbar')) return;
 
     const currentPage = getCurrentPageName();
@@ -76,8 +66,6 @@ function renderNavbar() {
 
     // 生成菜单项 HTML
     const navLinksHtml = navItems.map(item => {
-        // 简单的高亮逻辑：文件名匹配
-        // 注意：有些页面可能带参数，如 recipe_detail.html?id=1，这里简单匹配文件名即可
         const isActive = (currentPage === item.link) || (currentPage === '' && item.link === 'index.html');
         const activeStyle = isActive ? 'style="background-color: rgba(255,255,255,0.2);"' : '';
         return `<li><a href="${item.link}" ${activeStyle}>${item.name}</a></li>`;
@@ -102,7 +90,7 @@ function renderNavbar() {
     document.body.insertAdjacentHTML('afterbegin', headerHtml);
 }
 
-// ================= 3. 全局弹窗 (Modals) =================
+
 
 function injectGlobalModals() {
     // 防止重复注入
@@ -182,13 +170,11 @@ window.addEventListener('click', function(e) {
     }
 });
 
-// ================= 4. 初始化入口 =================
-
 document.addEventListener('DOMContentLoaded', function() {
     // 1. 先注入 HTML 结构
-    renderNavbar();      // 生成导航栏
-    injectGlobalModals(); // 生成弹窗
+    renderNavbar();     
+    injectGlobalModals(); 
 
     // 2. 执行逻辑
-    checkLoginStatus();   // 检查登录并更新导航栏头像
+    checkLoginStatus();  
 });

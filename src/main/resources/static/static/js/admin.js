@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 1. 权限检查与界面渲染 (已修改：匹配个人中心风格)
+// 1. 权限检查与界面渲染 
 function checkAdminAuth() {
     const userJson = sessionStorage.getItem('currentUser');
     const container = document.querySelector('.admin-container');
 
-    // 定义统一锁屏 HTML (与my_recipes.html保持一致，移除flex居中，添加标题)
+    // 定义统一锁屏 HTML 
     const getLockHtml = (msg, btnText, btnLink) => `
         <div style="width: 100%;">
             <h1 class="page-title">后台管理</h1>
@@ -342,12 +342,11 @@ async function loadOrderList(page = 1) {
 async function updateOrderStatus(id, status) {
     await fetch('/api/admin/order/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id, status}) });
     window.showToast('订单状态已更新');
-    loadOrderStats(); // 假设这个函数存在（原代码有调用）
+    loadOrderStats();
 }
 
-// 为了代码完整性，补充原代码中引用但未定义的 loadOrderStats (虽然原问题没贴，但避免报错)
 function loadOrderStats() {
-    // 实际项目中这里应请求后端统计接口
+    // 实际这里应请求后端统计接口
 }
 
 // 5. 菜系 & 食材 & 公告
@@ -435,7 +434,6 @@ function filterOrders(status, btn) {
     loadOrderList(1);
 }
 
-// ---------------- 底部增删改辅助函数 (全部替换为自定义弹窗) ----------------
 
 function openIngredientModal() {
     document.getElementById('ingredientForm').reset();

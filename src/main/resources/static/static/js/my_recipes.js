@@ -5,7 +5,6 @@ const pageSize = 8;
 document.addEventListener('DOMContentLoaded', function() {
     const user = sessionStorage.getItem('currentUser');
 
-    // --- 修改开始：未登录状态处理 ---
     if (!user) {
         // 1. 隐藏 Tab 栏和分页
         document.querySelector('.recipes-tabs').style.display = 'none';
@@ -174,9 +173,7 @@ function renderPagination(total) {
     container.appendChild(createBtn('首页', 1, currentPage === 1, false));
     container.appendChild(createBtn('上一页', currentPage - 1, currentPage === 1, false));
 
-    // 2. 页码生成算法 (核心修改)
-    // 逻辑：始终显示第1页和最后1页，以及当前页前后的页码
-    const delta = 1; // 当前页前后保留 1 个页码 (例如: 1 ... 4 [5] 6 ... 10)
+    const delta = 1; 
     const range = [];
     const rangeWithDots = [];
     let l;
@@ -190,10 +187,8 @@ function renderPagination(total) {
     for (let i of range) {
         if (l) {
             if (i - l === 2) {
-                // 如果中间只缺一个（例如 1 和 3），直接补上 2，不用省略号
                 rangeWithDots.push(l + 1);
             } else if (i - l !== 1) {
-                // 如果缺多个，插入省略号
                 rangeWithDots.push('...');
             }
         }
@@ -206,7 +201,7 @@ function renderPagination(total) {
         if (item === '...') {
             const span = document.createElement('span');
             span.className = 'page-ellipsis';
-            span.innerText = '...'; // 使用 span 显示更明显的省略号
+            span.innerText = '...'; 
             container.appendChild(span);
         } else {
             container.appendChild(createBtn(item, item, false, item === currentPage));

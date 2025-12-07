@@ -23,13 +23,12 @@ function checkLoginStatus() {
 
     // 顶部导航栏处理
     if (user && authSection) {
-        authSection.style.display = 'none'; // 隐藏登录注册按钮，显示头像在 index.js 中处理
+        authSection.style.display = 'none';
     }
 
     if (user) {
         loadProfile();
     } else {
-        // --- 核心修改：渲染锁屏样式 ---
         document.getElementById('profileContent').innerHTML = `
                 <div class="lock-container">
                     <i class="fas fa-lock lock-icon"></i>
@@ -124,7 +123,6 @@ function renderPreferences(userStyles) {
     }).join('');
 }
 
-// --- 收货地址相关逻辑 ---
 let currentAddressPage = 1;
 const addressPageSize = 3;
 
@@ -207,7 +205,7 @@ function renderAddressPagination(totalPages) {
     container.appendChild(nextBtn);
 }
 
-// 地址增删改查函数 (保持之前逻辑，略)
+
 function openAddressModal() {
     document.getElementById('addressForm').reset();
     document.getElementById('addrId').value='';
@@ -281,7 +279,7 @@ async function deleteAccount() {
     });
 }
 
-// --- 修改资料 (含头像上传) ---
+
 function openEditProfile() {
     const user = JSON.parse(sessionStorage.getItem('currentUser'));
     if (!user) return;
@@ -458,7 +456,6 @@ async function saveProfileChanges(e) {
     }
 }
 
-// ... 订单相关代码 (保持不变) ...
 let currentOrderPage = 1;
 const orderPageSize = 5;
 let currentOrderKeyword = '';
@@ -646,7 +643,6 @@ function closeOrderModal() {
     activeOrderId = null;
 }
 
-// --- 修改后：处理页面上所有模态框的点击外部关闭事件 ---
 window.onclick = function(event) {
     // 1. 订单详情弹窗
     const orderModal = document.getElementById('orderDetailModal');

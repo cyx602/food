@@ -1,7 +1,4 @@
 
-// src/main/resources/static/static/js/market.js
-
-// 全局变量
         let products = [];
     let currentPage = 1;
     const productsPerPage = 8;
@@ -28,6 +25,7 @@
         displayCategories();
         await loadProductsFromDB();
         checkLoginStatus();
+        setupAddressInputSync();
 
         // 绑定搜索回车
         const searchInput = document.getElementById('productSearchInput');
@@ -271,6 +269,32 @@ async function addToCart(productId) {
     }
 }
 
+function setupAddressInputSync() {
+    const newReceiver = document.getElementById('newReceiver');
+    const newPhone = document.getElementById('newPhone');
+    const newAddress = document.getElementById('newAddress');
+
+    const uncheckRadios = () => {
+        // 1. 查找所有 name="selectedAddr" 的单选按钮（即“选择已有地址”）
+        const radioButtons = document.querySelectorAll('input[name="selectedAddr"]');
+        // 2. 将它们全部设置为未选中状态
+        radioButtons.forEach(radio => radio.checked = false);
+    };
+
+    // 3. 定义输入事件处理函数
+    const syncInput = (event) => {
+        // 只有当输入框中有实际内容时才触发取消选中
+        if (event.target.value.trim().length > 0) {
+            uncheckRadios();
+        }
+    };
+
+    // 4. 绑定事件监听器到三个新地址输入框
+    if (newReceiver) newReceiver.addEventListener('input', syncInput);
+    if (newPhone) newPhone.addEventListener('input', syncInput);
+    if (newAddress) newAddress.addEventListener('input', syncInput);
+}
+
     async function showCart() {
         const modal = document.getElementById('cartModal');
         const cartItemsDiv = document.getElementById('cartItems');
@@ -445,7 +469,6 @@ async function addToCart(productId) {
         });
     }
 
-// 修改点：新增清空待买
     async function clearTodoList() {
         showConfirm('确定清空所有待买物品吗？', async function() {
             await fetch('/api/shopping-list/clear-todo', { method: 'POST' });
@@ -472,9 +495,9 @@ async function addToCart(productId) {
         });
     }
 
-// --- 结算流程逻辑 ---
 
-    let selectedAddressData = null; // 暂存选中的地址
+
+    let selectedAddressData = null; 
 
 // 1. 点击“去结算”按钮
     function checkout() {
@@ -510,7 +533,7 @@ async function addToCart(productId) {
         }
 
         addresses.forEach((addr, index) => {
-            // 默认选中第一个或默认地址
+
             const isChecked = addr.isDefault || index === 0 ? 'checked' : '';
             const addressText = addr.detail || addr.address || '地址信息不全';
 

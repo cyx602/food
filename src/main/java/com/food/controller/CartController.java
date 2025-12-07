@@ -28,7 +28,7 @@ public class CartController {
         return ResponseEntity.ok(cartMapper.selectCartByUserId(user.getId()));
     }
 
-    // 添加商品 (修复逻辑)
+    // 添加商品
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addToCart(@RequestBody Map<String, Object> body, HttpSession session) {
         Map<String, Object> res = new HashMap<>();
@@ -41,13 +41,13 @@ public class CartController {
         }
 
         try {
-            // 增强健壮性：防止前端传空值导致 NullPointerException
+            
             if (body.get("ingredientId") == null) {
                 throw new IllegalArgumentException("商品ID不能为空");
             }
 
             Integer ingredientId = Integer.parseInt(body.get("ingredientId").toString());
-            // 默认为 1
+           
             Integer quantity = body.get("quantity") != null ? Integer.parseInt(body.get("quantity").toString()) : 1;
 
             CartItem existing = cartMapper.selectByUserAndIngredient(user.getId(), ingredientId);

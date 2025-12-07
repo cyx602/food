@@ -1,4 +1,4 @@
-// src/main/resources/static/static/js/recipe_detail.js
+
 
 let currentRecipeId = null;
 let myFavoriteIds = [];
@@ -98,7 +98,6 @@ function renderDetail(recipe) {
     `;
 }
 
-// ... (模态框控制代码保持不变，省略) ...
 function openCommentModal() {
     const modal = document.getElementById('commentModal');
     modal.style.display = 'flex';
@@ -129,7 +128,6 @@ function previewImage(input) {
     }
 }
 
-// ... (submitComment 和 loadComments 代码保持不变，省略) ...
 async function submitComment() {
     const user = sessionStorage.getItem('currentUser');
     if (!user) {
@@ -216,7 +214,7 @@ async function loadComments(recipeId) {
 }
 
 
-// --- 新增：业务功能函数 ---
+
 
 function addToFavorites(recipeId) {
     const isLoggedIn = sessionStorage.getItem('currentUser');
