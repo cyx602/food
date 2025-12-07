@@ -76,10 +76,9 @@ function validateForm() {
 
     // 如果有错误，显示错误信息
     if (errorMessages.length > 0) {
-        alert(errorMessages.join('\n'));
+        showToast(errorMessages[0], 'error'); // 只显示第一条错误，避免弹窗刷屏
         return false;
     }
-
     return true;
 }
 
@@ -123,10 +122,10 @@ if (submitBtn) {
             const data = await res.json();
 
             if (data.success) {
-                alert('注册成功！请登录。');
-                window.location.href = 'login.html';
+                showToast('注册成功！请登录。');
+                setTimeout(() => window.location.href = 'login.html', 1500);
             } else {
-                alert(data.message || '注册失败');
+                showToast(data.message || '注册失败', 'error');
             }
         } catch (e) {
             alert('网络错误，请稍后重试');

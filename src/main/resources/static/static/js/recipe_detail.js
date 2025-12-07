@@ -2,19 +2,30 @@
 
 let currentRecipeId = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function () {
     checkLoginStatus();
     const urlParams = new URLSearchParams(window.location.search);
     const recipeId = urlParams.get('id');
 
     if (recipeId) {
-        currentRecipeId = recipeId;
+        currentRecipeId = parseInt(recipeId);
+        // 并行加载：先获取收藏列表，再渲染详情，确保按钮状态正确
+        await fetchFavoriteIds();
         loadRecipeDetail(recipeId);
     } else {
         document.getElementById('recipeContainer').innerHTML = '<p style="text-align:center; color:red;">参数错误：未找到食谱ID</p>';
     }
 });
-
+async function fetchFavoriteIds() {
+    const user = sessionStorage.getItem('currentUser');
+    if(!user) return;
+    try {
+        const res = await fetch('/api/recipe/favorites/ids');
+        if(res.ok) {
+            myFavoriteIds = await res.json();
+        }
+    } catch(e) { console.error("获取收藏列表失败", e); }
+}
 const cuisineMap = {
     1: '中餐', 2: '西餐', 3: '日料', 4: '韩式', 5: '泰式', 6: '甜点'
 };
@@ -35,9 +46,13 @@ function renderDetail(recipe) {
     const authorAvatar = recipe.authorAvatar ? `static/upload/${recipe.authorAvatar}` : 'static/image/default_avatar.jpg';
     const mainImg = recipe.image || 'static/image/default_food.jpg';
 
-    // 处理食材字符串，防止引号破坏 onclick 属性
     const safeTitle = (recipe.title || '').replace(/'/g, "\\'");
     const safeIngredients = (recipe.ingredients || '').replace(/`/g, "\\`").replace(/\$/g, "\\$");
+
+    // 判断收藏状态
+    const isFav = myFavoriteIds.includes(recipe.id);
+    const favText = isFav ? '取消收藏' : '收藏食谱';
+    const favStyle = isFav ? 'background-color:#999;' : 'background-color:#f7941e;'; // 已收藏变灰
 
     container.innerHTML = `
         <div class="recipe-header">
@@ -69,8 +84,8 @@ function renderDetail(recipe) {
         <div class="text-content">${recipe.steps || '暂无详细步骤'}</div>
 
         <div style="display: flex; gap: 15px; margin: 40px auto 20px; max-width: 500px;">
-            <button class="view-comment-btn" style="margin: 0; flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="addToFavorites(${recipe.id})">
-                <i class="fas fa-heart"></i> 收藏食谱
+            <button id="btnFavorite" class="view-comment-btn" style="margin: 0; flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; ${favStyle}" onclick="addToFavorites(${recipe.id})">
+                <i class="fas fa-heart"></i> <span>${favText}</span>
             </button>
             <button class="view-comment-btn" style="margin: 0; flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="addRecipeToShoppingList('${safeTitle}', \`${safeIngredients}\`)">
                 <i class="fas fa-clipboard-list"></i> 加入清单
@@ -116,11 +131,10 @@ function previewImage(input) {
 
 // ... (submitComment 和 loadComments 代码保持不变，省略) ...
 async function submitComment() {
-    // ... 原有逻辑 ...
     const user = sessionStorage.getItem('currentUser');
     if (!user) {
-        alert('请先登录');
-        window.location.href = 'login.html';
+        showToast('请先登录', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1000);
         return;
     }
 
@@ -128,10 +142,9 @@ async function submitComment() {
     const rating = document.querySelector('input[name="rating"]:checked').value;
     const fileInput = document.getElementById('commentFile');
 
-    if (!content.trim()) return alert('请输入评论内容');
+    if (!content.trim()) return showToast('请输入评论内容', 'error');
 
     let imagePath = null;
-    // 上传图片逻辑
     if (fileInput.files.length > 0) {
         const formData = new FormData();
         formData.append('avatar', fileInput.files[0]);
@@ -142,7 +155,6 @@ async function submitComment() {
         } catch (e) { console.error('图片上传失败', e); }
     }
 
-    // 提交评论
     try {
         const res = await fetch('/api/comment/add', {
             method: 'POST',
@@ -156,20 +168,19 @@ async function submitComment() {
         });
         const data = await res.json();
         if (data.success) {
-            alert('评论成功！');
+            showToast('评论成功！');
             document.getElementById('commentContent').value = '';
             document.getElementById('commentFile').value = '';
             document.getElementById('imgPreview').style.display = 'none';
             document.getElementById('fileName').innerText = '';
-            loadComments(currentRecipeId); // 刷新列表
+            loadComments(currentRecipeId);
         } else {
-            alert(data.message);
+            showToast(data.message, 'error');
         }
-    } catch (e) { alert('网络错误'); }
+    } catch (e) { showToast('网络错误', 'error'); }
 }
 
 async function loadComments(recipeId) {
-    // ... 原有逻辑 ...
     const container = document.getElementById('commentList');
     container.innerHTML = '<p style="text-align:center;color:#999;">加载中...</p>';
 
@@ -205,7 +216,6 @@ async function loadComments(recipeId) {
 }
 
 function checkLoginStatus() {
-    // ... 原有逻辑 ...
     const user = JSON.parse(sessionStorage.getItem('currentUser'));
     const authSection = document.getElementById('authSection');
     if (user && authSection) {
@@ -227,8 +237,8 @@ function checkLoginStatus() {
 function addToFavorites(recipeId) {
     const isLoggedIn = sessionStorage.getItem('currentUser');
     if (!isLoggedIn) {
-        alert('请先登录后再收藏食谱！');
-        window.location.href = 'login.html';
+        showToast('请先登录后再收藏食谱！', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1000);
         return;
     }
     fetch('/api/recipe/favorite/toggle', {
@@ -236,61 +246,72 @@ function addToFavorites(recipeId) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({recipeId: recipeId})
     }).then(res => res.json())
-        .then(data => alert(data.message || '操作成功'));
+        .then(data => {
+            showToast(data.message || '操作成功', data.success ? 'success' : 'error');
+
+            if (data.success) {
+                const btn = document.getElementById('btnFavorite');
+                const span = btn.querySelector('span');
+
+                if (data.status === 'added') {
+                    span.innerText = '取消收藏';
+                    btn.style.backgroundColor = '#999';
+                    myFavoriteIds.push(recipeId); // 更新本地缓存
+                } else {
+                    span.innerText = '收藏食谱';
+                    btn.style.backgroundColor = '#f7941e';
+                    myFavoriteIds = myFavoriteIds.filter(id => id !== recipeId);
+                }
+            }
+        })
+        .catch(() => showToast('网络错误', 'error'));
 }
 
 async function addRecipeToShoppingList(title, ingredientsStr) {
     if(!sessionStorage.getItem('currentUser')) {
-        alert('请先登录');
-        window.location.href = 'login.html';
+        showToast('请先登录', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1000);
         return;
     }
+
     if (!ingredientsStr || ingredientsStr.trim() === '') {
-        alert("该食谱暂无详细食材信息，无法自动添加");
+        showToast("该食谱暂无详细食材信息，无法自动添加", 'error');
         return;
     }
 
-    if(!confirm(`确定将《${title}》的食材加入购物清单吗？`)) return;
+    showConfirm(`确定将《${title}》的食材加入购物清单吗？`, async function() {
+        const items = ingredientsStr.split(/[\n,，]/)
+            .map(s => s.trim())
+            .filter(s => s.length > 0)
+            .map(s => {
+                const firstSpace = s.indexOf(' ');
+                if (firstSpace > 0) {
+                    return { name: s.substring(0, firstSpace), quantity: s.substring(firstSpace + 1).trim() };
+                } else {
+                    return { name: s, quantity: '适量' };
+                }
+            });
 
-    const items = ingredientsStr.split(/[\n,，]/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0)
-        .map(s => {
-            const firstSpace = s.indexOf(' ');
-            if (firstSpace > 0) {
-                return { name: s.substring(0, firstSpace), quantity: s.substring(firstSpace + 1).trim() };
+        if (items.length === 0) return showToast('未解析到有效食材', 'error');
+
+        try {
+            const res = await fetch('/api/shopping-list/batch-add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(items)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showConfirm('添加成功！是否前往查看清单？', function() {
+                    window.location.href = 'market.html';
+                });
             } else {
-                return { name: s, quantity: '适量' };
+                showToast(data.message || '添加失败', 'error');
             }
-        });
-
-    if (items.length === 0) return alert('未解析到有效食材');
-
-    try {
-        const res = await fetch('/api/shopping-list/batch-add', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(items)
-        });
-
-        if (!res.ok) {
-            const text = await res.text();
-            try {
-                const json = JSON.parse(text);
-                throw new Error(json.message || "服务器错误");
-            } catch(e) { throw new Error("服务器响应异常 (" + res.status + ")"); }
+        } catch(e) {
+            console.error(e);
+            showToast('请求失败: ' + e.message, 'error');
         }
-
-        const data = await res.json();
-        if (data.success) {
-            if (confirm('添加成功！是否前往查看清单？')) {
-                window.location.href = 'market.html';
-            }
-        } else {
-            alert(data.message || '添加失败');
-        }
-    } catch(e) {
-        console.error(e);
-        alert('请求失败: ' + e.message);
-    }
+    });
 }

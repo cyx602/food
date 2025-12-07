@@ -5,6 +5,7 @@ let recipes = [];
 let currentPage = 1;
 const recipesPerPage = 6;
 let currentCuisine = 'all';
+let myFavoriteIds = []; // 新增：存储已收藏的ID
 
 const cuisineMap = {
     1: 'chinese', 2: 'western', 3: 'japanese', 4: 'korean', 5: 'thai', 6: 'dessert'
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     checkLoginStatus();
 
     if (document.querySelector('.cuisine-tabs')) {
+        await fetchFavoriteIds(); // 新增：先获取收藏列表
         await loadRecipesFromDB();
         displayRecipes(currentPage);
         generatePagination();
@@ -35,6 +37,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 });
+
+// 新增：获取收藏ID列表
+async function fetchFavoriteIds() {
+    const user = sessionStorage.getItem('currentUser');
+    if(!user) return;
+    try {
+        const res = await fetch('/api/recipe/favorites/ids');
+        if(res.ok) {
+            myFavoriteIds = await res.json();
+        }
+    } catch(e) { console.error("获取收藏列表失败", e); }
+}
 
 function setupCuisineTabs() {
     document.querySelectorAll('.cuisine-tab').forEach(tab => {
@@ -91,6 +105,11 @@ function displayRecipes(page) {
     const current = filtered.slice(start, start + recipesPerPage);
 
     current.forEach(r => {
+        // 判断是否已收藏
+        const isFav = myFavoriteIds.includes(r.id);
+        const btnText = isFav ? '取消收藏' : '收藏';
+        const btnStyle = isFav ? 'background-color:#999;' : ''; // 可选：已收藏变灰，或保持原样
+
         const div = document.createElement('div');
         div.className = 'recipe-card common-card-style';
         div.innerHTML = `
@@ -101,8 +120,8 @@ function displayRecipes(page) {
                     <p class="recipe-desc">${r.description || '暂无描述'}</p>
                 </div>
                 <div class="recipe-actions">
-                    <button class="favorite-btn" onclick="event.stopPropagation(); addToFavorites(${r.id})">
-                        <i class="fas fa-heart"></i> 收藏
+                    <button class="favorite-btn" style="${btnStyle}" onclick="event.stopPropagation(); addToFavorites(${r.id})">
+                        <i class="fas fa-heart"></i> ${btnText}
                     </button>
                     <button class="add-list-btn" onclick="event.stopPropagation(); addRecipeToShoppingList('${r.title}', \`${r.ingredients || ''}\`)">
                         <i class="fas fa-clipboard-list"></i> 加入清单
@@ -115,13 +134,12 @@ function displayRecipes(page) {
     });
 }
 
-// 2. 分页逻辑优化 (匹配 market.js 风格)
 function generatePagination() {
+    // ... (分页代码与之前保持一致，为节省篇幅略去，直接保留原文件逻辑即可) ...
     const container = document.getElementById('paginationContainer');
     if (!container) return;
     container.innerHTML = '';
 
-    // 计算总页数 (复用原逻辑中的筛选)
     const searchTerm = document.getElementById('recipeSearchInput') ? document.getElementById('recipeSearchInput').value.toLowerCase().trim() : '';
     let filtered = recipes.filter(r => {
         const matchCuisine = currentCuisine === 'all' || r.cuisine === currentCuisine;
@@ -196,7 +214,6 @@ function showRecipeDetails(recipeId) {
     window.location.href = `recipe_detail.html?id=${recipeId}`;
 }
 
-// 辅助函数
 function checkLoginStatus() {
     const user = JSON.parse(sessionStorage.getItem('currentUser'));
     const authSection = document.getElementById('authSection');
@@ -216,68 +233,82 @@ function checkLoginStatus() {
 
 function addToFavorites(id) {
     if(!sessionStorage.getItem('currentUser')) {
-        alert('请先登录');
-        window.location.href = 'login.html';
+        showToast('请先登录', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1000);
         return;
     }
     fetch('/api/recipe/favorite/toggle', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({recipeId: id})
-    }).then(r=>r.json()).then(d => alert(d.message));
+    }).then(r=>r.json()).then(d => {
+        showToast(d.message, d.success ? 'success' : 'error');
+        if (d.success) {
+            // 更新本地收藏状态
+            if (d.status === 'added') {
+                myFavoriteIds.push(id);
+            } else {
+                myFavoriteIds = myFavoriteIds.filter(fid => fid !== id);
+            }
+            // 重新渲染当前视图以更新按钮状态
+            updateView();
+        }
+    });
 }
 
 async function addRecipeToShoppingList(title, ingredientsStr) {
     if(!sessionStorage.getItem('currentUser')) {
-        alert('请先登录后使用清单功能');
-        window.location.href = 'login.html';
+        showToast('请先登录后使用清单功能', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1000);
         return;
     }
 
     if (!ingredientsStr || ingredientsStr.trim() === '') {
-        alert("该食谱暂无详细食材信息，无法自动添加");
+        showToast("该食谱暂无详细食材信息，无法自动添加", 'error');
         return;
     }
 
-    if(!confirm(`确定将《${title}》的食材加入待买清单吗？`)) return;
+    showConfirm(`确定将《${title}》的食材加入待买清单吗？`, async function() {
+        const items = ingredientsStr.split(/[\n,，]/)
+            .map(s => s.trim())
+            .filter(s => s.length > 0)
+            .map(s => {
+                const firstSpace = s.indexOf(' ');
+                if (firstSpace > 0) {
+                    return { name: s.substring(0, firstSpace), quantity: s.substring(firstSpace + 1).trim() };
+                } else {
+                    return { name: s, quantity: '适量' };
+                }
+            });
 
-    const items = ingredientsStr.split(/[\n,，]/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0)
-        .map(s => {
-            const firstSpace = s.indexOf(' ');
-            if (firstSpace > 0) {
-                return { name: s.substring(0, firstSpace), quantity: s.substring(firstSpace + 1).trim() };
-            } else {
-                return { name: s, quantity: '适量' };
+        if (items.length === 0) return showToast('未解析到有效食材', 'error');
+
+        try {
+            const res = await fetch('/api/shopping-list/batch-add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(items)
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                try {
+                    const json = JSON.parse(text);
+                    throw new Error(json.message || "服务器错误");
+                } catch(e) { throw new Error("服务器响应异常 (" + res.status + ")"); }
             }
-        });
 
-    if (items.length === 0) return alert('未解析到有效食材');
-
-    try {
-        const res = await fetch('/api/shopping-list/batch-add', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(items)
-        });
-
-        if (!res.ok) {
-            const text = await res.text();
-            try {
-                const json = JSON.parse(text);
-                throw new Error(json.message || "服务器错误");
-            } catch(e) { throw new Error("服务器响应异常 (" + res.status + ")"); }
+            const data = await res.json();
+            if (data.success) {
+                showConfirm('添加成功！是否前往商城查看清单？', function() {
+                    window.location.href = 'market.html';
+                });
+            } else {
+                showToast(data.message || '添加失败', 'error');
+            }
+        } catch(e) {
+            console.error(e);
+            showToast('请求失败: ' + e.message, 'error');
         }
-
-        const data = await res.json();
-        if (data.success) {
-            if(confirm('添加成功！是否前往商城查看清单？')) window.location.href = 'market.html';
-        } else {
-            alert(data.message || '添加失败');
-        }
-    } catch(e) {
-        console.error(e);
-        alert('请求失败: ' + e.message);
-    }
+    });
 }

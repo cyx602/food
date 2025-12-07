@@ -536,17 +536,36 @@
         localStorage.setItem(key, JSON.stringify(list));
         closeAddressModal();
         loadAddresses();
+        showToast('地址保存成功');
     }
-    function deleteAddress(id) { if(!confirm('删除?')) return; const key = getAddressKey(); let list = JSON.parse(localStorage.getItem(key)||'[]'); list = list.filter(a=>a.id!==id); localStorage.setItem(key, JSON.stringify(list)); loadAddresses(); }
+    function deleteAddress(id) {
+        showConfirm('确定删除该地址吗？', function() {
+        const key = getAddressKey();
+        let list = JSON.parse(localStorage.getItem(key)||'[]');
+        list = list.filter(a=>a.id!==id);
+        localStorage.setItem(key, JSON.stringify(list));
+        loadAddresses();
+        showToast('地址已删除');
+        });
+    }
+
     function setDefaultAddress(id) { const key = getAddressKey(); let list = JSON.parse(localStorage.getItem(key)||'[]'); list.forEach(a=>a.isDefault=(a.id===id)); localStorage.setItem(key, JSON.stringify(list)); loadAddresses(); }
 
-    async function logout() { showConfirm('确定要退出登录吗？', async function() {
-        await fetch('/api/logout');
-        sessionStorage.clear();
-        window.location.href='login.html';
-    });
-        await fetch('/api/logout'); sessionStorage.clear(); window.location.href='login.html'; }
-    async function deleteAccount() { if(!confirm('注销?')) return; await fetch('/api/user/delete', {method:'POST'}); sessionStorage.clear(); window.location.href='index.html'; }
+    async function logout() {
+        showConfirm('确定要退出登录吗？', async function() {
+            await fetch('/api/logout');
+            sessionStorage.clear();
+            window.location.href='login.html';
+        });
+    }
+
+    async function deleteAccount() {
+        showConfirm('确定要注销账号吗？此操作不可逆！', async function() {
+            await fetch('/api/user/delete', {method:'POST'});
+            sessionStorage.clear();
+            window.location.href='index.html';
+        });
+    }
 
     // --- 修改资料 (含头像上传) ---
     function openEditProfile() {
@@ -865,7 +884,7 @@
         const name = document.getElementById('editReceiverName').value.trim();
         const phone = document.getElementById('editReceiverPhone').value.trim();
         const addr = document.getElementById('editReceiverAddress').value.trim();
-        if(!name || !phone || !addr) return alert('收货信息不能为空');
+        if(!name || !phone || !addr) return showToast('收货信息不能为空', 'error');
         try {
             const res = await fetch('/api/order/update-address', {
                 method: 'POST',
@@ -879,17 +898,17 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert('地址修改成功');
+                showToast('地址修改成功');
                 closeOrderModal();
                 loadOrders();
             } else {
-                alert(data.message);
+                showToast(data.message, 'error');
             }
-        } catch(e) { console.error(e); alert('网络错误'); }
+        } catch(e) { showToast('网络错误', 'error'); }
     }
 
     async function deleteCurrentOrder() {
-        if(!confirm('确定要删除该订单吗？删除后不可恢复。')) return;
+        showConfirm('确定要删除该订单吗？删除后不可恢复。', async function() {
         try {
             const res = await fetch('/api/order/delete', {
                 method: 'POST',
@@ -898,13 +917,14 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert('订单已删除');
+                showToast('订单已删除');
                 closeOrderModal();
                 loadOrders();
             } else {
-                alert(data.message || '删除失败');
+                showToast(data.message || '删除失败', 'error');
             }
-        } catch(e) { console.error(e); alert('操作失败'); }
+        } catch(e) { showToast('操作失败', 'error'); }
+        });
     }
 
     function closeOrderModal() {

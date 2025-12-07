@@ -94,8 +94,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const pwd = elements.password.value;
             const confirmPwd = elements.confirmPassword.value;
 
-            if (!pwd) return alert('请输入密码');
-            if (pwd.length < 6) return alert('密码长度不能少于6位');
+            if (!pwd) return showToast('请输入密码', 'error');
+            if (pwd !== confirmPwd) {
+                showToast('两次输入的密码不一致', 'error');
+                return;
+            }
 
             // 核心需求：两次密码必须一样
             if (pwd !== confirmPwd) {
@@ -153,14 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const data = await res.json();
                 if (data.success) {
-                    alert('注册成功！快去登录吧');
-                    window.location.href = 'login.html';
+                    showToast('注册成功！快去登录吧');
+                    setTimeout(() => window.location.href = 'login.html', 1500);
                 } else {
-                    alert('注册失败: ' + data.message);
+                    showToast('注册失败: ' + data.message, 'error');
                 }
             } catch (e) {
-                console.error(e);
-                alert('系统繁忙，请稍后重试');
+                showToast('系统繁忙，请稍后重试', 'error');
             }
         });
     }

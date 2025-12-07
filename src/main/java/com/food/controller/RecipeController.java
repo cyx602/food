@@ -1,3 +1,5 @@
+// src/main/java/com/food/controller/RecipeController.java
+
 package com.food.controller;
 
 import com.food.entity.Recipe;
@@ -8,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList; // 确保引入 ArrayList 或 Collections
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +22,16 @@ public class RecipeController {
 
     @Autowired
     private RecipeMapper recipeMapper;
+
+    // --- 新增接口：获取我收藏的食谱ID列表 ---
+    @GetMapping("/favorites/ids")
+    public ResponseEntity<List<Integer>> getMyFavoriteIds(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute("currentUser");
+        if (user == null) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(recipeMapper.selectFavoriteRecipeIds(user.getId()));
+    }
 
     // 切换收藏状态（收藏/取消）
     @PostMapping("/favorite/toggle")
@@ -48,7 +62,7 @@ public class RecipeController {
         return ResponseEntity.ok(res);
     }
 
-    // 获取我的收藏ID列表
+    // 获取我的收藏ID列表 (原有接口保持不变，用于个人中心)
     @GetMapping("/favorites")
     public ResponseEntity<Map<String, Object>> getMyFavorites(@RequestParam(defaultValue = "1") int page,
                                                               @RequestParam(defaultValue = "8") int size,
@@ -193,7 +207,4 @@ public class RecipeController {
             return ResponseEntity.badRequest().body(res);
         }
     }
-
-
-
 }

@@ -514,7 +514,7 @@
         const steps = document.getElementById('newSteps').value;
         const fileInput = document.getElementById('newImageFile');
 
-        if(!title) return alert('请填写食谱标题');
+        if(!title) return showToast('请填写食谱标题', 'error');
 
         let imagePath = 'static/image/default_food.jpg';
 
@@ -524,12 +524,16 @@
             try {
                 const uploadRes = await fetch('/api/upload-avatar', {method:'POST', body:formData});
                 const upData = await uploadRes.json();
-                if(upData.success) {
-                    imagePath = 'static/upload/' + upData.fileName;
+                if(data.success) {
+                    showToast('发布成功！');
+                    closeCreateModal();
+                    loadData();
                 } else {
-                    alert('图片上传失败，将使用默认图');
+                    showToast('发布失败: ' + data.message, 'error');
                 }
-            } catch(e) { console.error('Upload error', e); }
+            } catch(e) {
+                showToast('网络错误', 'error');
+            }
         }
 
         const recipeData = {
@@ -558,23 +562,32 @@
     }
 
     function removeFavorite(id) {
-        if(!confirm('确定取消收藏吗？')) return;
-        fetch('/api/recipe/favorite/toggle', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({recipeId: id})
-        }).then(() => loadData());
+        showConfirm('确定取消收藏吗？', function() {
+            fetch('/api/recipe/favorite/toggle', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({recipeId: id})
+            }).then(() => {
+                showToast('已取消收藏');
+                loadData();
+            });
+        });
     }
 
     function deleteRecipe(id) {
-        if(!confirm('确定删除这个食谱吗？')) return;
-        fetch('/api/recipe/delete', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id: id})
-        }).then(res => res.json()).then(data => {
-            if(data.success) loadData();
-            else alert(data.message);
+        showConfirm('确定删除这个食谱吗？', function() {
+            fetch('/api/recipe/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: id})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    showToast('删除成功');
+                    loadData();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            });
         });
     }
 </script>

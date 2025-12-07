@@ -242,34 +242,34 @@ function createProductPagination(totalPages) {
     container.appendChild(createBtn('末页', totalPages, currentPage === totalPages, false));
 }
 // 购物车逻辑保持不变
-    async function addToCart(productId) {
-        const qtyInput = document.getElementById(`quantity-${productId}`);
-        const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
+async function addToCart(productId) {
+    const qtyInput = document.getElementById(`quantity-${productId}`);
+    const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
 
-        try {
-            const res = await fetch('/api/cart/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ingredientId: productId, quantity: quantity })
-            });
+    try {
+        const res = await fetch('/api/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ingredientId: productId, quantity: quantity })
+        });
 
-            if (res.status === 401) {
-                alert('请先登录');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const data = await res.json();
-            if (data.success) {
-                showToast('已添加到购物车！');
-            } else {
-                alert('添加失败: ' + data.message);
-            }
-        } catch (e) {
-            console.error(e);
-            alert('网络错误或未登录');
+        if (res.status === 401) {
+            showToast('请先登录', 'error');
+            setTimeout(() => window.location.href = 'login.html', 1000);
+            return;
         }
+
+        const data = await res.json();
+        if (data.success) {
+            showToast('已添加到购物车！');
+        } else {
+            showToast('添加失败: ' + data.message, 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showToast('网络错误', 'error');
     }
+}
 
     async function showCart() {
         const modal = document.getElementById('cartModal');
@@ -283,8 +283,8 @@ function createProductPagination(totalPages) {
         try {
             const res = await fetch('/api/cart/list');
             if (res.status === 401) {
-                alert('请先登录');
-                window.location.href = 'login.html';
+                showToast('请先登录', 'error');
+                setTimeout(() => window.location.href = 'login.html', 1000);
                 return;
             }
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -354,8 +354,8 @@ function createProductPagination(totalPages) {
         try {
             const res = await fetch('/api/shopping-list/list');
             if(res.status === 401) {
-                alert('请先登录');
-                window.location.href = 'login.html';
+                showToast('请先登录', 'error');
+                setTimeout(() => window.location.href = 'login.html', 1000);
                 return;
             }
             const list = await res.json();
@@ -438,16 +438,20 @@ function createProductPagination(totalPages) {
     }
 
     async function clearBoughtList() {
-        if(!confirm('确定清空所有已买物品吗？')) return;
-        await fetch('/api/shopping-list/clear-bought', { method: 'POST' });
-        loadShoppingList();
+        showConfirm('确定清空所有已买物品吗？', async function() {
+            await fetch('/api/shopping-list/clear-bought', { method: 'POST' });
+            loadShoppingList();
+            showToast('已清空已买物品');
+        });
     }
 
 // 修改点：新增清空待买
     async function clearTodoList() {
-        if(!confirm('确定清空所有待买物品吗？')) return;
-        await fetch('/api/shopping-list/clear-todo', { method: 'POST' });
-        loadShoppingList();
+        showConfirm('确定清空所有待买物品吗？', async function() {
+            await fetch('/api/shopping-list/clear-todo', { method: 'POST' });
+            loadShoppingList();
+            showToast('已清空待买物品');
+        });
     }
 
     function closeCart() {
@@ -455,15 +459,17 @@ function createProductPagination(totalPages) {
     }
 
     async function removeFromCart(cartId) {
-        if(!confirm('确定移除该商品吗？')) return;
-        try {
-            await fetch('/api/cart/remove', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: cartId })
-            });
-            showCart();
-        } catch(e) { alert('删除失败'); }
+        showConfirm('确定移除该商品吗？', async function() {
+            try {
+                await fetch('/api/cart/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: cartId })
+                });
+                showCart();
+                showToast('已移除');
+            } catch(e) { showToast('删除失败', 'error'); }
+        });
     }
 
 // --- 结算流程逻辑 ---
@@ -544,7 +550,12 @@ function createProductPagination(totalPages) {
                 receiverPhone: newPhone,
                 receiverAddress: newAddr
             };
-        } else if (selectedRadio) {
+        }
+        if (!newName && !selectedRadio) {
+            showToast('请选择一个地址或填写新收货信息', 'error');
+            return;
+        }
+        else if (selectedRadio) {
             const index = selectedRadio.value;
             const addr = addresses[index];
             selectedAddressData = {
@@ -568,42 +579,43 @@ function createProductPagination(totalPages) {
     }
 
 // 3. 点击“确认支付并下单”
-    async function finalSubmitOrder() {
-        if (!selectedAddressData) return alert('地址信息丢失');
+async function finalSubmitOrder() {
+    if (!selectedAddressData) return showToast('地址信息丢失', 'error');
 
-        // 模拟支付过程
-        const payMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-        const btn = document.querySelector('#paymentModal .checkout-btn');
-        btn.disabled = true;
-        btn.innerText = '正在支付...';
+    // 模拟支付过程
+    const btn = document.querySelector('#paymentModal .checkout-btn');
+    btn.disabled = true;
+    btn.innerText = '正在支付...';
 
-        // 模拟延迟
-        await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1000));
 
-        try {
-            const res = await fetch('/api/order/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(selectedAddressData) // 发送地址信息
-            });
+    try {
+        const res = await fetch('/api/order/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(selectedAddressData)
+        });
 
-            const data = await res.json();
-            if (data.success) {
-                alert(`✅ 支付成功！(${payMethod === 'wechat' ? '微信支付' : '支付宝'})\n订单已生成。`);
-                document.getElementById('paymentModal').style.display = 'none';
-                window.location.href = 'profile.html'; // 跳转到订单页
-            } else {
-                alert(data.message || '结算失败');
-                btn.disabled = false;
-                btn.innerText = '确认支付并下单';
-            }
-        } catch (e) {
-            console.error(e);
-            alert('网络错误: ' + e.message);
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('paymentModal').style.display = 'none';
+            // 支付成功提示后跳转
+            showToast('支付成功！订单已生成');
+            setTimeout(() => {
+                window.location.href = 'profile.html';
+            }, 1500);
+        } else {
+            showToast(data.message || '结算失败', 'error');
             btn.disabled = false;
             btn.innerText = '确认支付并下单';
         }
+    } catch (e) {
+        console.error(e);
+        showToast('网络错误: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerText = '确认支付并下单';
     }
+}
 
 window.onclick = function(event) {
     // 定义所有需要支持点击外部关闭的模态框 ID

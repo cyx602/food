@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const email = loginEmailInput.value.trim();
             const password = loginPasswordInput.value.trim();
 
-            if (!email) return alert('邮箱不能为空！');
-            if (!password) return alert('密码不能为空！');
+            if (!email) return showToast('邮箱不能为空！', 'error');
+            if (!password) return showToast('密码不能为空！', 'error');
 
             // --- 记住我逻辑核心部分 ---
             if (rememberMe.checked) {
@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const data = await res.json();
 
                 if (data.success) {
+
                     const userObj = {
                         username: data.username,
                         avatarFileName: data.avatarFileName,
@@ -89,11 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         window.location.href = 'index.html';
                     }
                 } else {
-                    alert(data.message || '登录失败');
+                    showToast(data.message || '登录失败', 'error');
                 }
             } catch (err) {
-                console.error(err);
-                alert('网络错误');
+                showToast('网络错误', 'error');
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = '登录';
