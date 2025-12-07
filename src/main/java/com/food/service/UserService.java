@@ -3,6 +3,7 @@ package com.food.service;
 import com.food.entity.User;
 import com.food.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserMapper userMapper;
-
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
     public UserService(UserMapper userMapper) {
         this.userMapper = userMapper;
@@ -25,15 +26,15 @@ public class UserService {
      */
     @Transactional
     public boolean register(User user) {
-        // 修改点：使用邮箱查重
         int count = userMapper.countByEmail(user.getEmail());
-        if (count > 0) {
-            return false; // 邮箱已存在
-        }
-        // 如果用户名没填，默认使用邮箱前缀
+        if (count > 0) return false;
+
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             user.setUsername(user.getEmail().split("@")[0]);
         }
+        String encodedPwd = passwordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPwd);
+
         userMapper.insertUser(user);
         return true;
     }
@@ -51,7 +52,7 @@ public class UserService {
             return null;
         }
 
-        if (user.getPassword().equals(password)) {
+        if (passwordEncoder.matches(password, user.getPassword())) {
             System.out.println("✅ 登录验证成功");
             return user;
         }

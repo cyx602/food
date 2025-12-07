@@ -6,6 +6,7 @@ import com.food.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,7 +32,7 @@ public class UserController {
 
     @Autowired(required = false) // 允许为空，防止没配置邮箱时报错
     private JavaMailSender mailSender;
-
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     /**
      * 发送邮箱验证码接口
      */
@@ -79,13 +80,9 @@ public class UserController {
         } catch (Exception e) {
             // 【核心修复】：邮件发送失败时的兜底方案
             e.printStackTrace();
-            System.err.println("=========================================");
             System.err.println("❌ 邮件发送失败 (可能是SMTP配置问题)");
             System.err.println("👉 [测试模式] 请手动使用此验证码: " + code);
-            System.err.println("=========================================");
 
-            // 为了让你能测试通过，这里即使发送失败也返回成功，但在前端提示看控制台
-            // 生产环境不能这样写，但毕设/测试环境很有用
             res.put("success", true);
             res.put("message", "邮件发送模拟成功(请看IDEA控制台获取验证码)");
         }
@@ -116,7 +113,7 @@ public class UserController {
             return res;
         }
 
-        // 2. 校验验证码
+        // 2. 校验验证码 (逻辑保持不变)
         String sessionEmail = (String) session.getAttribute("reset_email");
         String sessionCode = (String) session.getAttribute("reset_code");
         Long sessionTime = (Long) session.getAttribute("reset_time");
@@ -127,7 +124,6 @@ public class UserController {
             return res;
         }
 
-        // 校验有效期 (例如5分钟 = 300000毫秒)
         if (System.currentTimeMillis() - sessionTime > 5 * 60 * 1000) {
             res.put("success", false);
             res.put("message", "验证码已过期，请重新获取");
@@ -136,8 +132,11 @@ public class UserController {
 
         // 3. 更新密码
         try {
-            // 这里直接更新，实际项目中建议对新密码进行加密处理
-            userMapper.updatePasswordByEmail(email, newPassword);
+            // 【核心修改】：使用 BCrypt 对新密码进行加密
+            String encodedPassword = passwordEncoder.encode(newPassword);
+
+            // 将加密后的密码存入数据库
+            userMapper.updatePasswordByEmail(email, encodedPassword);
 
             // 清除 Session
             session.removeAttribute("reset_code");
@@ -153,7 +152,6 @@ public class UserController {
 
         return res;
     }
-
 
     /**
      * 头像上传接口
@@ -503,4 +501,6 @@ public class UserController {
 
         return ResponseEntity.ok(res);
     }
+
+
 }
