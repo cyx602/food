@@ -805,8 +805,27 @@
         document.getElementById('orderDetailModal').style.display = 'none';
         activeOrderId = null;
     }
-    window.onclick = function(event) { if (event.target == document.getElementById('orderDetailModal')) closeOrderModal(); }
 
+    // --- 修改后：处理页面上所有模态框的点击外部关闭事件 ---
+    window.onclick = function(event) {
+        // 1. 订单详情弹窗
+        const orderModal = document.getElementById('orderDetailModal');
+        if (event.target == orderModal) {
+            closeOrderModal();
+        }
+
+        // 2. 地址编辑/新增弹窗
+        const addressModal = document.getElementById('addressModal');
+        if (event.target == addressModal) {
+            closeAddressModal();
+        }
+
+        // 3. 个人信息修改弹窗
+        const profileModal = document.getElementById('profileEditModal');
+        if (event.target == profileModal) {
+            profileModal.style.display = 'none';
+        }
+    }
     function renderOrderPagination(total) {
         const container = document.getElementById('orderPagination');
         const totalPages = Math.ceil(total / orderPageSize);

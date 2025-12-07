@@ -605,6 +605,18 @@ function createProductPagination(totalPages) {
         }
     }
 
+window.onclick = function(event) {
+    // 定义所有需要支持点击外部关闭的模态框 ID
+    const modalIds = ['cartModal', 'listModal', 'addressSelectionModal', 'paymentModal'];
+
+    modalIds.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal && event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+    }
+
     function checkLoginStatus() {
         const userJson = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
         const authSection = document.getElementById('authSection');
