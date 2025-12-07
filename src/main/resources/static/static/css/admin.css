@@ -10,27 +10,28 @@ body { margin: 0; padding: 0; background-color: #f9f5f0; overflow-x: hidden; }
     min-height: 100vh;
     background: transparent !important;
     box-shadow: none !important;
-    /* 新增以下两行，去除背后的模糊框和边框 */
     backdrop-filter: none !important;
     border: none !important;
+    gap: 20px;
 }
 .admin-sidebar {
     width: 260px;
     background-color: #fffaf0;
-    position: fixed;
+    position: sticky;
     top: 85px;
-    bottom: 20px;
-    left: 20px;
+    height: calc(100vh - 105px);
     overflow-y: auto;
     z-index: 900;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     padding-top: 10px;
+    border-radius: 12px; /* 建议加上圆角，更好看 */
+    flex-shrink: 0; /* 防止侧边栏被压缩 */
 }
 .admin-content {
     flex: 1;
-    margin-left: 300px;
-    margin-right: 20px;
-    margin-top: 15px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
     background-color: transparent;
 }
 .tab-content {

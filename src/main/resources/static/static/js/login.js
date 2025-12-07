@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 使用 fetch 请求静态文件内容
         // 这里假设 docs 文件夹位于 static/docs/ 下，浏览器访问路径为 /docs/xxx.txt
-        fetch(`docs/${fileName}`)
+        fetch(`docs/${fileName}?t=${new Date().getTime()}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('无法加载协议文件');
